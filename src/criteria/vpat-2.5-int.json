@@ -1,0 +1,121 @@
+{
+  "edition": "INT",
+  "version": "2.5",
+  "generatedFrom": "ITI VPAT 2.5 International Edition (Nov 2023). The INT edition combines Section 508 (US), EN 301 549 (EU), and WCAG 2.0/2.1/2.2 — many rows are shared. This starter file illustrates the schema and the cross-reference shape with a representative subset; the full 120+ row INT table needs to be extracted from the ITI template before publishing a real ACR.",
+  "chapters": [
+    {
+      "id": "wcag-21-aa",
+      "title": "WCAG 2.1 Level AA — additions over 2.0 AA",
+      "description": "WCAG 2.1 added 12 new success criteria beyond 2.0; INT covers them. Five are A, seven are AA. This starter shows the 2.1 AA additions only.",
+      "criteria": [
+        {
+          "id": "wcag.1.3.4",
+          "ref": "1.3.4 Orientation (Level AA, WCAG 2.1)",
+          "text": "Content does not restrict its view and operation to a single display orientation, such as portrait or landscape, unless a specific display orientation is essential.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.5.2.5" }
+          ],
+          "interviewQuestion": "Does your product work in both portrait and landscape on mobile/tablet, or does it force one orientation?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.3.5",
+          "ref": "1.3.5 Identify Input Purpose (Level AA, WCAG 2.1)",
+          "text": "The purpose of each input field collecting information about the user can be programmatically determined when the input field serves a purpose identified in the Input Purposes for User Interface Components section.",
+          "appliesTo": ["web"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.5.2.6" }
+          ],
+          "interviewQuestion": "Do form fields for personal information (name, email, phone, address, credit card) have proper autocomplete attributes so browsers and assistive tech can identify their purpose?",
+          "scannerSignals": {
+            "axeRules": ["autocomplete-valid"],
+            "lighthouseAudits": ["input-button-name"]
+          }
+        },
+        {
+          "id": "wcag.1.4.10",
+          "ref": "1.4.10 Reflow (Level AA, WCAG 2.1)",
+          "text": "Content can be presented without loss of information or functionality, and without requiring scrolling in two dimensions for vertical scrolling content at a width equivalent to 320 CSS pixels, with limited exceptions.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.7" }
+          ],
+          "interviewQuestion": "At 320px width (or 400% zoom on a 1280px viewport), does your UI reflow into a single column without horizontal scrolling? Or do users have to scroll in both directions?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.4.11",
+          "ref": "1.4.11 Non-text Contrast (Level AA, WCAG 2.1)",
+          "text": "The visual presentation of UI components and graphical objects has a contrast ratio of at least 3:1 against adjacent colors.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.8" }
+          ],
+          "interviewQuestion": "Do your interactive controls (button borders, form field outlines, focus indicators, toggle states) have at least 3:1 contrast against their surroundings? Same question for meaningful icons and chart elements.",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.4.12",
+          "ref": "1.4.12 Text Spacing (Level AA, WCAG 2.1)",
+          "text": "No loss of content or functionality occurs when users set line height to 1.5x font size, paragraph spacing to 2x, letter spacing to 0.12x, and word spacing to 0.16x.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.9" }
+          ],
+          "interviewQuestion": "If a user overrides text spacing with a browser extension or user stylesheet, does your UI break — text clipped, controls overlapping, content disappearing?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.4.13",
+          "ref": "1.4.13 Content on Hover or Focus (Level AA, WCAG 2.1)",
+          "text": "Where receiving and then removing pointer hover or keyboard focus triggers additional content to become visible and then hidden, the additional content is dismissible, hoverable, and persistent.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.10" }
+          ],
+          "interviewQuestion": "For tooltips, popovers, and dropdowns that appear on hover/focus — can users dismiss them with Esc, move the pointer into them without them closing, and keep them open as long as needed?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.4.1.3",
+          "ref": "4.1.3 Status Messages (Level AA, WCAG 2.1)",
+          "text": "In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.",
+          "appliesTo": ["web", "software"],
+          "crossRefs": [
+            { "standard": "EN301549", "id": "11.13" }
+          ],
+          "interviewQuestion": "When your UI shows status messages — toast notifications, form success/error banners, async loading states — are they announced to screen readers without stealing focus? (Typically via aria-live regions.)",
+          "scannerSignals": {
+            "axeRules": ["aria-required-attr", "aria-valid-attr-value"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "en301549-software",
+      "title": "EN 301 549 Chapter 11 — Software (additions over WCAG)",
+      "description": "EN 301 549 references WCAG for web/software accessibility but adds platform-specific software requirements. TODO: full Chapter 11 (sections 11.1–11.8) needs extraction from the EN 301 549 source; this starter shows shape only.",
+      "criteria": [
+        {
+          "id": "en301549.11.5.2.3",
+          "ref": "11.5.2.3 Use of accessibility services",
+          "text": "Software which provides a user interface shall be compatible with and make use of accessibility services as documented in the platform documentation.",
+          "appliesTo": ["software"],
+          "crossRefs": [
+            { "standard": "508", "id": "508.502.2.1" }
+          ],
+          "interviewQuestion": "Does your product use the platform's accessibility APIs correctly (UIA on Windows, NSAccessibility on macOS, ARIA on web) for any custom UI components?",
+          "scannerSignals": {}
+        }
+      ]
+    }
+  ],
+  "_notes": {
+    "todo": [
+      "Add the full INT criteria table (~120 rows) by walking the ITI VPAT 2.5 INT template top to bottom. INT is structurally the union of: VPAT 2.5 508 + EN 301 549 Chapters 4–13 + WCAG 2.0/2.1/2.2 A and AA.",
+      "Each WCAG row from vpat-2.5-508.json can be reused here verbatim with added crossRefs to EN 301 549 equivalents.",
+      "Sections of EN 301 549 to add: 4 (Functional performance statements), 5 (Generic requirements), 6 (ICT with two-way voice), 7 (ICT with video), 8 (Hardware — mostly N/A for SaaS), 9 (Web — defers to WCAG), 10 (Non-web docs), 11 (Software), 12 (Documentation and support), 13 (ICT providing relay or emergency services — usually N/A)."
+    ]
+  }
+}

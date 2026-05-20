@@ -1,0 +1,17 @@
+# Next.js
+.next/
+out/
+
+# Dependencies
+node_modules/
+
+# Run artifacts
+vpat-run.log.json
+vpat-*.docx
+
+# Config (has API key)
+~/.vpat/
+
+# Misc
+.DS_Store
+*.local

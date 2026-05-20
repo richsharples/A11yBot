@@ -1,0 +1,51 @@
+{
+  "name": "vpat-tool",
+  "version": "1.0.0",
+  "description": "VPAT 2.5 Accessibility Conformance Report generator",
+  "bin": {
+    "vpat": "./bin/vpat.js"
+  },
+  "scripts": {
+    "dev": "next dev -p 5173",
+    "build": "next build",
+    "start": "next start -p 5173",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "@babel/eslint-parser": "^7.28.6",
+    "@babel/parser": "^7.24.0",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/traverse": "^7.24.0",
+    "@babel/types": "^7.24.0",
+    "@vue/compiler-sfc": "^3.4.0",
+    "cheerio": "^1.0.0",
+    "commander": "^12.0.0",
+    "docx": "^8.5.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "fast-glob": "^3.3.2",
+    "lighthouse": "^12.0.0",
+    "next": "14.2.29",
+    "open": "^10.1.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "^7.20.0",
+    "@types/cheerio": "^0.22.35",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

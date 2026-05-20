@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from "next/server";
+import { draftCriterion } from "@/src/ai/draft";
+import { updateCriterion, requireProject } from "@/src/state/project";
+
+// POST /api/ai/draft — draft one criterion or all notEvaluated
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { criterionId, draftAll } = body as { criterionId?: string; draftAll?: boolean };
+
+    if (draftAll) {
+      const project = requireProject();
+      const notEvaluated = Object.keys(project.criteria).filter(
+        (id) => project.criteria[id].level === "notEvaluated"
+      );
+
+      // Process in batches of 5
+      const BATCH = 5;
+      const results: Record<string, { level: string; remark: string }> = {};
+
+      for (let i = 0; i < notEvaluated.length; i += BATCH) {
+        const batch = notEvaluated.slice(i, i + BATCH);
+        await Promise.all(
+          batch.map(async (id) => {
+            const draft = await draftCriterion(id);
+            const pmAnswer = project.criteria[id].evidence.find((e) => e.source === "interview")?.detail;
+            const confidence = pmAnswer ? "ai-drafted" : "ai-inferred";
+            updateCriterion(id, { level: draft.level, remark: draft.remark, confidence });
+            results[id] = { level: draft.level, remark: draft.remark };
+          })
+        );
+      }
+
+      return NextResponse.json({ draftAll: true, updated: Object.keys(results).length, results });
+    }
+
+    if (!criterionId) {
+      return NextResponse.json({ error: "criterionId or draftAll required" }, { status: 400 });
+    }
+
+    const project = requireProject();
+    const draft = await draftCriterion(criterionId);
+    const pmAnswer = project.criteria[criterionId]?.evidence.find((e) => e.source === "interview")?.detail;
+    const confidence = pmAnswer ? "ai-drafted" : "ai-inferred";
+    const cs = updateCriterion(criterionId, { level: draft.level, remark: draft.remark, confidence });
+
+    return NextResponse.json({ ...cs, reasoning: draft.reasoning });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
