@@ -244,7 +244,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   return (
     <div className="min-h-screen flex">
       {/* Left panel — phosphor green terminal theme */}
-      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col bg-[#0b1a0d] p-8 shrink-0 border-r border-[#39FF14]/10">
+      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col h-screen sticky top-0 bg-[#0b1a0d] p-8 shrink-0 border-r border-[#39FF14]/10">
         {/* Logo */}
         <div className="mb-6 -mx-2">
           <img src="/a11ybot-logo.png" alt="A11yBot" className="w-full rounded-lg opacity-95" />
