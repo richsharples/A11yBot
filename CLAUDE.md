@@ -23,6 +23,24 @@ Full requirements are in `VPAT-tool-requirements.md`; the prescriptive build spe
 | Logging | `pino` → console + `./vpat-run.log.json` |
 | Validation | Zod (criteria files, API payloads, AI output) |
 
+## Git workflow
+
+All changes go through pull requests — never commit directly to `main`.
+
+**Starting any piece of work:**
+```bash
+git checkout -b feat/short-description   # or fix/ or chore/
+```
+
+**When the work is done:**
+- Stage and commit changes on the feature branch
+- Push and open a PR with `gh pr create`
+- Return the PR URL to the user
+
+**The user is not a git expert — always run the git commands yourself** (checkout, add, commit, push, pr create). Explain what each step does in plain English if something goes wrong. Never ask the user to run git commands manually unless there's no other option.
+
+Branch naming: `feat/`, `fix/`, `chore/` + a short kebab-case description.
+
 ## Commands
 
 ```bash
