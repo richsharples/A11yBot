@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-22T13:58:51.323Z",
+  "capturedAt": "2026-05-22T21:53:42.356Z",
   "toolVersion": "2.5.1",
   "targetId": "a11ybot-self",
   "sourceScan": {
@@ -8,9 +8,9 @@
       "vue": 0,
       "angular": 0,
       "css": 10,
-      "jsx": 26
+      "jsx": 32
     },
-    "evidenceAdded": 13,
+    "evidenceAdded": 23,
     "criteriaHit": 7
   },
   "criteria": {

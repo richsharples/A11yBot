@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createProject, getProject } from "@/src/state/project";
 import { CreateProjectPayloadSchema } from "@/src/types";
-import { setSessionApiKey } from "@/src/state/log";
+import { setProviderConfig } from "@/src/state/provider";
 import { ensureCriteriaStore } from "@/src/state/criteria-store";
 
 export async function POST(req: NextRequest) {
@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const payload = CreateProjectPayloadSchema.parse(body);
 
-    if (payload.anthropicApiKey) {
-      setSessionApiKey(payload.anthropicApiKey);
+    if (payload.providerConfig) {
+      setProviderConfig(payload.providerConfig);
     }
 
     const project = createProject(payload);

@@ -16,7 +16,6 @@
     "regression:clone": "tsx tests/regression/run.ts --clone"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.36.3",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/parser": "^7.24.0",
     "@babel/preset-react": "^7.28.5",
