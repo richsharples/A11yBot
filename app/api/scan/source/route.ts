@@ -1,38 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import fg from "fast-glob";
-import { addEvidence, clearScanEvidence, requireProject, getCriteriaFile } from "@/src/state/project";
+import { addEvidence, clearScanEvidence, requireProject } from "@/src/state/project";
 import { scanHtmlFile } from "@/src/scanners/source-html";
 import { scanVueFile } from "@/src/scanners/source-vue";
 import { scanAngularFile } from "@/src/scanners/source-angular";
 import { scanCssFile, buildCssEvidence } from "@/src/scanners/source-css";
 import { log, writeRunLog } from "@/src/state/log";
-import type { RuleMapping } from "@/src/scanners/source-jsx";
-
-function buildRuleMapping(edition: "508" | "INT"): RuleMapping {
-  const criteriaFile = getCriteriaFile(edition);
-  const mapping: RuleMapping = {};
-  for (const chapter of criteriaFile.chapters) {
-    for (const criterion of chapter.criteria) {
-      const signals = criterion.scannerSignals;
-      if (!signals) continue;
-      const allRules = [
-        ...(signals.eslintRules ?? []),
-        ...(signals.axeRules ?? []),
-        ...(signals.lighthouseAudits ?? []),
-      ];
-      for (const rule of allRules) {
-        // Strip "jsx-a11y/" prefix for unified mapping
-        const key = rule.replace(/^jsx-a11y\//, "");
-        if (!mapping[key]) mapping[key] = [];
-        if (!mapping[key].includes(criterion.id)) mapping[key].push(criterion.id);
-        // Also store with prefix
-        if (!mapping[rule]) mapping[rule] = [];
-        if (!mapping[rule].includes(criterion.id)) mapping[rule].push(criterion.id);
-      }
-    }
-  }
-  return mapping;
-}
+import { buildRuleMapping } from "@/src/scanners/rule-mapping";
 
 export async function POST(req: NextRequest) {
   try {

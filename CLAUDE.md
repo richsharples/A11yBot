@@ -48,18 +48,31 @@ app/
     scan/runtime/route.ts       # POST: Lighthouse scan
     ai/draft/route.ts           # POST: AI-draft one criterion
     export/route.ts             # POST: build .docx + finalise log
+components/
+  review/                       # CriteriaReview and sub-components
+    CriteriaReview.tsx          # Main orchestrator shell
+    CriterionDetail.tsx         # Per-criterion editing panel
+    StatusBar.tsx               # Status log at bottom of screen
+    ProgressBar.tsx             # Evaluated/confirmed progress bar
+    FindingActions.tsx          # Copy/GitHub-issue actions for scanner findings
+    Tooltip.tsx                 # Lightweight tooltip wrapper
+    types.ts                    # Shared types, constants, helpers (no JSX)
+    index.ts                    # Re-exports CriteriaReview
+  setup/
+    SetupWizard.tsx             # Three-step project creation wizard
+    index.ts                    # Re-exports SetupWizard
 src/
   criteria/                     # Static JSON — source of truth for which rows appear
     vpat-2.5-508.json
     vpat-2.5-int.json
   scanners/                     # One file per scanner type
+    rule-mapping.ts             # Shared buildRuleMapping() used by scan route
   ai/
     client.ts                   # Anthropic client wrapper
     prompts.ts                  # Prompt templates — version carefully, prompt drift causes regressions
-    draft.ts                    # Per-criterion orchestration
+    draft.ts                    # Per-criterion orchestration + deriveConfidence()
   docx/
-    render.ts
-    templates/                  # ITI .docx templates with bookmarks + content controls
+    render.ts                   # Builds .docx programmatically (no templates directory needed)
   state/
     project.ts                  # Module-level singleton Project store
     log.ts                      # pino instance + run-log writer
@@ -86,7 +99,7 @@ Full interface definitions are in `BUILD-SPEC.md §4` and will be in `src/types.
 
 `src/criteria/vpat-2.5-508.json` and `vpat-2.5-int.json` are the source of truth for which rows appear in the UI and the .docx. The Zod schema lives in `src/types.ts`. Each criterion carries `interviewQuestion` (plain-language PM prompt) and `scannerSignals` (mapping to eslint/axe/Lighthouse rule IDs).
 
-These files are **starter/partial** — the full 508 table (~60 rows) and INT table (~120 rows) need to be completed before a real ACR can be produced. See `BUILD-SPEC.md §11`.
+The 508 edition has ~124 criteria; the INT edition has ~160 criteria.
 
 ## AI draft flow
 
@@ -96,7 +109,7 @@ Scanners never set conformance levels — they only contribute `Evidence[]`. Inf
 
 ## .docx export
 
-Loads ITI template from `src/docx/templates/`, fills named bookmarks (metadata) and content controls (per-criterion rows), writes to download + `./vpat-{productName}-{date}.docx`. Criteria still at `notEvaluated` are written as "Not Evaluated" — this is acceptable in a draft VPAT.
+Builds the .docx programmatically via `src/docx/render.ts` (no templates directory), writes to download + `./vpat-{productName}-{date}.docx`. Criteria still at `notEvaluated` are written as "Not Evaluated" — this is acceptable in a draft VPAT.
 
 ## Explicit v1 constraints — do not add without asking
 

@@ -1,8 +1,12 @@
 import { getClient } from "./client";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./prompts";
-import { AiDraftResponseSchema, type AiDraftResponse } from "../types";
+import { AiDraftResponseSchema, type AiDraftResponse, type Confidence } from "../types";
 import { requireProject, getCriteriaFile } from "../state/project";
 import { log, writeRunLog } from "../state/log";
+
+export function deriveConfidence(pmAnswer: string | undefined): Confidence {
+  return pmAnswer ? "ai-drafted" : "ai-inferred";
+}
 
 const DEFAULT_MODEL = process.env.VPAT_MODEL ?? "claude-sonnet-4-6";
 
@@ -86,7 +90,7 @@ export async function draftCriterion(criterionId: string): Promise<AiDraftRespon
   }
 
   // If only scanner evidence (no PM answer), mark as ai-inferred
-  const confidence = pmAnswer ? "ai-drafted" : (scannerEvidence.length > 0 ? "ai-inferred" : "ai-inferred");
+  const confidence = deriveConfidence(pmAnswer);
 
   writeRunLog({ event: "ai.draft.returned", criterionId, result, confidence });
   return result;

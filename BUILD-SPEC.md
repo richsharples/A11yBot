@@ -161,7 +161,7 @@ interface Project {
 
 ## 5. Criteria data files
 
-Two JSON files in `src/criteria/`. They are the source of truth for which rows appear in the UI and the .docx. The starter versions (this repo) ship with the structure complete and the criterion text filled in for the 508 chapters and WCAG A/AA. The full INT cross-reference table is a follow-on data task — see §11.
+Two JSON files in `src/criteria/`. They are the source of truth for which rows appear in the UI and the .docx. The criteria are complete: the 508 edition has ~124 criteria and the INT edition has ~160 criteria.
 
 Schema (Zod-defined in `src/types.ts`):
 
@@ -214,7 +214,7 @@ Example row, illustrative:
 }
 ```
 
-A starter `vpat-2.5-508.json` is checked into this folder alongside the spec; see §11 for what's still TODO.
+Both `vpat-2.5-508.json` and `vpat-2.5-int.json` are checked into this folder with complete criteria text, `interviewQuestion`, and `scannerSignals` for all rows.
 
 ---
 
@@ -306,14 +306,9 @@ The response is parsed with Zod. If parsing fails, retry once with a "your previ
 
 ## 8. .docx renderer
 
-The ITI .docx template is the single source of truth for layout. Steps:
+The .docx is built programmatically via `src/docx/render.ts` using the `docx` npm package — no templates directory is needed. The renderer constructs the full document structure in code: metadata header, chapter headings, and criteria table rows (`[ref + text] [level] [remark]`).
 
-1. Download the official VPAT 2.5 508 template from ITI (`https://www.itic.org/policy/accessibility/vpat`) and the INT template. Strip them down: remove example text, keep table structure.
-2. Add named bookmarks for the metadata fields (product name, version, description, date, contact).
-3. Each criteria table row gets a Word content control with the criterion id as its tag, so the renderer can find it and insert level + remark.
-4. The `docx` npm package opens the template, fills bookmarks, populates content controls, and writes the output.
-
-Keep the template files in `src/docx/templates/` and treat them as build artefacts — version them with the code. If ITI publishes VPAT 2.6, that's a template update plus a criteria JSON update; no code change needed.
+Note: the original spec described using ITI Word templates with bookmarks and content controls. The current implementation builds the document directly in code instead, which is simpler to maintain. If ITI publishes VPAT 2.6, update the renderer to match the new structure — no template files to manage.
 
 ---
 
@@ -336,16 +331,16 @@ No SSO. No multi-user. No database. No persistence across sessions (config aside
 
 ---
 
-## 11. Pre-build data tasks
+## 11. Criteria data status
 
-These are not code, but they are blocking for a useful v1. Order of priority:
+The pre-build data tasks described in earlier drafts of this spec are complete:
 
-1. **Extract the full VPAT 2.5 508 criteria list** from the ITI template into `src/criteria/vpat-2.5-508.json`. The starter file ships with Chapter 3 and the WCAG A/AA tables filled in; Chapters 4 (Hardware, mostly N/A for SaaS), 5 (Software), and 6 (Support Docs) need their criteria text and `interviewQuestion` written. ~60 rows total.
-2. **Build the INT cross-reference table** in `src/criteria/vpat-2.5-int.json`. INT is the union of 508 + EN 301 549 + WCAG with cross-refs between equivalent criteria — the JSON shape in §5 supports this via `crossRefs`. ~120 rows total.
-3. **Strip and prepare the ITI .docx templates** for both editions, with bookmarks and content controls as described in §8.
-4. **Author the `interviewQuestion` and `scannerSignals` fields** for every criterion. This is the highest-leverage content work in the project — good interview questions and accurate scanner mappings are what make the tool feel useful rather than mechanical.
+1. **508 criteria** — `src/criteria/vpat-2.5-508.json` contains ~124 criteria across all chapters with `interviewQuestion` and `scannerSignals` for each row.
+2. **INT criteria** — `src/criteria/vpat-2.5-int.json` contains ~160 criteria with cross-refs to EN 301 549 and WCAG.
+3. **docx renderer** — built programmatically (see §8); no ITI template files required.
+4. **Scanner signals** — `eslintRules`, `axeRules`, and `lighthouseAudits` mappings are authored for all applicable criteria.
 
-Items 1, 2, and 4 are roughly a day's careful work by someone who knows VPATs. Item 3 is half a day of fiddly Word manipulation.
+To add or update criteria: edit the JSON files directly, bump `criteriaVersion` in `src/criteria/manifest.json`, and run `npm run regression:update` to refresh baselines.
 
 ---
 

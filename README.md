@@ -178,18 +178,27 @@ app/
     ai/draft/route.ts         # POST: AI-draft one or all criteria
     export/route.ts           # POST: build .docx
 components/
-  CriteriaReview.tsx          # Main review UI
-  SetupWizard.tsx             # Three-step project setup wizard
+  review/
+    CriteriaReview.tsx        # Main review shell + orchestrator
+    CriterionDetail.tsx       # Per-criterion editing panel
+    StatusBar.tsx             # Status log at bottom of screen
+    FindingActions.tsx        # Copy/GitHub-issue actions per finding
+    ProgressBar.tsx           # Evaluated/confirmed progress bar
+    Tooltip.tsx               # Lightweight tooltip wrapper
+    types.ts                  # Shared types, constants, helpers
+  setup/
+    SetupWizard.tsx           # Three-step project creation wizard
 src/
   criteria/
     vpat-2.5-508.json         # Section 508 criteria (~124 criteria)
     vpat-2.5-int.json         # International criteria (~160 criteria)
   scanners/
     source-jsx.ts             # ESLint/jsx-a11y scanner
+    rule-mapping.ts           # Builds ESLint rule → criterion ID mapping
     lighthouse.ts             # Lighthouse runner
   ai/
     client.ts                 # Anthropic client
-    draft.ts                  # Per-criterion AI orchestration
+    draft.ts                  # Per-criterion AI orchestration + deriveConfidence()
   state/
     project.ts                # In-memory project store
   types.ts                    # Zod schemas + TypeScript types
@@ -222,6 +231,12 @@ src/
 ---
 
 ## Changelog
+
+### 0.1.0-beta.4
+- Codebase reorganised for second-developer onboarding: `CriteriaReview.tsx` (1106 lines) split into `components/review/` sub-components; `SetupWizard.tsx` moved to `components/setup/`
+- `buildRuleMapping` extracted from API route into `src/scanners/rule-mapping.ts`; confidence logic de-duplicated via exported `deriveConfidence()` in `src/ai/draft.ts`
+- Dead auto-update code removed from `criteria-store.ts`; `tsconfig.json` excludes cloned OSS test targets
+- Added `CONTRIBUTING.md` and `.env.example` for new contributors
 
 ### 0.1.0-beta.3
 - Regression test suite: three-target runner (`fixture`, `vpat-tool-self`, `cmdk`) with committed JSON baselines; exact-match for synthetic fixture, ±20% tolerance for live codebases; `npm run regression` required before every release

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { draftCriterion } from "@/src/ai/draft";
+import { draftCriterion, deriveConfidence } from "@/src/ai/draft";
 import { updateCriterion, requireProject } from "@/src/state/project";
 
 // POST /api/ai/draft — draft one criterion or all notEvaluated
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
           batch.map(async (id) => {
             const draft = await draftCriterion(id);
             const pmAnswer = project.criteria[id].evidence.find((e) => e.source === "interview")?.detail;
-            const confidence = pmAnswer ? "ai-drafted" : "ai-inferred";
+            const confidence = deriveConfidence(pmAnswer);
             updateCriterion(id, { level: draft.level, remark: draft.remark, confidence });
             results[id] = { level: draft.level, remark: draft.remark };
           })
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const project = requireProject();
     const draft = await draftCriterion(criterionId);
     const pmAnswer = project.criteria[criterionId]?.evidence.find((e) => e.source === "interview")?.detail;
-    const confidence = pmAnswer ? "ai-drafted" : "ai-inferred";
+    const confidence = deriveConfidence(pmAnswer);
     const cs = updateCriterion(criterionId, { level: draft.level, remark: draft.remark, confidence });
 
     return NextResponse.json({ ...cs, reasoning: draft.reasoning });

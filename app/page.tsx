@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Project, CriterionState, ConformanceLevel } from "@/src/types";
-import { SetupWizard } from "@/components/SetupWizard";
-import { CriteriaReview } from "@/components/CriteriaReview";
+import { SetupWizard } from "@/components/setup";
+import { CriteriaReview } from "@/components/review";
 
 type AppView = "setup" | "review";
 
