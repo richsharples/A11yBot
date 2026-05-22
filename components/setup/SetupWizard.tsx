@@ -243,37 +243,44 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 p-8 shrink-0">
-        <div className="mb-8">
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-2xl font-extrabold text-white">A11yBot</span>
-            <span className="px-1.5 py-0.5 rounded bg-blue-500/30 border border-blue-400/40 text-blue-200 text-[10px] font-mono font-semibold">
+      {/* Left panel — phosphor green terminal theme */}
+      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col bg-[#0b1a0d] p-8 shrink-0 border-r border-[#39FF14]/10">
+        {/* Logo */}
+        <div className="mb-6 -mx-2">
+          <img src="/a11ybot-logo.png" alt="A11yBot" className="w-full rounded-lg opacity-95" />
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-2xl font-extrabold text-[#39FF14] font-mono tracking-tight" style={{ textShadow: "0 0 12px #39FF14aa" }}>
+              A11yBot
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-[10px] font-mono font-semibold">
               v{APP_VERSION}
             </span>
           </div>
-          <p className="text-blue-200 text-sm leading-relaxed">
-            Generate Accessibility Conformance Reports compliant with VPAT 2.5 — guided interview, automated scanning, and AI-assisted drafting.
+          <p className="text-[#39FF14]/60 text-sm leading-relaxed font-mono">
+            Generate VPAT 2.5 Accessibility Conformance Reports — interview, scanning, and AI-assisted drafting.
           </p>
         </div>
 
         <div className="flex-1">
-          <p className="text-blue-300/70 text-[10px] uppercase tracking-widest font-semibold mb-3">Compliance Standards</p>
+          <p className="text-[#39FF14]/40 text-[10px] uppercase tracking-widest font-mono font-semibold mb-3">Compliance Standards</p>
           {criteriaStatus ? (
             <>
-              <p className="text-blue-300 text-[10px] font-mono mb-3">
+              <p className="text-[#39FF14]/50 text-[10px] font-mono mb-3">
                 Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
               </p>
               <ul className="space-y-3">
                 {criteriaStatus.manifest.sources.map((s) => (
                   <li key={s.url} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 px-1 py-0.5 rounded bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[9px] font-mono font-bold uppercase">
+                    <span className="mt-0.5 shrink-0 px-1 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/20 text-[#39FF14]/80 text-[9px] font-mono font-bold uppercase">
                       {s.abbr ?? s.name.split(" ")[0]}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-white text-xs font-medium leading-snug">{s.name}</p>
+                      <p className="text-[#39FF14]/80 text-xs font-mono leading-snug">{s.name}</p>
                       <a href={s.url} target="_blank" rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 text-[10px] break-all transition-colors">
+                        className="text-[#39FF14]/40 hover:text-[#39FF14]/70 text-[10px] break-all transition-colors font-mono">
                         {s.url}
                       </a>
                     </div>
@@ -281,25 +288,25 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                 ))}
               </ul>
               {criteriaStatus.manifest.notes && (
-                <p className="mt-4 pt-4 border-t border-white/10 text-blue-300/50 text-[10px] leading-relaxed">
+                <p className="mt-4 pt-4 border-t border-[#39FF14]/10 text-[#39FF14]/30 text-[10px] leading-relaxed font-mono">
                   {criteriaStatus.manifest.notes}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-blue-300/50 text-xs">Loading…</p>
+            <p className="text-[#39FF14]/30 text-xs font-mono">Loading…</p>
           )}
         </div>
 
         <footer className="mt-8 space-y-2">
-          <p className="text-blue-300/50 text-[10px]">
-            Copyright &copy; {new Date().getFullYear()}{" "}
-            <a href="mailto:rich.sharples@gmail.com" className="hover:text-blue-200 underline underline-offset-2 transition-colors">
+          <p className="text-[#39FF14]/30 text-[10px] font-mono">
+            &copy; {new Date().getFullYear()}{" "}
+            <a href="mailto:rich.sharples@gmail.com" className="hover:text-[#39FF14]/60 underline underline-offset-2 transition-colors">
               Rich Sharples
             </a>
           </p>
           <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-blue-400/60 hover:text-blue-300 text-[10px] transition-colors">
+            className="inline-flex items-center gap-1 text-[#39FF14]/30 hover:text-[#39FF14]/60 text-[10px] font-mono transition-colors">
             <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
             </svg>
