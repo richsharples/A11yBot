@@ -264,38 +264,40 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
           </p>
         </div>
 
-        <div className="flex-1">
-          <p className="text-[#39FF14]/40 text-[10px] uppercase tracking-widest font-mono font-semibold mb-3">Compliance Standards</p>
-          {criteriaStatus ? (
-            <>
-              <p className="text-[#39FF14]/50 text-[10px] font-mono mb-3">
-                Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
-              </p>
-              <ul className="space-y-3">
-                {criteriaStatus.manifest.sources.map((s) => (
-                  <li key={s.url} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 px-1 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/20 text-[#39FF14]/80 text-[9px] font-mono font-bold uppercase">
-                      {s.abbr ?? s.name.split(" ")[0]}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[#39FF14]/80 text-xs font-mono leading-snug">{s.name}</p>
-                      <a href={s.url} target="_blank" rel="noopener noreferrer"
-                        className="text-[#39FF14]/40 hover:text-[#39FF14]/70 text-[10px] break-all transition-colors font-mono">
-                        {s.url}
-                      </a>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {criteriaStatus.manifest.notes && (
-                <p className="mt-4 pt-4 border-t border-[#39FF14]/10 text-[#39FF14]/30 text-[10px] leading-relaxed font-mono">
-                  {criteriaStatus.manifest.notes}
+        <div className="flex-1 flex flex-col min-h-0">
+          <p className="text-[#39FF14]/40 text-[10px] uppercase tracking-widest font-mono font-semibold mb-3 shrink-0">Compliance Standards</p>
+          <div className="flex-1 overflow-y-auto rounded-lg border border-[#39FF14]/10 bg-[#39FF14]/5 p-3 scrollbar-thin" style={{ scrollbarColor: "#39FF14aa transparent" }}>
+            {criteriaStatus ? (
+              <>
+                <p className="text-[#39FF14]/50 text-[10px] font-mono mb-3">
+                  Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
                 </p>
-              )}
-            </>
-          ) : (
-            <p className="text-[#39FF14]/30 text-xs font-mono">Loading…</p>
-          )}
+                <ul className="space-y-3">
+                  {criteriaStatus.manifest.sources.map((s) => (
+                    <li key={s.url} className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 px-1 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/20 text-[#39FF14]/80 text-[9px] font-mono font-bold uppercase">
+                        {s.abbr ?? s.name.split(" ")[0]}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[#39FF14]/80 text-xs font-mono leading-snug">{s.name}</p>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer"
+                          className="text-[#39FF14]/40 hover:text-[#39FF14]/70 text-[10px] break-all transition-colors font-mono">
+                          {s.url}
+                        </a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {criteriaStatus.manifest.notes && (
+                  <p className="mt-4 pt-4 border-t border-[#39FF14]/10 text-[#39FF14]/30 text-[10px] leading-relaxed font-mono">
+                    {criteriaStatus.manifest.notes}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-[#39FF14]/30 text-xs font-mono">Loading…</p>
+            )}
+          </div>
         </div>
 
         <footer className="mt-8 space-y-2">
