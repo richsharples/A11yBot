@@ -12,6 +12,10 @@ vpat-*.docx
 # Config (has API key)
 ~/.vpat/
 
+# Regression suite — OSS clones and run reports (baselines ARE committed)
+tests/regression/oss/
+.regression-reports/
+
 # Misc
 .DS_Store
 *.local

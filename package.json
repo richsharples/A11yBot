@@ -10,7 +10,10 @@
     "build": "next build",
     "start": "next start -p 5173",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "regression": "tsx tests/regression/run.ts",
+    "regression:update": "tsx tests/regression/run.ts --update-baseline",
+    "regression:clone": "tsx tests/regression/run.ts --clone"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",
