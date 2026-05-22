@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
 
-const APP_VERSION = "0.1.0-beta.1";
+const APP_VERSION = "0.1.0-beta.2";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/vpat-tool/issues";
 
 interface CriteriaSource {
@@ -30,7 +30,7 @@ const EDITIONS: { value: Edition; label: string; description: string }[] = [
 ];
 
 const COMPONENTS: { value: ProductComponent; label: string; description: string; icon: string }[] = [
-  { value: "web",      label: "Web / Browser",          description: "Web application, website, or web content",               icon: "🌐" },
+  { value: "web",      label: "SaaS / Web",              description: "Web application, website, or web content",               icon: "🌐" },
   { value: "software", label: "Desktop / Mobile App",   description: "Native app, Electron, iOS, Android",                     icon: "💻" },
   { value: "hardware", label: "Hardware",               description: "Physical device with a user interface",                   icon: "🖥️" },
   { value: "docs",     label: "Documentation",          description: "User manuals, in-product help, release notes",            icon: "📄" },
