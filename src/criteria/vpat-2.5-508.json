@@ -1,7 +1,7 @@
 {
   "edition": "508",
   "version": "2.5",
-  "generatedFrom": "ITI VPAT 2.5 Revised Section 508 Edition (Nov 2023). Criterion text reproduced from 36 CFR Part 1194 and WCAG 2.0. Authored as a starter file 2026-05-19; verify against ITI source before publishing a real ACR.",
+  "generatedFrom": "ITI VPAT 2.5 Revised Section 508 Edition (Nov 2023). Criterion text reproduced from 36 CFR Part 1194 and WCAG 2.0. Verify against ITI source before publishing a real ACR.",
   "chapters": [
     {
       "id": "ch3",
@@ -24,7 +24,7 @@
           "ref": "302.2 With Limited Vision",
           "text": "Where a visual mode of operation is provided, ICT shall provide at least one mode of operation that magnifies, one mode that reduces the field of vision required, and one mode that allows user control of contrast.",
           "appliesTo": ["software", "web"],
-          "interviewQuestion": "Can a user with low vision use your product — does it support OS-level zoom up to 200% without loss of content, allow text resizing, and respect high-contrast modes? Does anything break at large text sizes?",
+          "interviewQuestion": "Can a user with low vision use your product — does it support OS-level zoom up to 200% without loss of content, allow text resizing, and respect high-contrast modes?",
           "scannerSignals": {
             "axeRules": ["color-contrast", "meta-viewport"],
             "lighthouseAudits": ["color-contrast", "meta-viewport"]
@@ -95,14 +95,390 @@
     {
       "id": "ch4",
       "title": "Chapter 4: Hardware",
-      "description": "Hardware criteria. For pure web/SaaS products with no hardware component, every row here is Not Applicable. TODO: full Chapter 4 criteria list (401–412) to be extracted from ITI template for completeness; v1 web/SaaS scope marks them all N/A by default.",
+      "description": "Hardware criteria from 36 CFR Part 1194. For pure web/SaaS products with no hardware component, mark every row Not Applicable and note \"Web/SaaS product — no hardware component\" in the remarks.",
       "criteria": [
         {
-          "id": "508.ch4.notApplicable",
-          "ref": "Chapter 4 — Hardware (all sections)",
-          "text": "Section 4 addresses hardware that transmits information or has a user interface. This product is a web/SaaS application with no hardware component.",
-          "appliesTo": ["software", "web"],
-          "interviewQuestion": "Does your product ship any hardware (kiosk, device, peripheral)? If no, this entire chapter is Not Applicable.",
+          "id": "508.402.2.1",
+          "ref": "402.2.1 Contrast",
+          "text": "Characters displayed on the screen shall have a contrast ratio of at least 3:1 against the background.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your product include any hardware with an integrated display? If so, does the displayed text meet at least 3:1 contrast against the background?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.2.2",
+          "ref": "402.2.2 Font",
+          "text": "Characters on screen shall be in a sans serif font.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does the hardware display use a sans-serif font for its characters?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.2.3",
+          "ref": "402.2.3 Upper and Lower Case Letters",
+          "text": "Characters shall not be displayed in uppercase only.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does any text on the hardware display appear in all-uppercase? If so, is mixed-case available as an alternative?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.2.4",
+          "ref": "402.2.4 Non-glare screen",
+          "text": "Characters displayed on the screen shall comply with the display requirements of Section 402.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does the hardware screen have a non-glare coating or equivalent anti-reflection properties?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.3.1",
+          "ref": "402.3.1 Braille Cells",
+          "text": "Where provided, braille shall conform to ANSI/BHS S2-2010.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware include a braille display or braille output? If so, does it conform to ANSI/BHS S2-2010?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.3.2",
+          "ref": "402.3.2 Braille Spacing",
+          "text": "Braille cells shall have a separation of 2.5 mm center to center between cells.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware has a braille output component, are the braille cells spaced at 2.5 mm center-to-center?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.4",
+          "ref": "402.4 Characters on Variable Message Signs",
+          "text": "Characters on variable message signs shall comply with section 703.7 Visual Characters of ICC A117.1-2009.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your product include any variable message signs (e.g., on kiosks or displays)? If so, do characters meet ICC A117.1-2009 visual character requirements?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.5",
+          "ref": "402.5 Icons",
+          "text": "Where provided, icons shall be accompanied by text or be programmatically determinable.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Do any hardware controls use icons only? If so, is each icon accompanied by a visible text label or programmatically determinable description?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.6",
+          "ref": "402.6 Speech Output",
+          "text": "ICT with a closed functionality that relies on speech output shall ensure the speech output meets the requirements of 402.6.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware provide speech output (e.g., a kiosk reading menus aloud)? Is speech output available in all modes of operation?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.7",
+          "ref": "402.7 Volume",
+          "text": "ICT that provides speech output shall provide volume control and output amplification.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware provides speech output, can users adjust the volume? Is there a headphone jack for private listening?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.8",
+          "ref": "402.8 Speech Delivery Type and Coordination",
+          "text": "Speech output shall be delivered through a mechanism that is readily available to all users, including those who need it for accessibility.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Is the speech output on your hardware always available and not dependent on a special mode that users must activate?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.402.9",
+          "ref": "402.9 Non-Speech Outputs",
+          "text": "Non-speech audio outputs shall not be the only means of conveying information.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware use sounds (beeps, tones) to convey information? Is that information also available visually or through touch?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.404.1",
+          "ref": "404.1 Preservation of Information",
+          "text": "ICT that transmits or converts information or communications shall not remove non-proprietary information needed for accessibility or shall restore it upon delivery.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "When your hardware transmits or converts data, does it preserve accessibility metadata (e.g., alt text in documents, captions in video streams)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.405.1",
+          "ref": "405.1 Privacy",
+          "text": "The same degree of privacy of input and output shall be provided to individuals with disabilities as is provided to others.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware has accessibility modes (e.g., speech output for a blind user), can that user use them with the same privacy as a sighted user typing silently?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.406.1",
+          "ref": "406.1 General",
+          "text": "Where data connections used for input and output are provided, at least one of each type of connection shall conform to industry-standard non-proprietary formats.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware expose any data connections? If so, is at least one of each type (USB, audio jack, etc.) using an industry-standard, non-proprietary format?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.2",
+          "ref": "407.2 Operable with One Hand",
+          "text": "ICT shall be operable with at least one hand.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Can all hardware controls be operated with one hand, without requiring simultaneous two-hand operations?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.3.1",
+          "ref": "407.3.1 Discernibility of Mechanically Operated Controls",
+          "text": "Mechanically operated controls and keys shall be discernible by touch from each other and from surrounding surfaces.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Are the physical buttons and keys on your hardware distinguishable by touch — do they have distinct shapes, textures, or spacing so a blind user can locate them?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.3.2",
+          "ref": "407.3.2 Discernibility of Touch-Operated Controls",
+          "text": "Touch-operated controls and keys shall be discernible by touch from surrounding surfaces without activating the control or key.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware uses a touchscreen, can users explore the screen by touch to find controls without accidentally activating them?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.3.3",
+          "ref": "407.3.3 Input Controls",
+          "text": "Where provided, input controls shall comply with 407.3.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Are all input controls on your hardware (buttons, dials, sliders) operable without vision and distinguishable by touch?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.4",
+          "ref": "407.4 Key Repeat",
+          "text": "Where ICT provides key repeat functionality, the delay before the repeated keystroke shall be adjustable to at least 2 seconds. The key repeat rate shall be adjustable to 2 seconds per character.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware keyboard supports key repeat, can users set the repeat delay to at least 2 seconds to prevent accidental key repetitions?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.5",
+          "ref": "407.5 Alphabetic Keys",
+          "text": "Where provided, individual alphabetic keys shall be arranged in a QWERTY keyboard layout and the F and J keys shall be tactilely distinct from the other keys.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware has a physical keyboard, are the keys in QWERTY layout with tactile indicators on F and J?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.6",
+          "ref": "407.6 Operation",
+          "text": "Where a function uses a linear, rather than arbitrary, keying sequence, the sequence shall be non-ambiguous.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Where your hardware requires a specific key sequence (like a PIN entry), is the sequence unambiguous and does not require simultaneous key presses?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.7",
+          "ref": "407.7 Tickets, Fare Cards, and Passes",
+          "text": "Where provided, tickets, fare cards, and passes shall have an orientation that is tactilely discernible if orientation is important to further use of the ticket.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware dispenses or accepts physical tickets or cards, can a user with vision impairment tell which orientation to insert or use them?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.8.2",
+          "ref": "407.8.2 Forward Reach",
+          "text": "Where a forward reach is provided, the high forward reach shall be no higher than 48 inches (1220 mm) and no lower than 15 inches (380 mm) above the floor.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Are all operable controls on your hardware reachable from a seated position — between 15 and 48 inches from the floor?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.8.3.1",
+          "ref": "407.8.3.1 Unobstructed Side Reach",
+          "text": "Where a clear floor space allows a parallel approach and the side reach is unobstructed, the high side reach shall be no higher than 48 inches and the low side reach no lower than 15 inches above the floor.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Where side reach is available, are all controls reachable within the 15–48 inch height range for a user in a wheelchair approaching from the side?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.8.3.2",
+          "ref": "407.8.3.2 Obstructed Side Reach",
+          "text": "Where the side reach is over an obstruction no deeper than 10 inches and no higher than 34 inches, the high side reach shall be no higher than 46 inches.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Where an obstruction blocks side reach, are all controls within the adjusted reach range (no higher than 46 inches)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.8.3.3",
+          "ref": "407.8.3.3 Unobstructed Forward Reach",
+          "text": "Where a clear floor space allows a forward approach and the forward reach is unobstructed, the high forward reach shall be no higher than 48 inches and no lower than 15 inches.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Where forward reach is unobstructed, are all controls within the 15–48 inch height range from the floor?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.8.3.4",
+          "ref": "407.8.3.4 Obstructed Forward Reach",
+          "text": "Where the forward reach is over an obstruction between 20 and 25 inches above the floor, the high forward reach shall be no higher than 44 inches.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Where an obstruction blocks forward reach at 20–25 inches, are all controls no higher than 44 inches from the floor?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.407.9",
+          "ref": "407.9 Status Indicators",
+          "text": "Where provided, status indicators shall be discernible visually and by touch or sound.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Do your hardware status indicators (power, caps lock, charging) provide both a visual and a non-visual indicator (tactile bump, audible tone, or speech)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.408.3",
+          "ref": "408.3 Visibility",
+          "text": "Where a display screen is provided, it shall be visible from a point 40 inches (1015 mm) above the floor to the centerline of the screen.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Is the display screen on your hardware visible to a user in a wheelchair seated approximately 40 inches from the floor?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.409.1",
+          "ref": "409.1 General",
+          "text": "Where provided, status indicators shall be discernible visually and by touch or sound.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Do any non-audible status indicators on your hardware (LEDs, icons) also have an audible or tactile equivalent?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.410.1",
+          "ref": "410.1 Color Coding",
+          "text": "ICT shall not use color as the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "On your hardware's displays or status indicators, is color ever the only means of conveying information (e.g., a red LED only, with no text or shape difference)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.2.1",
+          "ref": "412.2.1 Volume Gain",
+          "text": "ICT that provides two-way voice communication shall provide a gain adjustable up to a minimum of 18 dB above the manufacturer's default volume.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware supports voice calls, can users amplify the receive volume at least 18 dB above the default?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.2.2",
+          "ref": "412.2.2 Incremental Volume Control",
+          "text": "ICT that provides two-way voice communication shall include a volume control that allows the user to incrementally adjust volume by at least 12 dB above the default.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware's volume control allow at least 12 dB of gain adjustment above the manufacturer's default?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.3.1",
+          "ref": "412.3.1 Volume Reset",
+          "text": "If ICT provides a mechanism to adjust the volume, it shall include a function that automatically resets the volume to the default level after every use for non-telephone ICT.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "After a call ends or a session finishes, does your hardware automatically reset the volume to the default level to protect the next user's hearing?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.4",
+          "ref": "412.4 Digital Encoding of Speech",
+          "text": "ICT that provides two-way voice communication shall not use digital audio compression in a way that prevents the use of hearing aid couplers and loop systems.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware's audio codec allow hearing aid telecoil coupling and inductive loop connectivity?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.6",
+          "ref": "412.6 Caller ID and Similar",
+          "text": "Where ICT provides real-time two-way voice communication, ICT shall include functions allowing the user to manage calling and status information with a single hand.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Can a user answer, end, mute, and manage calls on your hardware using only one hand?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.7",
+          "ref": "412.7 Video Communication",
+          "text": "Where ICT provides video communications capabilities, ICT shall support the ability to transmit and receive lip-readable video.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware supports video calls, does it transmit and receive video at quality sufficient for lip-reading (at least QCIF 30fps)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.8.1",
+          "ref": "412.8.1 Legacy TTY Support",
+          "text": "ICT shall support all commonly used TTY signal protocols.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware support TTY/TDD connections for users who communicate via text telephone?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.8.2",
+          "ref": "412.8.2 Transmission Speed",
+          "text": "The baud rate for TTY shall conform to the minimum of 300 baud.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware supports TTY, does it support at least 300 baud transmission?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.8.3",
+          "ref": "412.8.3 Voice Terminal Protocol",
+          "text": "ICT shall support the use of all TTY protocols required by the FCC.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware support all FCC-required TTY protocols?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.412.8.4",
+          "ref": "412.8.4 Voice Terminal Protocol",
+          "text": "ICT shall support voice terminal protocols used in conjunction with TTY devices.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware support voice carryover (VCO) and hearing carryover (HCO) TTY modes?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.413.1.1",
+          "ref": "413.1.1 Caption Processing",
+          "text": "ICT that displays or processes video with synchronized audio shall support the processing and rendering of closed captions.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware plays video with synchronized audio, does it decode and display CEA-608/708 closed captions?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.413.1.2",
+          "ref": "413.1.2 Video Description Processing",
+          "text": "ICT that displays or processes video with synchronized audio shall support the playback of audio descriptions.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware support playback of secondary audio program (SAP) or description audio tracks?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.414.1.1",
+          "ref": "414.1.1 ICT Displaying Video With Audio",
+          "text": "ICT that provides closed captions shall support all caption formats as required by 414.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "If your hardware includes a display, does it properly render all supported closed caption styles and positions?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.414.1.2",
+          "ref": "414.1.2 ICT With Two-Way Voice Communication",
+          "text": "ICT that provides real-time two-way voice communication shall support audio descriptions in real-time.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware's voice communication system support real-time audio description for video calls?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.415.1.1",
+          "ref": "415.1.1 Caption Controls",
+          "text": "ICT shall provide the user with the ability to turn closed captions on and off.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware provide accessible controls for the user to enable or disable closed captions?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.415.1.2",
+          "ref": "415.1.2 Audio Description Controls",
+          "text": "ICT shall provide the user with the ability to turn audio descriptions on and off.",
+          "appliesTo": ["hardware"],
+          "interviewQuestion": "Does your hardware provide accessible controls for the user to enable or disable audio descriptions?",
           "scannerSignals": {}
         }
       ]
@@ -110,25 +486,160 @@
     {
       "id": "ch5",
       "title": "Chapter 5: Software",
-      "description": "Software criteria. TODO: full Chapter 5 criteria list (501–504, including all 502.3.x sub-items for assistive technology object information, focus, events, etc.) to be extracted from ITI template. Starter rows below cover 501.1 and 504; the bulk of 502 needs to be added before publishing a real ACR.",
+      "description": "Software criteria from 36 CFR Part 1194, Chapters 5 (501–504). These apply to software with a user interface. For web-only products, 501.1 applies via WCAG; 502.x applies to any platform software that exposes an AT interface.",
       "criteria": [
         {
           "id": "508.501.1",
           "ref": "501.1 Scope — Incorporation of WCAG 2.0 AA",
           "text": "Where software is a platform application with a user interface or has a user interface, it shall conform to the WCAG 2.0 Level A and AA Success Criteria and Conformance Requirements in Chapter 5.",
           "appliesTo": ["software", "web"],
-          "interviewQuestion": "Confirm whether your product has a user interface (the answer is almost always yes for web/SaaS). This row exists to anchor WCAG conformance.",
+          "interviewQuestion": "Confirm whether your product has a user interface (the answer is almost always yes for web/SaaS). This row anchors WCAG conformance in the software chapter.",
           "scannerSignals": {}
         },
         {
           "id": "508.502.2.1",
           "ref": "502.2.1 User Control of Accessibility Features",
-          "text": "Software shall not disrupt platform features that are defined in the platform documentation as accessibility features.",
+          "text": "Platform software shall not override accessibility features that are defined in the platform documentation as accessibility features, except for those features documented as requiring user action.",
           "appliesTo": ["software", "web"],
-          "interviewQuestion": "Does your product ever override platform accessibility features — turn off the OS screen reader, ignore high-contrast mode, suppress reduced-motion preferences?",
+          "interviewQuestion": "Does your product ever disable OS accessibility features — turn off the screen reader, ignore high-contrast mode, suppress reduced-motion preferences?",
           "scannerSignals": {
             "axeRules": ["prefers-reduced-motion"]
           }
+        },
+        {
+          "id": "508.502.2.2",
+          "ref": "502.2.2 No Disruption of Accessibility Features",
+          "text": "Software shall not disrupt platform features that are defined in the platform documentation as accessibility features.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "When your product runs, does it in any way interfere with OS or platform accessibility features — screen readers, zoom, sticky keys, etc.?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.1",
+          "ref": "502.3.1 Object Information",
+          "text": "The object role, state(s), properties, boundary, name, and description shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "For every UI control in your product, can assistive technology (screen reader, voice control) determine its role (button, link, etc.), current state (checked, expanded), and accessible name?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/aria-role", "jsx-a11y/role-has-required-aria-props"],
+            "axeRules": ["aria-required-attr", "aria-valid-attr", "aria-valid-attr-value", "aria-roles"]
+          }
+        },
+        {
+          "id": "508.502.3.2",
+          "ref": "502.3.2 Modification of Object Information",
+          "text": "States and properties that can be set by the user shall be capable of being set by assistive technology.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can assistive technology programmatically change the state of controls (check a checkbox, toggle a switch, select an option) rather than only reading them?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.3",
+          "ref": "502.3.3 Row, Column, and Headers",
+          "text": "If an object is in a data table, the occupied rows and columns, and any headers associated with those rows or columns, shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Are data tables in your product built with proper header associations so a screen reader can announce 'Column: Revenue, Row: Q1' when reading a cell?",
+          "scannerSignals": {
+            "axeRules": ["th-has-data-cells", "td-headers-attr", "scope-attr-valid"]
+          }
+        },
+        {
+          "id": "508.502.3.4",
+          "ref": "502.3.4 Values",
+          "text": "Any current value(s), and any set or range of allowable values associated with an object, shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "For sliders, spinners, and range inputs, does the AT know the current value, minimum, and maximum? E.g. aria-valuenow, aria-valuemin, aria-valuemax.",
+          "scannerSignals": {
+            "axeRules": ["aria-required-attr", "aria-valid-attr-value"]
+          }
+        },
+        {
+          "id": "508.502.3.5",
+          "ref": "502.3.5 Modification of Values",
+          "text": "Values that can be set by the user shall be capable of being set by assistive technology.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can AT programmatically adjust the value of sliders, number inputs, and other range controls — not just read them?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.6",
+          "ref": "502.3.6 Label Relationships",
+          "text": "Any relationship that a component has as a label for another component, or of being labeled by another component, shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Are label-to-control associations explicit in the accessibility tree (htmlFor/id pairing, aria-labelledby)? Can AT always tell which label belongs to which control?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/label-has-associated-control"],
+            "axeRules": ["label", "form-field-multiple-labels"]
+          }
+        },
+        {
+          "id": "508.502.3.7",
+          "ref": "502.3.7 Hierarchical Relationships",
+          "text": "Any hierarchical (parent-child) relationship that a component has shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "For tree views, nested lists, accordions, and menus, are parent-child relationships exposed in the accessibility tree (aria-owns, aria-level, nested role structures)?",
+          "scannerSignals": {
+            "axeRules": ["aria-required-parent", "aria-required-children"]
+          }
+        },
+        {
+          "id": "508.502.3.8",
+          "ref": "502.3.8 Text",
+          "text": "The content of text objects, text attributes, and the boundary of text rendered to the screen, shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can AT access all rendered text in the UI — including text in custom canvas-based renderers, SVG labels, and CSS-generated content?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.9",
+          "ref": "502.3.9 Modification of Text",
+          "text": "Text that can be set by the user shall be capable of being set by assistive technology.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can voice control and switch access software insert text into all editable fields in your product?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.10",
+          "ref": "502.3.10 List of Actions",
+          "text": "A list of actions that can be executed on an object shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "For context menus and action menus, are the available actions exposed to AT so a user can invoke them without using the mouse?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.11",
+          "ref": "502.3.11 Focus Cursor",
+          "text": "The position of the keyboard navigation cursor shall be programmatically determinable.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can AT always determine where keyboard focus is — even inside custom widgets like rich text editors, date pickers, or data grids?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.12",
+          "ref": "502.3.12 Modification of Focus Cursor",
+          "text": "If keyboard navigation focus can be set by the user, the focus cursor shall be capable of being set by assistive technology.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "Can AT programmatically move keyboard focus to specific elements (e.g., to shift focus to a newly opened dialog)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.502.3.13",
+          "ref": "502.3.13 Event Notification",
+          "text": "Notification of events relevant to user interactions, including but not limited to, changes in the component's state(s), value, name, description, or boundary, shall be available to assistive technology.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "When UI state changes dynamically — a panel expands, a form field becomes required, a status changes — is that change announced to AT via live regions or state change events?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/aria-proptypes"],
+            "axeRules": ["aria-valid-attr-value"]
+          }
+        },
+        {
+          "id": "508.502.4",
+          "ref": "502.4 Platform Accessibility Features",
+          "text": "Platform software shall conform to the requirements in ANSI/HFES 200.2 (Human Factors Engineering of Software User Interfaces — Part 2: Accessibility).",
+          "appliesTo": ["software"],
+          "interviewQuestion": "If your product is a platform (hosting other software or services), does it provide accessibility APIs and services that hosted applications can leverage?",
+          "scannerSignals": {}
         },
         {
           "id": "508.503.2",
@@ -139,21 +650,77 @@
           "scannerSignals": {}
         },
         {
+          "id": "508.503.3",
+          "ref": "503.3 Alternative User Interfaces",
+          "text": "Where an application provides an alternative user interface that acts as assistive technology, the application shall use platform and other industry-standard accessibility services.",
+          "appliesTo": ["software"],
+          "interviewQuestion": "If your product includes a built-in accessibility mode or alternative interface, does it expose that interface through standard accessibility APIs?",
+          "scannerSignals": {}
+        },
+        {
           "id": "508.503.4",
           "ref": "503.4 User Controls for Captions and Audio Description",
-          "text": "Where ICT displays video with synchronized audio, ICT shall provide user controls for closed captions and audio descriptions conforming to 503.4.1 and 503.4.2.",
+          "text": "Where ICT displays video with synchronized audio, ICT shall provide user controls for closed captions and audio descriptions at the same level of prominence as other controls.",
           "appliesTo": ["software", "web"],
-          "interviewQuestion": "Does your product play video with audio? If so, can users turn captions on/off and adjust audio description independently?",
+          "interviewQuestion": "Does your product play video? If so, are the caption and audio description toggle controls easily accessible — not buried in a settings menu?",
           "scannerSignals": {
             "axeRules": ["video-caption"]
           }
         },
         {
+          "id": "508.503.4.1",
+          "ref": "503.4.1 Caption Controls",
+          "text": "Where user controls are provided for volume adjustment, ICT shall provide user controls for the selection of captions at the same level of prominence as those for volume or program selection.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "Are caption controls as prominent as volume controls in your media player — e.g., a CC button in the same control bar, not hidden in a settings panel?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.503.4.2",
+          "ref": "503.4.2 Audio Description Controls",
+          "text": "Where user controls are provided for program selection, ICT shall provide user controls for the selection of audio descriptions at the same level of prominence as those for volume or program selection.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "Are audio description controls as accessible as program selection controls in your media player?",
+          "scannerSignals": {}
+        },
+        {
           "id": "508.504.2",
           "ref": "504.2 Content Creation or Editing",
-          "text": "Authoring tools shall provide a mode of operation to create or edit content that conforms to Level A and Level AA Success Criteria of WCAG 2.0.",
+          "text": "Where authoring tools provide a mode of operation to create or edit content, the authoring tool shall enable the creation of content that conforms to Level A and Level AA Success Criteria of WCAG 2.0.",
           "appliesTo": ["software", "web"],
-          "interviewQuestion": "Does your product allow users to create content others will consume (case reports, exports, dashboards)? If so, does it produce accessible output by default?",
+          "interviewQuestion": "Does your product allow users to create content others will consume (reports, dashboards, exports)? If so, does the tool produce accessible output by default?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.504.2.1",
+          "ref": "504.2.1 Preservation of Accessibility Information in Format Conversion",
+          "text": "Where authoring tools provide the ability to convert content from one format to another, accessibility information shall be preserved in the conversion to the extent that the target format supports the accessibility information.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "When your product exports content (PDF, DOCX, CSV, HTML), does it preserve accessibility metadata — alt text, headings, table structure — in the output format?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.504.2.2",
+          "ref": "504.2.2 PDF Export",
+          "text": "Where an authoring tool provides the ability to export in PDF format, the authoring tool shall also support the production of tagged PDF.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "If your product exports PDF files, does it produce tagged PDF (with document structure, headings, alt text) rather than untagged image-based PDFs?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.504.3",
+          "ref": "504.3 Prompts",
+          "text": "Where the authoring tool provides prompts, the prompts shall provide information and guidance on how to create accessible content.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "When users create content in your product, does it prompt them to add accessibility information (e.g., asking for alt text when an image is inserted)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.504.4",
+          "ref": "504.4 Templates",
+          "text": "Where a template is provided, the template shall comply with the applicable provisions in this document.",
+          "appliesTo": ["software", "web"],
+          "interviewQuestion": "If your product provides content templates (document templates, slide layouts, email templates), are those templates themselves accessible and do they encourage accessible outputs?",
           "scannerSignals": {}
         }
       ]
@@ -161,7 +728,7 @@
     {
       "id": "ch6",
       "title": "Chapter 6: Support Documentation and Services",
-      "description": "Documentation and support obligations.",
+      "description": "Documentation and support service obligations under 36 CFR Part 1194.",
       "criteria": [
         {
           "id": "508.602.2",
@@ -174,9 +741,17 @@
         {
           "id": "508.602.3",
           "ref": "602.3 Electronic Support Documentation",
-          "text": "Documentation provided in electronic format shall conform to Level A and Level AA Success Criteria of WCAG 2.0.",
+          "text": "Documentation provided in electronic format, including Web-based self-service support, shall conform to Level A and Level AA Success Criteria of WCAG 2.0.",
           "appliesTo": ["docs"],
           "interviewQuestion": "Is your product documentation itself accessible? PDFs tagged properly, web help pages meeting WCAG 2.0 AA?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "508.602.4",
+          "ref": "602.4 Alternate Formats for Non-Electronic Support Documentation",
+          "text": "Where support documentation is only provided in non-electronic formats, alternate formats usable by individuals with disabilities shall be provided upon request.",
+          "appliesTo": ["docs"],
+          "interviewQuestion": "If any of your support documentation is only available in print, can a user request it in an accessible format (large print, braille, electronic)?",
           "scannerSignals": {}
         },
         {
@@ -192,7 +767,7 @@
           "ref": "603.3 Accommodation of Communication Needs",
           "text": "Support services shall accommodate the communication needs of individuals with disabilities.",
           "appliesTo": ["support"],
-          "interviewQuestion": "Can a user with a disability reach support through an accessible channel (TTY, video relay, accessible chat, email-only if phone is hard)?",
+          "interviewQuestion": "Can a user with a disability reach support through an accessible channel (TTY, video relay, accessible chat, email if phone is inaccessible)?",
           "scannerSignals": {}
         }
       ]
@@ -200,7 +775,7 @@
     {
       "id": "wcag-a",
       "title": "WCAG 2.0 Level A Success Criteria",
-      "description": "All Level A criteria are required by Section 508 for software and web content. Software-only criteria are tagged accordingly; the rest apply to anything with a UI.",
+      "description": "All Level A criteria are required by Section 508 for software and web content.",
       "criteria": [
         {
           "id": "wcag.1.1.1",
@@ -570,7 +1145,7 @@
           "ref": "3.3.4 Error Prevention (Legal, Financial, Data) (Level AA)",
           "text": "For Web pages that cause legal commitments or financial transactions for the user to occur, that modify or delete user-controllable data, or that submit user test responses, submissions are reversible, checked for input errors, or confirmed before submission.",
           "appliesTo": ["web", "software"],
-          "interviewQuestion": "For destructive or consequential actions — delete an evidence item, finalize a case report, run a billed scan — is there a confirmation step, reversibility, or input checking before the action completes?",
+          "interviewQuestion": "For destructive or consequential actions — delete an item, finalize a report, run a billed scan — is there a confirmation step, reversibility, or input checking before the action completes?",
           "scannerSignals": {}
         }
       ]
