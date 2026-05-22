@@ -110,6 +110,15 @@ export const ProjectSchema = z.object({
 });
 export type Project = z.infer<typeof ProjectSchema>;
 
+// ─── AI provider ─────────────────────────────────────────────────────────────
+
+export const ProviderSchema = z.object({
+  provider: z.enum(["openrouter", "ollama", "none"]),
+  apiKey: z.string().optional(),
+  model: z.string(),
+});
+export type ProviderConfig = z.infer<typeof ProviderSchema>;
+
 // ─── API payloads ─────────────────────────────────────────────────────────────
 
 export const CreateProjectPayloadSchema = z.object({
@@ -123,7 +132,7 @@ export const CreateProjectPayloadSchema = z.object({
   productComponents: z.array(ProductComponentSchema).min(1, "Select at least one component type"),
   sourcePath: z.string().optional(),
   runtimeUrl: z.string().url().optional(),
-  anthropicApiKey: z.string().optional(),
+  providerConfig: ProviderSchema.optional(),
 });
 export type CreateProjectPayload = z.infer<typeof CreateProjectPayloadSchema>;
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
+import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 
 const APP_VERSION = "0.1.0-beta.4";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
@@ -30,19 +31,21 @@ const EDITIONS: { value: Edition; label: string; description: string }[] = [
 ];
 
 const COMPONENTS: { value: ProductComponent; label: string; description: string; icon: string }[] = [
-  { value: "web",      label: "SaaS / Web",              description: "Web application, website, or web content",               icon: "🌐" },
-  { value: "software", label: "Desktop / Mobile App",   description: "Native app, Electron, iOS, Android",                     icon: "💻" },
-  { value: "hardware", label: "Hardware",               description: "Physical device with a user interface",                   icon: "🖥️" },
-  { value: "docs",     label: "Documentation",          description: "User manuals, in-product help, release notes",            icon: "📄" },
-  { value: "support",  label: "Support Services",       description: "Help desk, live chat, support portal",                    icon: "🎧" },
+  { value: "web",      label: "SaaS / Web",            description: "Web application, website, or web content",    icon: "🌐" },
+  { value: "software", label: "Desktop / Mobile App",  description: "Native app, Electron, iOS, Android",          icon: "💻" },
+  { value: "hardware", label: "Hardware",              description: "Physical device with a user interface",        icon: "🖥️" },
+  { value: "docs",     label: "Documentation",         description: "User manuals, in-product help, release notes", icon: "📄" },
+  { value: "support",  label: "Support Services",      description: "Help desk, live chat, support portal",         icon: "🎧" },
 ];
 
 const MODES: { value: InputMode; label: string; description: string }[] = [
-  { value: "interview", label: "Interview only", description: "Guided Q&A — no scanner needed" },
-  { value: "source", label: "Source scan", description: "Point at a local code repository" },
-  { value: "runtime", label: "Runtime scan", description: "Point at a live URL (uses Lighthouse)" },
-  { value: "hybrid", label: "Hybrid (recommended)", description: "Source + runtime + interview" },
+  { value: "interview", label: "Interview only",         description: "Guided Q&A — no scanner needed" },
+  { value: "source",    label: "Source scan",            description: "Point at a local code repository" },
+  { value: "runtime",   label: "Runtime scan",           description: "Point at a live URL (uses Lighthouse)" },
+  { value: "hybrid",    label: "Hybrid (recommended)",   description: "Source + runtime + interview" },
 ];
+
+type AiProvider = "openrouter" | "ollama" | "none";
 
 type FormState = {
   productName: string;
@@ -55,7 +58,9 @@ type FormState = {
   productComponents: ProductComponent[];
   sourcePath: string;
   runtimeUrl: string;
-  anthropicApiKey: string;
+  aiProvider: AiProvider;
+  aiApiKey: string;
+  aiModel: string;
 };
 
 type FieldKey = keyof FormState;
@@ -67,47 +72,45 @@ function validate(form: FormState): Errors {
 
   if (form.productComponents.length === 0)
     errors.productComponents = "Select at least one component type — this determines which criteria apply.";
-
   if (!form.productName.trim())
     errors.productName = "Product name is required — it appears on the VPAT cover page.";
-
   if (!form.productVersion.trim())
     errors.productVersion = "Version is required. Use semver (e.g. 3.4.1) or a release label (e.g. Q2 2025).";
-
   if (!form.productDescription.trim())
     errors.productDescription = "Add a brief description — it appears in the VPAT header and sets context for AI drafting.";
-
   if (!form.contactName.trim())
     errors.contactName = "Contact name is required for the VPAT cover page.";
-
   if (!form.contactEmail.trim())
     errors.contactEmail = "Contact email is required for the VPAT cover page.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail))
     errors.contactEmail = "Enter a valid email address (e.g. jane@company.com).";
-
-  if (form.anthropicApiKey && !/^sk-ant-[A-Za-z0-9_-]{10,}$/.test(form.anthropicApiKey))
-    errors.anthropicApiKey = "API keys start with sk-ant- followed by at least 10 characters. Get one at console.anthropic.com → API Keys.";
-
   if ((form.mode === "source" || form.mode === "hybrid") && !form.sourcePath.trim())
     errors.sourcePath = "Enter the absolute path to your repository root (e.g. /Users/you/projects/myapp).";
-
   if (form.mode === "runtime" || form.mode === "hybrid") {
     if (!form.runtimeUrl.trim())
       errors.runtimeUrl = "Enter the URL Lighthouse will scan.";
     else if (!/^https?:\/\/.+/.test(form.runtimeUrl))
       errors.runtimeUrl = "Enter a valid URL starting with https:// (e.g. https://app.example.com).";
   }
+  if (form.aiProvider === "openrouter" && form.aiApiKey && !form.aiApiKey.startsWith("sk-or-"))
+    errors.aiApiKey = "OpenRouter keys start with sk-or-. Get one at openrouter.ai/keys.";
 
   return errors;
 }
 
-const STEP1_FIELDS: FieldKey[] = ["productName", "productVersion", "productDescription", "contactName", "contactEmail", "anthropicApiKey"];
+const STEP1_FIELDS: FieldKey[] = ["productName", "productVersion", "productDescription", "contactName", "contactEmail"];
 const STEP2_FIELDS: FieldKey[] = ["productComponents", "edition", "mode"];
 const STEP3_FIELDS: FieldKey[] = ["sourcePath", "runtimeUrl"];
+const STEP4_FIELDS: FieldKey[] = ["aiApiKey"];
+
+interface OllamaStatus { available: boolean; models: string[] }
+interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: string }
 
 export function SetupWizard({ onCreated, loading, setLoading, error, setError }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
+  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+  const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
 
   useEffect(() => {
     fetch("/api/criteria-status")
@@ -115,6 +118,16 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
       .then((d) => { if (d) setCriteriaStatus(d); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (step !== 4) return;
+    setOllamaStatus(null);
+    fetch("/api/ai/provider")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setOllamaStatus(d.ollama); })
+      .catch(() => setOllamaStatus({ available: false, models: [] }));
+  }, [step]);
+
   const [form, setForm] = useState<FormState>({
     productName: "",
     productVersion: "",
@@ -126,7 +139,9 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
     productComponents: ["web"],
     sourcePath: "",
     runtimeUrl: "",
-    anthropicApiKey: "",
+    aiProvider: "openrouter",
+    aiApiKey: "",
+    aiModel: DEFAULT_OPENROUTER_MODEL,
   });
   const [touched, setTouched] = useState<Touched>({});
 
@@ -145,31 +160,44 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const toggleComponent = (c: ProductComponent) => {
     setForm((prev) => {
       const has = prev.productComponents.includes(c);
-      return {
-        ...prev,
-        productComponents: has
-          ? prev.productComponents.filter((x) => x !== c)
-          : [...prev.productComponents, c],
-      };
+      return { ...prev, productComponents: has ? prev.productComponents.filter((x) => x !== c) : [...prev.productComponents, c] };
     });
     setTouched((prev) => ({ ...prev, productComponents: true }));
   };
 
   const handleContinue = () => {
     touchAll(STEP1_FIELDS);
-    const hasErrors = STEP1_FIELDS.some((k) => errors[k]);
-    if (!hasErrors) setStep(2);
+    if (!STEP1_FIELDS.some((k) => errors[k])) setStep(2);
   };
 
   const handleContinue2 = () => {
     touchAll(STEP2_FIELDS);
-    const hasErrors = STEP2_FIELDS.some((k) => errors[k]);
-    if (!hasErrors) setStep(3);
+    if (!STEP2_FIELDS.some((k) => errors[k])) setStep(3);
+  };
+
+  const handleContinue3 = () => {
+    touchAll(STEP3_FIELDS);
+    if (!STEP3_FIELDS.some((k) => errors[k])) setStep(4);
+  };
+
+  const handleTest = async () => {
+    setTestResult({ status: "testing" });
+    try {
+      const res = await fetch("/api/ai/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: form.aiProvider, apiKey: form.aiApiKey, model: form.aiModel }),
+      });
+      const data = await res.json() as { success: boolean; error?: string };
+      setTestResult(data.success ? { status: "ok" } : { status: "error", message: data.error });
+    } catch (err) {
+      setTestResult({ status: "error", message: String(err) });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    touchAll([...STEP1_FIELDS, ...STEP2_FIELDS, ...STEP3_FIELDS]);
+    touchAll([...STEP1_FIELDS, ...STEP2_FIELDS, ...STEP3_FIELDS, ...STEP4_FIELDS]);
     if (Object.keys(errors).length > 0) return;
 
     setLoading(true);
@@ -187,7 +215,13 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
       };
       if (form.sourcePath) payload.sourcePath = form.sourcePath;
       if (form.runtimeUrl) payload.runtimeUrl = form.runtimeUrl;
-      if (form.anthropicApiKey) payload.anthropicApiKey = form.anthropicApiKey;
+      if (form.aiProvider !== "none") {
+        payload.providerConfig = {
+          provider: form.aiProvider,
+          apiKey: form.aiApiKey || undefined,
+          model: form.aiModel,
+        };
+      }
 
       const res = await fetch("/api/project", {
         method: "POST",
@@ -209,11 +243,11 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel — branding + compliance info */}
+      {/* Left panel */}
       <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 p-8 shrink-0">
         <div className="mb-8">
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-2xl font-extrabold text-white">VPAT Tool</span>
+            <span className="text-2xl font-extrabold text-white">A11yBot</span>
             <span className="px-1.5 py-0.5 rounded bg-blue-500/30 border border-blue-400/40 text-blue-200 text-[10px] font-mono font-semibold">
               v{APP_VERSION}
             </span>
@@ -276,10 +310,9 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
       {/* Right panel — form */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 overflow-y-auto">
-        {/* Mobile-only header (left panel is hidden on small screens) */}
         <div className="lg:hidden mb-6 text-center">
           <div className="flex items-baseline justify-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">VPAT Tool</h1>
+            <h1 className="text-2xl font-bold text-gray-900">A11yBot</h1>
             <span className="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 text-gray-500 text-[10px] font-mono">v{APP_VERSION}</span>
           </div>
           <p className="mt-1 text-gray-500 text-sm">Generate a VPAT 2.5 Accessibility Conformance Report</p>
@@ -287,224 +320,298 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
         <div className="w-full max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            {/* Step indicator */}
             <div className="flex items-center gap-3 mb-6">
               <StepDot n={1} active={step === 1} done={step > 1} />
               <div className="flex-1 h-px bg-gray-200" />
               <StepDot n={2} active={step === 2} done={step > 2} />
               <div className="flex-1 h-px bg-gray-200" />
-              <StepDot n={3} active={step === 3} done={false} />
+              <StepDot n={3} active={step === 3} done={step > 3} />
+              <div className="flex-1 h-px bg-gray-200" />
+              <StepDot n={4} active={step === 4} done={false} />
             </div>
 
-          <form onSubmit={handleSubmit}>
-            {step === 1 && (
-              <div className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900">Product & Contact</h2>
+            <form onSubmit={handleSubmit}>
+              {/* ── Step 1: Product & Contact ── */}
+              {step === 1 && (
+                <div className="space-y-5">
+                  <h2 className="text-lg font-semibold text-gray-900">Product & Contact</h2>
 
-                <Field label="Product Name" required error={fieldError("productName")}>
-                  <input
-                    aria-label="Product Name"
-                    className={inputCls(!!fieldError("productName"))}
-                    value={form.productName}
-                    onChange={set("productName")}
-                    onBlur={touch("productName")}
-                    placeholder="Acme Platform"
-                  />
-                </Field>
-
-                <Field label="Version" required error={fieldError("productVersion")}>
-                  <input
-                    aria-label="Version"
-                    className={inputCls(!!fieldError("productVersion"))}
-                    value={form.productVersion}
-                    onChange={set("productVersion")}
-                    onBlur={touch("productVersion")}
-                    placeholder="3.4.1"
-                  />
-                </Field>
-
-                <Field label="Product Description" required error={fieldError("productDescription")}>
-                  <textarea
-                    aria-label="Product Description"
-                    className={inputCls(!!fieldError("productDescription")) + " h-20 resize-none"}
-                    value={form.productDescription}
-                    onChange={set("productDescription")}
-                    onBlur={touch("productDescription")}
-                    placeholder="Brief description of the product for the VPAT header"
-                  />
-                </Field>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Contact Name" required error={fieldError("contactName")}>
-                    <input
-                      aria-label="Contact Name"
-                      className={inputCls(!!fieldError("contactName"))}
-                      value={form.contactName}
-                      onChange={set("contactName")}
-                      onBlur={touch("contactName")}
-                      placeholder="Jane Smith"
-                    />
+                  <Field label="Product Name" required error={fieldError("productName")}>
+                    <input aria-label="Product Name" className={inputCls(!!fieldError("productName"))}
+                      value={form.productName} onChange={set("productName")} onBlur={touch("productName")} placeholder="Acme Platform" />
                   </Field>
-                  <Field label="Contact Email" required error={fieldError("contactEmail")}>
-                    <input
-                      aria-label="Contact Email"
-                      className={inputCls(!!fieldError("contactEmail"))}
-                      type="email"
-                      value={form.contactEmail}
-                      onChange={set("contactEmail")}
-                      onBlur={touch("contactEmail")}
-                      placeholder="jane@example.com"
-                    />
+
+                  <Field label="Version" required error={fieldError("productVersion")}>
+                    <input aria-label="Version" className={inputCls(!!fieldError("productVersion"))}
+                      value={form.productVersion} onChange={set("productVersion")} onBlur={touch("productVersion")} placeholder="3.4.1" />
                   </Field>
+
+                  <Field label="Product Description" required error={fieldError("productDescription")}>
+                    <textarea aria-label="Product Description" className={inputCls(!!fieldError("productDescription")) + " h-20 resize-none"}
+                      value={form.productDescription} onChange={set("productDescription")} onBlur={touch("productDescription")}
+                      placeholder="Brief description of the product for the VPAT header" />
+                  </Field>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Contact Name" required error={fieldError("contactName")}>
+                      <input aria-label="Contact Name" className={inputCls(!!fieldError("contactName"))}
+                        value={form.contactName} onChange={set("contactName")} onBlur={touch("contactName")} placeholder="Jane Smith" />
+                    </Field>
+                    <Field label="Contact Email" required error={fieldError("contactEmail")}>
+                      <input aria-label="Contact Email" className={inputCls(!!fieldError("contactEmail"))} type="email"
+                        value={form.contactEmail} onChange={set("contactEmail")} onBlur={touch("contactEmail")} placeholder="jane@example.com" />
+                    </Field>
+                  </div>
+
+                  <div className="pt-2">
+                    <button type="button" onClick={handleContinue} className={btnPrimary}>Continue →</button>
+                  </div>
                 </div>
+              )}
 
-                <Field
-                  label="Anthropic API Key"
-                  hint="Required for AI drafting. Leave blank to use interview-only mode without AI."
-                  error={fieldError("anthropicApiKey")}
-                >
-                  <input
-                    aria-label="Anthropic API Key"
-                    className={inputCls(!!fieldError("anthropicApiKey"))}
-                    type="password"
-                    value={form.anthropicApiKey}
-                    onChange={set("anthropicApiKey")}
-                    onBlur={touch("anthropicApiKey")}
-                    placeholder="sk-ant-…"
-                  />
-                </Field>
+              {/* ── Step 2: Product Scope ── */}
+              {step === 2 && (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Product Scope</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Select every component type your product includes. Criteria that don&apos;t apply will be pre-marked <span className="font-medium text-gray-600">N/A</span>.
+                    </p>
+                  </div>
 
-                <div className="pt-2">
-                  <button type="button" onClick={handleContinue} className={btnPrimary} title="Continue to edition and input mode settings">
-                    Continue →
-                  </button>
+                  <Field label="What does your product include?" error={fieldError("productComponents")}>
+                    <div className="grid grid-cols-1 gap-2 mt-1">
+                      {COMPONENTS.map((c) => {
+                        const checked = form.productComponents.includes(c.value);
+                        return (
+                          <button key={c.value} type="button" onClick={() => toggleComponent(c.value)}
+                            className={`flex items-start gap-3 text-left p-3 rounded-lg border-2 transition-colors ${checked ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+                            <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "border-blue-500 bg-blue-500" : "border-gray-400"}`}>
+                              {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-900">{c.icon} {c.label}</span>
+                              <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </Field>
+
+                  {form.productComponents.length > 0 && (
+                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-700">
+                      <span className="font-semibold">In scope:</span>{" "}
+                      {COMPONENTS.filter((c) => form.productComponents.includes(c.value)).map((c) => c.label).join(", ")}.
+                      {" "}Unselected component types will be pre-marked N/A.
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setStep(1)} className={btnSecondary}>← Back</button>
+                    <button type="button" onClick={handleContinue2} className={btnPrimary}>Continue →</button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === 2 && (
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Product Scope</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Select every component type your product includes. Criteria that don't apply will be pre-marked <span className="font-medium text-gray-600">N/A</span>, so you only review what's relevant.
-                  </p>
+              {/* ── Step 3: Edition & Input Mode ── */}
+              {step === 3 && (
+                <div className="space-y-5">
+                  <h2 className="text-lg font-semibold text-gray-900">Edition & Input Mode</h2>
+
+                  <Field label="VPAT Edition">
+                    <div className="grid grid-cols-2 gap-3">
+                      {EDITIONS.map((e) => (
+                        <RadioCard key={e.value} selected={form.edition === e.value} onClick={() => setForm((p) => ({ ...p, edition: e.value }))}>
+                          <div className="font-medium text-sm">{e.label}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{e.description}</div>
+                        </RadioCard>
+                      ))}
+                    </div>
+                  </Field>
+
+                  <Field label="Input Mode">
+                    <div className="grid grid-cols-2 gap-3">
+                      {MODES.map((m) => (
+                        <RadioCard key={m.value} selected={form.mode === m.value} onClick={() => setForm((p) => ({ ...p, mode: m.value }))}>
+                          <div className="font-medium text-sm">{m.label}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{m.description}</div>
+                        </RadioCard>
+                      ))}
+                    </div>
+                  </Field>
+
+                  {(form.mode === "source" || form.mode === "hybrid") && (
+                    <Field label="Source Path" hint="Absolute path to the repository root on this machine." error={fieldError("sourcePath")}>
+                      <input aria-label="Source Path" className={inputCls(!!fieldError("sourcePath"))}
+                        value={form.sourcePath} onChange={set("sourcePath")} onBlur={touch("sourcePath")} placeholder="/Users/you/projects/myapp" />
+                    </Field>
+                  )}
+
+                  {(form.mode === "runtime" || form.mode === "hybrid") && (
+                    <Field label="Runtime URL" hint="Lighthouse will scan this URL — it must be reachable from this machine." error={fieldError("runtimeUrl")}>
+                      <input aria-label="Runtime URL" className={inputCls(!!fieldError("runtimeUrl"))} type="url"
+                        value={form.runtimeUrl} onChange={set("runtimeUrl")} onBlur={touch("runtimeUrl")} placeholder="https://app.example.com" />
+                    </Field>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setStep(2)} className={btnSecondary}>← Back</button>
+                    <button type="button" onClick={handleContinue3} className={btnPrimary}>Continue →</button>
+                  </div>
                 </div>
+              )}
 
-                <Field label="What does your product include?" error={fieldError("productComponents")}>
-                  <div className="grid grid-cols-1 gap-2 mt-1">
-                    {COMPONENTS.map((c) => {
-                      const checked = form.productComponents.includes(c.value);
-                      return (
-                        <button
-                          key={c.value}
-                          type="button"
-                          onClick={() => toggleComponent(c.value)}
-                          className={`flex items-start gap-3 text-left p-3 rounded-lg border-2 transition-colors ${checked ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
-                        >
-                          <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "border-blue-500 bg-blue-500" : "border-gray-400"}`}>
-                            {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {/* ── Step 4: AI Setup ── */}
+              {step === 4 && (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">AI Setup</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose how A11yBot drafts conformance language. You can change this later in Settings.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {/* OpenRouter */}
+                    <ProviderCard
+                      selected={form.aiProvider === "openrouter"}
+                      onClick={() => setForm((p) => ({ ...p, aiProvider: "openrouter", aiModel: p.aiModel || DEFAULT_OPENROUTER_MODEL }))}
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-gray-900">OpenRouter</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Recommended</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">Access Claude, GPT-4o, Gemini and 100+ models with one API key</p>
+                    </ProviderCard>
+
+                    {form.aiProvider === "openrouter" && (
+                      <div className="ml-7 space-y-3 pt-1">
+                        <Field label="API Key" error={fieldError("aiApiKey")}>
+                          <div className="flex gap-2">
+                            <input
+                              aria-label="OpenRouter API Key"
+                              type="password"
+                              className={inputCls(!!fieldError("aiApiKey")) + " flex-1"}
+                              value={form.aiApiKey}
+                              onChange={set("aiApiKey")}
+                              onBlur={touch("aiApiKey")}
+                              placeholder="sk-or-v1-…"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTest}
+                              disabled={!form.aiApiKey || !form.aiModel || testResult.status === "testing"}
+                              className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors whitespace-nowrap"
+                            >
+                              {testResult.status === "testing" ? "Testing…" : "Test"}
+                            </button>
                           </div>
-                          <div>
-                            <span className="text-sm font-medium text-gray-900">{c.icon} {c.label}</span>
-                            <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </Field>
+                          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                            Get a free OpenRouter key →
+                          </a>
+                        </Field>
 
-                {form.productComponents.length > 0 && (
-                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-700">
-                    <span className="font-semibold">In scope:</span>{" "}
-                    {COMPONENTS.filter((c) => form.productComponents.includes(c.value)).map((c) => c.label).join(", ")}.
-                    {" "}Unselected component types will be pre-marked N/A.
-                  </div>
-                )}
+                        <Field label="Model">
+                          <select aria-label="AI Model" className={inputCls(false)}
+                            value={form.aiModel} onChange={(e) => setForm((p) => ({ ...p, aiModel: e.target.value }))}>
+                            <optgroup label="★ Recommended">
+                              {OPENROUTER_MODELS.filter((m) => m.tier === "recommended").map((m) => (
+                                <option key={m.id} value={m.id}>{m.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Other capable models">
+                              {OPENROUTER_MODELS.filter((m) => m.tier === "capable").map((m) => (
+                                <option key={m.id} value={m.id}>{m.label}</option>
+                              ))}
+                            </optgroup>
+                          </select>
+                        </Field>
+                      </div>
+                    )}
 
-                <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setStep(1)} className={btnSecondary} title="Go back to product and contact details">← Back</button>
-                  <button type="button" onClick={handleContinue2} className={btnPrimary} title="Continue to edition and scan settings">
-                    Continue →
-                  </button>
+                    {/* Ollama */}
+                    <ProviderCard
+                      selected={form.aiProvider === "ollama"}
+                      disabled={ollamaStatus !== null && !ollamaStatus.available}
+                      onClick={() => {
+                        if (ollamaStatus?.available) {
+                          setForm((p) => ({ ...p, aiProvider: "ollama", aiModel: ollamaStatus.models[0] ?? "" }));
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-gray-900">Ollama</span>
+                        <span className="text-xs text-gray-400">local · free · private</span>
+                        {ollamaStatus === null && <span className="text-xs text-gray-400">Detecting…</span>}
+                        {ollamaStatus?.available && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
+                            Detected · {ollamaStatus.models.length} model{ollamaStatus.models.length !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {ollamaStatus && !ollamaStatus.available && (
+                          <span className="text-xs text-red-500">Not detected</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Run models privately on your machine.{" "}
+                        {ollamaStatus && !ollamaStatus.available && (
+                          <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            Install Ollama →
+                          </a>
+                        )}
+                      </p>
+                    </ProviderCard>
+
+                    {form.aiProvider === "ollama" && ollamaStatus?.available && (
+                      <div className="ml-7 space-y-2 pt-1">
+                        <Field label="Model">
+                          <select aria-label="Ollama Model" className={inputCls(false)}
+                            value={form.aiModel} onChange={(e) => setForm((p) => ({ ...p, aiModel: e.target.value }))}>
+                            {ollamaStatus.models.map((m) => <option key={m} value={m}>{m}</option>)}
+                          </select>
+                        </Field>
+                        <p className="text-xs text-amber-600">
+                          ⚠ Local models produce less reliable conformance language. Review AI drafts carefully before export.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Skip */}
+                    <ProviderCard
+                      selected={form.aiProvider === "none"}
+                      onClick={() => setForm((p) => ({ ...p, aiProvider: "none", aiModel: "" }))}
+                    >
+                      <span className="text-sm font-medium text-gray-900">Skip for now</span>
+                      <p className="text-xs text-gray-500 mt-0.5">Interview-only mode — no AI drafting. Add a provider later in Settings.</p>
+                    </ProviderCard>
+                  </div>
+
+                  {testResult.status === "ok" && (
+                    <div className="rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm p-3">
+                      ✓ Connection successful — ready to draft
+                    </div>
+                  )}
+                  {testResult.status === "error" && (
+                    <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">
+                      {testResult.message}
+                    </div>
+                  )}
+                  {error && (
+                    <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setStep(3)} className={btnSecondary}>← Back</button>
+                    <button type="submit" disabled={loading} className={btnPrimary}>
+                      {loading ? "Creating project…" : "Create Project →"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900">Edition & Input Mode</h2>
-
-                <Field label="VPAT Edition">
-                  <div className="grid grid-cols-2 gap-3">
-                    {EDITIONS.map((e) => (
-                      <RadioCard key={e.value} selected={form.edition === e.value} onClick={() => setForm((p) => ({ ...p, edition: e.value }))}>
-                        <div className="font-medium text-sm">{e.label}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{e.description}</div>
-                      </RadioCard>
-                    ))}
-                  </div>
-                </Field>
-
-                <Field label="Input Mode">
-                  <div className="grid grid-cols-2 gap-3">
-                    {MODES.map((m) => (
-                      <RadioCard key={m.value} selected={form.mode === m.value} onClick={() => setForm((p) => ({ ...p, mode: m.value }))}>
-                        <div className="font-medium text-sm">{m.label}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{m.description}</div>
-                      </RadioCard>
-                    ))}
-                  </div>
-                </Field>
-
-                {(form.mode === "source" || form.mode === "hybrid") && (
-                  <Field
-                    label="Source Path"
-                    hint="Absolute path to the repository root on this machine."
-                    error={fieldError("sourcePath")}
-                  >
-                    <input
-                      aria-label="Source Path"
-                      className={inputCls(!!fieldError("sourcePath"))}
-                      value={form.sourcePath}
-                      onChange={set("sourcePath")}
-                      onBlur={touch("sourcePath")}
-                      placeholder="/Users/you/projects/myapp"
-                    />
-                  </Field>
-                )}
-
-                {(form.mode === "runtime" || form.mode === "hybrid") && (
-                  <Field
-                    label="Runtime URL"
-                    hint="Lighthouse will scan this URL — it must be reachable from this machine."
-                    error={fieldError("runtimeUrl")}
-                  >
-                    <input
-                      aria-label="Runtime URL"
-                      className={inputCls(!!fieldError("runtimeUrl"))}
-                      type="url"
-                      value={form.runtimeUrl}
-                      onChange={set("runtimeUrl")}
-                      onBlur={touch("runtimeUrl")}
-                      placeholder="https://app.example.com"
-                    />
-                  </Field>
-                )}
-
-                {error && (
-                  <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setStep(2)} className={btnSecondary} title="Go back to product scope">← Back</button>
-                  <button type="submit" disabled={loading} className={btnPrimary} title="Create the project and open the criteria review">
-                    {loading ? "Creating project…" : "Create Project →"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </form>
+              )}
+            </form>
           </div>
         </div>
       </div>
@@ -517,6 +624,28 @@ function StepDot({ n, active, done }: { n: number; active: boolean; done: boolea
     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${active ? "bg-blue-600 text-white" : done ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"}`}>
       {done ? "✓" : n}
     </div>
+  );
+}
+
+function ProviderCard({ selected, disabled, onClick, children }: { selected: boolean; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+        selected ? "border-blue-500 bg-blue-50" :
+        disabled ? "border-gray-100 opacity-50 cursor-not-allowed" :
+        "border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-blue-500" : "border-gray-400"}`}>
+          {selected && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+        </div>
+        <div className="flex-1">{children}</div>
+      </div>
+    </button>
   );
 }
 
@@ -535,11 +664,8 @@ function Field({ label, required, hint, error, children }: { label: string; requ
 
 function RadioCard({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`text-left p-3 rounded-lg border-2 transition-colors ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
-    >
+    <button type="button" onClick={onClick}
+      className={`text-left p-3 rounded-lg border-2 transition-colors ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
       {children}
     </button>
   );

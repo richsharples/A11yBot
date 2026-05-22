@@ -1,20 +1,43 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { getSessionApiKey } from "../state/log";
+import { getProviderConfig } from "../state/provider";
 
-let _client: Anthropic | null = null;
+const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
+const OLLAMA_BASE = "http://localhost:11434/v1";
 
-export function getClient(): Anthropic {
-  const apiKey = getSessionApiKey();
-  if (!apiKey) {
-    throw new Error("No Anthropic API key configured. Set ANTHROPIC_API_KEY or pass a key on first run.");
+export async function callLLM(systemPrompt: string, userContent: string): Promise<string> {
+  const config = getProviderConfig();
+
+  if (config.provider === "none" || !config.model) {
+    throw new Error("No AI provider configured. Open Settings to set up OpenRouter or Ollama.");
   }
-  // Re-create if key changed
-  if (!_client) {
-    _client = new Anthropic({ apiKey });
-  }
-  return _client;
-}
 
-export function resetClient(): void {
-  _client = null;
+  const baseUrl = config.provider === "ollama" ? OLLAMA_BASE : OPENROUTER_BASE;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  if (config.provider === "openrouter") {
+    if (!config.apiKey) throw new Error("OpenRouter API key not set. Open Settings to add one.");
+    headers["Authorization"] = `Bearer ${config.apiKey}`;
+    headers["HTTP-Referer"] = "https://github.com/richsharples/A11yBot";
+    headers["X-Title"] = "A11yBot";
+  }
+
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: config.model,
+      max_tokens: 1024,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => res.statusText);
+    throw new Error(`LLM API error ${res.status}: ${body}`);
+  }
+
+  const data = await res.json() as { choices: { message: { content: string } }[] };
+  return data.choices[0].message.content;
 }

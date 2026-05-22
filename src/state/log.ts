@@ -11,12 +11,6 @@ export const log = pino({
     : undefined,
 });
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __vpatApiKey: string | undefined;
-}
-if (typeof globalThis.__vpatApiKey === "undefined") globalThis.__vpatApiKey = undefined;
-
 let writeTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingEntries: unknown[] = [];
 
@@ -36,10 +30,3 @@ export function writeRunLog(entry: unknown): void {
   }, 1000);
 }
 
-export function setSessionApiKey(key: string): void {
-  globalThis.__vpatApiKey = key;
-}
-
-export function getSessionApiKey(): string | undefined {
-  return globalThis.__vpatApiKey ?? process.env.ANTHROPIC_API_KEY;
-}
