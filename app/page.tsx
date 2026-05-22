@@ -13,7 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check for existing project on mount
+  // If a project is already active (e.g. page refresh mid-session), skip splash
   useEffect(() => {
     fetch("/api/project")
       .then((r) => r.ok ? r.json() : null)

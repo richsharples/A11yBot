@@ -13,6 +13,7 @@ import {
 } from "docx";
 import type { Project } from "../types";
 import { getCriteriaFile } from "../state/project";
+import { readManifest } from "../state/criteria-store";
 
 const LEVEL_LABELS: Record<string, string> = {
   supports: "Supports",
@@ -105,13 +106,61 @@ export async function renderDocx(project: Project): Promise<Buffer> {
     new Paragraph({ text: "" })
   );
 
-  // Conformance disclaimer
+  // Evaluation methods
   sections.push(
     new Paragraph({ text: "Evaluation Methods Used", heading: HeadingLevel.HEADING_2 }),
     new Paragraph({
       children: [new TextRun({
         text: `This report was generated using the VPAT Tool. Automated scanning (${project.mode !== "interview" ? "source and/or runtime" : "interview only"}) was combined with product manager review. All AI-assisted conformance assessments were reviewed and confirmed by the named contact.`,
       })],
+    }),
+    new Paragraph({ text: "" })
+  );
+
+  // Compliance Standards
+  const manifest = readManifest();
+  const editionSources = manifest.sources.filter((s) => s.editions.includes(project.edition));
+  sections.push(
+    new Paragraph({ text: "Compliance Standards", heading: HeadingLevel.HEADING_2 }),
+    new Paragraph({
+      children: [new TextRun({
+        text: `Criteria set version ${manifest.criteriaVersion}, released ${manifest.releasedAt}. ${manifest.notes}`,
+        italics: true,
+      })],
+    }),
+    new Paragraph({ text: "" }),
+    new Table({
+      rows: [
+        new TableRow({
+          children: ["Standard", "Reference URL", "Scope"].map((h) =>
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })],
+              shading: { fill: "C0C0C0" },
+            })
+          ),
+          tableHeader: true,
+        }),
+        ...editionSources.map(
+          (source) =>
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: source.name })] })],
+                  width: { size: 30, type: WidthType.PERCENTAGE },
+                }),
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: source.url })] })],
+                  width: { size: 35, type: WidthType.PERCENTAGE },
+                }),
+                new TableCell({
+                  children: [new Paragraph({ children: [new TextRun({ text: source.description })] })],
+                  width: { size: 35, type: WidthType.PERCENTAGE },
+                }),
+              ],
+            })
+        ),
+      ],
+      width: { size: 100, type: WidthType.PERCENTAGE },
     }),
     new Paragraph({ text: "" })
   );

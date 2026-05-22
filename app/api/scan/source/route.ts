@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import fg from "fast-glob";
-import { addEvidence, requireProject, getCriteriaFile } from "@/src/state/project";
+import { addEvidence, clearScanEvidence, requireProject, getCriteriaFile } from "@/src/state/project";
 import { scanHtmlFile } from "@/src/scanners/source-html";
 import { scanVueFile } from "@/src/scanners/source-vue";
 import { scanAngularFile } from "@/src/scanners/source-angular";
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
 
     log.info({ event: "scan.source.started", sourcePath });
     writeRunLog({ event: "scan.source.started", sourcePath });
+    clearScanEvidence("source-scan");
 
     const ruleMapping = buildRuleMapping(project.edition);
     const evidenceTotals: Record<string, number> = {};

@@ -1,6 +1,6 @@
 {
   "name": "vpat-tool",
-  "version": "1.0.0",
+  "version": "0.1.0-beta.1",
   "description": "VPAT 2.5 Accessibility Conformance Report generator",
   "bin": {
     "vpat": "./bin/vpat.js"
@@ -36,6 +36,7 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.28.5",
     "@types/babel__traverse": "^7.20.0",
     "@types/cheerio": "^0.22.35",
     "@types/eslint": "^9.6.1",

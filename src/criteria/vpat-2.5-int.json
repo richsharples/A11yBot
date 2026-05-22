@@ -1,12 +1,395 @@
 {
   "edition": "INT",
   "version": "2.5",
-  "generatedFrom": "ITI VPAT 2.5 International Edition (Nov 2023). The INT edition combines Section 508 (US), EN 301 549 (EU), and WCAG 2.0/2.1/2.2 — many rows are shared. This starter file illustrates the schema and the cross-reference shape with a representative subset; the full 120+ row INT table needs to be extracted from the ITI template before publishing a real ACR.",
+  "generatedFrom": "ITI VPAT 2.5 International Edition (Nov 2023). The INT edition combines Section 508 (US), EN 301 549 (EU), and WCAG 2.0/2.1/2.2 — many rows are shared. WCAG 2.0 A/AA criteria are shared verbatim from the 508 edition; 2.1 AA additions and EN 301 549 Chapter 11 software rows are INT-specific.",
   "chapters": [
+    {
+      "id": "wcag-a",
+      "title": "WCAG 2.0 Level A Success Criteria",
+      "description": "All Level A criteria required for web and software content.",
+      "criteria": [
+        {
+          "id": "wcag.1.1.1",
+          "ref": "1.1.1 Non-text Content (Level A)",
+          "text": "All non-text content that is presented to the user has a text alternative that serves the equivalent purpose, except for the situations listed in WCAG.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do all images, icons, charts, and non-text UI controls have appropriate text alternatives? Are decorative images marked so screen readers skip them?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/alt-text", "jsx-a11y/img-redundant-alt"],
+            "axeRules": ["image-alt", "input-image-alt", "area-alt", "object-alt", "role-img-alt"],
+            "lighthouseAudits": ["image-alt", "input-image-alt", "object-alt"]
+          }
+        },
+        {
+          "id": "wcag.1.2.1",
+          "ref": "1.2.1 Audio-only and Video-only (Prerecorded) (Level A)",
+          "text": "For prerecorded audio-only and video-only media, an alternative for time-based media is provided that presents equivalent information.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do you have any audio-only or video-only (silent) prerecorded media? If so, is there a text transcript (audio) or text/audio description (video)?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.2.2",
+          "ref": "1.2.2 Captions (Prerecorded) (Level A)",
+          "text": "Captions are provided for all prerecorded audio content in synchronized media.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do all prerecorded videos with sound (training, marketing, demos shown in-product) have captions?",
+          "scannerSignals": {
+            "axeRules": ["video-caption"]
+          }
+        },
+        {
+          "id": "wcag.1.2.3",
+          "ref": "1.2.3 Audio Description or Media Alternative (Prerecorded) (Level A)",
+          "text": "An alternative for time-based media or audio description of the prerecorded video content is provided for synchronized media.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "For videos where important content is visual-only (no narration), is there either an audio description track or a text alternative describing what's on screen?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.3.1",
+          "ref": "1.3.1 Info and Relationships (Level A)",
+          "text": "Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Are headings marked up as headings, lists as lists, tables with proper headers, form fields with proper labels? Visual structure should be reflected in the DOM/accessibility tree.",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/heading-has-content", "jsx-a11y/label-has-associated-control"],
+            "axeRules": ["heading-order", "label", "list", "listitem", "definition-list", "th-has-data-cells", "td-headers-attr"],
+            "lighthouseAudits": ["heading-order", "list", "listitem", "definition-list"]
+          }
+        },
+        {
+          "id": "wcag.1.3.2",
+          "ref": "1.3.2 Meaningful Sequence (Level A)",
+          "text": "When the sequence in which content is presented affects its meaning, a correct reading sequence can be programmatically determined.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "If you read the DOM order (or tab through the page), does the content make sense in that order — or does CSS rearrange things into a different visual sequence that breaks reading order?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.3.3",
+          "ref": "1.3.3 Sensory Characteristics (Level A)",
+          "text": "Instructions for understanding and operating content do not rely solely on sensory characteristics such as shape, size, visual location, orientation, or sound.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do any of your instructions say things like 'click the button on the right' or 'press the green button' without also identifying the element by name?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.4.1",
+          "ref": "1.4.1 Use of Color (Level A)",
+          "text": "Color is not used as the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Is colour ever the only differentiator — required fields in red only, status pills with no text, charts series identified only by colour?",
+          "scannerSignals": {
+            "axeRules": ["link-in-text-block"]
+          }
+        },
+        {
+          "id": "wcag.1.4.2",
+          "ref": "1.4.2 Audio Control (Level A)",
+          "text": "If any audio on a Web page plays automatically for more than 3 seconds, a mechanism is available to pause or stop the audio, or to control audio volume independently from the overall system volume.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does any page or screen play audio automatically? If so, is there an obvious way to stop or mute it?",
+          "scannerSignals": {
+            "axeRules": ["autoplay-audio"]
+          }
+        },
+        {
+          "id": "wcag.2.1.1",
+          "ref": "2.1.1 Keyboard (Level A)",
+          "text": "All functionality of the content is operable through a keyboard interface without requiring specific timings for individual keystrokes.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Can every action in your product be performed with only the keyboard — no mouse required? Drag-and-drop, modal dialogs, tooltips, custom widgets?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/click-events-have-key-events", "jsx-a11y/no-noninteractive-element-interactions"],
+            "axeRules": ["accesskeys"]
+          }
+        },
+        {
+          "id": "wcag.2.1.2",
+          "ref": "2.1.2 No Keyboard Trap (Level A)",
+          "text": "If keyboard focus can be moved to a component of the page using a keyboard interface, then focus can be moved away from that component using only a keyboard interface.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Are there any modals, embedded widgets, or custom controls where keyboard focus gets stuck and can't escape with Tab/Escape?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.2.2.1",
+          "ref": "2.2.1 Timing Adjustable (Level A)",
+          "text": "For each time limit that is set by the content, the user can turn off, adjust, or extend the time limit.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Are there any time limits — session timeouts, auto-dismissing notifications, countdowns? Can users extend or disable them?",
+          "scannerSignals": {
+            "axeRules": ["meta-refresh"]
+          }
+        },
+        {
+          "id": "wcag.2.2.2",
+          "ref": "2.2.2 Pause, Stop, Hide (Level A)",
+          "text": "For moving, blinking, scrolling, or auto-updating information, users can pause, stop, or hide it.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do you have any auto-rotating carousels, animated graphics, marquees, or auto-refreshing content? Can users stop them?",
+          "scannerSignals": {
+            "axeRules": ["marquee", "blink"]
+          }
+        },
+        {
+          "id": "wcag.2.3.1",
+          "ref": "2.3.1 Three Flashes or Below Threshold (Level A)",
+          "text": "Web pages do not contain anything that flashes more than three times in any one second period, or the flash is below the general flash and red flash thresholds.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does anything in your product flash, strobe, or rapidly change colours in a way that could trigger photosensitive seizures?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.2.4.1",
+          "ref": "2.4.1 Bypass Blocks (Level A)",
+          "text": "A mechanism is available to bypass blocks of content that are repeated on multiple Web pages.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Do you have a 'Skip to main content' link (or equivalent landmark structure) that lets keyboard users skip repeated navigation?",
+          "scannerSignals": {
+            "axeRules": ["bypass", "region", "skip-link"],
+            "lighthouseAudits": ["bypass"]
+          }
+        },
+        {
+          "id": "wcag.2.4.2",
+          "ref": "2.4.2 Page Titled (Level A)",
+          "text": "Web pages have titles that describe topic or purpose.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Does every page in your product have a unique, descriptive <title>? Or do all pages share a generic title like the product name only?",
+          "scannerSignals": {
+            "axeRules": ["document-title"],
+            "lighthouseAudits": ["document-title"]
+          }
+        },
+        {
+          "id": "wcag.2.4.3",
+          "ref": "2.4.3 Focus Order (Level A)",
+          "text": "If a Web page can be navigated sequentially and the navigation sequences affect meaning or operation, focusable components receive focus in an order that preserves meaning and operability.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "When you tab through a page, does focus move in a logical order (top-to-bottom, left-to-right, following the visual flow)? Or does it jump around because of positive tabindex or DOM mismatch?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/tabindex-no-positive"],
+            "axeRules": ["tabindex"]
+          }
+        },
+        {
+          "id": "wcag.2.4.4",
+          "ref": "2.4.4 Link Purpose (In Context) (Level A)",
+          "text": "The purpose of each link can be determined from the link text alone or from the link text together with its programmatically determined link context.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do any of your links say only 'click here', 'read more', or 'learn more' without enough surrounding context to know what they go to?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/anchor-has-content", "jsx-a11y/anchor-is-valid"],
+            "axeRules": ["link-name"],
+            "lighthouseAudits": ["link-name"]
+          }
+        },
+        {
+          "id": "wcag.3.1.1",
+          "ref": "3.1.1 Language of Page (Level A)",
+          "text": "The default human language of each Web page can be programmatically determined.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Does the root <html> element have a lang attribute set to the correct language code?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/html-has-lang", "jsx-a11y/lang"],
+            "axeRules": ["html-has-lang", "html-lang-valid", "valid-lang"],
+            "lighthouseAudits": ["html-has-lang", "html-lang-valid"]
+          }
+        },
+        {
+          "id": "wcag.3.2.1",
+          "ref": "3.2.1 On Focus (Level A)",
+          "text": "When any component receives focus, it does not initiate a change of context.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does focusing on any control trigger an unexpected change — navigating to a new page, opening a modal, submitting a form?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.3.2.2",
+          "ref": "3.2.2 On Input (Level A)",
+          "text": "Changing the setting of any user interface component does not automatically cause a change of context unless the user has been advised of the behavior before using the component.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does selecting a value in a dropdown or checking a checkbox auto-submit a form, navigate elsewhere, or otherwise change context without warning?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/no-onchange"]
+          }
+        },
+        {
+          "id": "wcag.3.3.1",
+          "ref": "3.3.1 Error Identification (Level A)",
+          "text": "If an input error is automatically detected, the item that is in error is identified and the error is described to the user in text.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "When form validation fails, are errors described in text — not only colour, not only icon? Can a screen-reader user know which field is wrong and why?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/label-has-associated-control"]
+          }
+        },
+        {
+          "id": "wcag.3.3.2",
+          "ref": "3.3.2 Labels or Instructions (Level A)",
+          "text": "Labels or instructions are provided when content requires user input.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does every form field have a visible label (or placeholder + accessible name)? Are formatting rules (date format, password requirements) communicated before submission?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/label-has-associated-control", "jsx-a11y/control-has-associated-label"],
+            "axeRules": ["label", "form-field-multiple-labels"]
+          }
+        },
+        {
+          "id": "wcag.4.1.1",
+          "ref": "4.1.1 Parsing (Level A)",
+          "text": "In content implemented using markup languages, elements have complete start and end tags, are nested according to their specifications, do not contain duplicate attributes, and any IDs are unique.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Does your HTML validate? In particular, no duplicate IDs (common in dynamic apps that mount the same component twice), no unclosed tags?",
+          "scannerSignals": {
+            "axeRules": ["duplicate-id", "duplicate-id-active", "duplicate-id-aria"],
+            "lighthouseAudits": ["duplicate-id-active", "duplicate-id-aria"]
+          }
+        },
+        {
+          "id": "wcag.4.1.2",
+          "ref": "4.1.2 Name, Role, Value (Level A)",
+          "text": "For all user interface components, the name and role can be programmatically determined; states, properties, and values can be programmatically set; and notification of changes is available to user agents, including assistive technologies.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Are custom widgets (custom dropdowns, tabs, dialogs) built with proper ARIA roles and states? Does a screen reader announce them correctly as they're operated?",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/aria-role", "jsx-a11y/aria-props", "jsx-a11y/aria-proptypes", "jsx-a11y/role-has-required-aria-props", "jsx-a11y/role-supports-aria-props"],
+            "axeRules": ["aria-valid-attr", "aria-valid-attr-value", "aria-required-attr", "aria-roles", "button-name", "link-name", "input-button-name"],
+            "lighthouseAudits": ["aria-valid-attr", "aria-required-attr", "aria-roles", "button-name", "link-name"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "wcag-aa",
+      "title": "WCAG 2.0 Level AA Success Criteria",
+      "description": "All Level AA criteria required for web and software content.",
+      "criteria": [
+        {
+          "id": "wcag.1.2.4",
+          "ref": "1.2.4 Captions (Live) (Level AA)",
+          "text": "Captions are provided for all live audio content in synchronized media.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does your product stream live audio or video (webinars, live training, video calls)? If so, are captions provided in real time?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.2.5",
+          "ref": "1.2.5 Audio Description (Prerecorded) (Level AA)",
+          "text": "Audio description is provided for all prerecorded video content in synchronized media.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "For prerecorded videos where visual information is not described in the dialogue, is there an audio description track?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.1.4.3",
+          "ref": "1.4.3 Contrast (Minimum) (Level AA)",
+          "text": "The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for large text (3:1), incidental text, and logotypes.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Does your product meet WCAG AA contrast — 4.5:1 for normal text, 3:1 for large text? Any known low-contrast areas (placeholder text, disabled-but-still-readable states, hover states)?",
+          "scannerSignals": {
+            "axeRules": ["color-contrast"],
+            "lighthouseAudits": ["color-contrast"]
+          }
+        },
+        {
+          "id": "wcag.1.4.4",
+          "ref": "1.4.4 Resize text (Level AA)",
+          "text": "Text can be resized without assistive technology up to 200 percent without loss of content or functionality.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "At 200% browser zoom (or OS-level text scaling), does your UI still work — no clipped text, no overlapping controls, no horizontal scroll on what should be a vertical-only page?",
+          "scannerSignals": {
+            "axeRules": ["meta-viewport"],
+            "lighthouseAudits": ["meta-viewport"]
+          }
+        },
+        {
+          "id": "wcag.1.4.5",
+          "ref": "1.4.5 Images of Text (Level AA)",
+          "text": "If technologies can achieve the visual presentation, text is used to convey information rather than images of text, with limited exceptions.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Do you use images of text where real text would have worked — buttons rendered as images, screenshots with embedded text in marketing pages?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.2.4.5",
+          "ref": "2.4.5 Multiple Ways (Level AA)",
+          "text": "More than one way is available to locate a Web page within a set of Web pages.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Are there multiple ways to find a given page — search, site map, breadcrumbs, navigation menu? At least two should be present (a step in a process is exempt).",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.2.4.6",
+          "ref": "2.4.6 Headings and Labels (Level AA)",
+          "text": "Headings and labels describe topic or purpose.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "Are headings and labels meaningful — do they describe what follows? Avoid headings like 'Section 1' or 'Details' without further context.",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/heading-has-content"],
+            "axeRules": ["empty-heading"]
+          }
+        },
+        {
+          "id": "wcag.2.4.7",
+          "ref": "2.4.7 Focus Visible (Level AA)",
+          "text": "Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "When you tab through your UI, is there always a clearly visible focus indicator on the current element? Sometimes CSS `outline: none` removes this without a replacement.",
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/interactive-supports-focus"]
+          }
+        },
+        {
+          "id": "wcag.3.1.2",
+          "ref": "3.1.2 Language of Parts (Level AA)",
+          "text": "The human language of each passage or phrase in the content can be programmatically determined, except for proper names, technical terms, words of indeterminate language, and words or phrases that have become part of the vernacular.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "If your UI mixes languages — e.g. a French quote inside an English page — is the inline element marked with the correct lang attribute?",
+          "scannerSignals": {
+            "axeRules": ["valid-lang"]
+          }
+        },
+        {
+          "id": "wcag.3.2.3",
+          "ref": "3.2.3 Consistent Navigation (Level AA)",
+          "text": "Navigational mechanisms that are repeated on multiple Web pages occur in the same relative order each time they are repeated, unless a change is initiated by the user.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Does your main navigation appear in the same place and same order on every page? Or does it reorder depending on context?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.3.2.4",
+          "ref": "3.2.4 Consistent Identification (Level AA)",
+          "text": "Components that have the same functionality within a set of Web pages are identified consistently.",
+          "appliesTo": ["web"],
+          "interviewQuestion": "Are functionally identical controls labelled consistently — is the same action always called 'Save' rather than 'Save' here and 'Submit' there?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.3.3.3",
+          "ref": "3.3.3 Error Suggestion (Level AA)",
+          "text": "If an input error is automatically detected and suggestions for correction are known, then the suggestions are provided to the user, unless it would jeopardize the security or purpose of the content.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "When form validation fails, do error messages tell the user how to fix the problem — not just 'invalid' but 'must be a valid email address' or 'password must include a number'?",
+          "scannerSignals": {}
+        },
+        {
+          "id": "wcag.3.3.4",
+          "ref": "3.3.4 Error Prevention (Legal, Financial, Data) (Level AA)",
+          "text": "For Web pages that cause legal commitments or financial transactions for the user to occur, that modify or delete user-controllable data, or that submit user test responses, submissions are reversible, checked for input errors, or confirmed before submission.",
+          "appliesTo": ["web", "software"],
+          "interviewQuestion": "For destructive or consequential actions — delete, finalize, run a billed scan — is there a confirmation step, reversibility, or input checking before the action completes?",
+          "scannerSignals": {}
+        }
+      ]
+    },
     {
       "id": "wcag-21-aa",
       "title": "WCAG 2.1 Level AA — additions over 2.0 AA",
-      "description": "WCAG 2.1 added 12 new success criteria beyond 2.0; INT covers them. Five are A, seven are AA. This starter shows the 2.1 AA additions only.",
+      "description": "WCAG 2.1 added 12 new success criteria beyond 2.0; INT covers them all.",
       "criteria": [
         {
           "id": "wcag.1.3.4",
@@ -29,8 +412,8 @@
           ],
           "interviewQuestion": "Do form fields for personal information (name, email, phone, address, credit card) have proper autocomplete attributes so browsers and assistive tech can identify their purpose?",
           "scannerSignals": {
-            "axeRules": ["autocomplete-valid"],
-            "lighthouseAudits": ["input-button-name"]
+            "eslintRules": ["jsx-a11y/autocomplete-valid"],
+            "axeRules": ["autocomplete-valid"]
           }
         },
         {
@@ -75,7 +458,9 @@
             { "standard": "EN301549", "id": "11.10" }
           ],
           "interviewQuestion": "For tooltips, popovers, and dropdowns that appear on hover/focus — can users dismiss them with Esc, move the pointer into them without them closing, and keep them open as long as needed?",
-          "scannerSignals": {}
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/mouse-events-have-key-events"]
+          }
         },
         {
           "id": "wcag.4.1.3",
@@ -87,6 +472,7 @@
           ],
           "interviewQuestion": "When your UI shows status messages — toast notifications, form success/error banners, async loading states — are they announced to screen readers without stealing focus? (Typically via aria-live regions.)",
           "scannerSignals": {
+            "eslintRules": ["jsx-a11y/aria-role", "jsx-a11y/aria-props", "jsx-a11y/aria-proptypes"],
             "axeRules": ["aria-required-attr", "aria-valid-attr-value"]
           }
         }
@@ -106,16 +492,18 @@
             { "standard": "508", "id": "508.502.2.1" }
           ],
           "interviewQuestion": "Does your product use the platform's accessibility APIs correctly (UIA on Windows, NSAccessibility on macOS, ARIA on web) for any custom UI components?",
-          "scannerSignals": {}
+          "scannerSignals": {
+            "eslintRules": ["jsx-a11y/aria-role", "jsx-a11y/aria-props", "jsx-a11y/role-has-required-aria-props"]
+          }
         }
       ]
     }
   ],
   "_notes": {
     "todo": [
-      "Add the full INT criteria table (~120 rows) by walking the ITI VPAT 2.5 INT template top to bottom. INT is structurally the union of: VPAT 2.5 508 + EN 301 549 Chapters 4–13 + WCAG 2.0/2.1/2.2 A and AA.",
-      "Each WCAG row from vpat-2.5-508.json can be reused here verbatim with added crossRefs to EN 301 549 equivalents.",
-      "Sections of EN 301 549 to add: 4 (Functional performance statements), 5 (Generic requirements), 6 (ICT with two-way voice), 7 (ICT with video), 8 (Hardware — mostly N/A for SaaS), 9 (Web — defers to WCAG), 10 (Non-web docs), 11 (Software), 12 (Documentation and support), 13 (ICT providing relay or emergency services — usually N/A)."
+      "Add remaining EN 301 549 sections: 4 (Functional performance), 5 (Generic requirements), 6 (ICT with two-way voice), 7 (ICT with video), 8 (Hardware — N/A for SaaS), 10 (Non-web docs), 12 (Documentation and support), 13 (Relay/emergency services — usually N/A).",
+      "Add WCAG 2.2 criteria (2.4.11–2.4.13, 2.5.3, 2.5.7–2.5.8, 3.2.6, 3.3.7–3.3.9) when targeting WCAG 2.2 conformance.",
+      "Full EN 301 549 Chapter 11 sub-items (11.1–11.8) covering AT object information, focus, events need extraction from the EN 301 549 source document."
     ]
   }
 }

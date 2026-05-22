@@ -1,0 +1,60 @@
+{
+  "criteriaVersion": "2.5.1",
+  "releasedAt": "2026-05-21",
+  "notes": "Starter criteria set derived from ITI VPAT 2.5 (Nov 2023). Verify criterion text against official sources before publishing a real ACR.",
+  "checkUrl": "",
+  "editions": {
+    "508": {
+      "file": "vpat-2.5-508.json",
+      "downloadUrl": ""
+    },
+    "INT": {
+      "file": "vpat-2.5-int.json",
+      "downloadUrl": ""
+    }
+  },
+  "sources": [
+    {
+      "name": "ITI VPAT 2.5 Template",
+      "abbr": "VPAT 2.5",
+      "url": "https://www.itic.org/policy/accessibility/vpat",
+      "description": "Official Voluntary Product Accessibility Template 2.5, published by the IT Industry Council (ITI), November 2023. Defines the structure and required chapters for a conformance report.",
+      "editions": ["508", "INT"]
+    },
+    {
+      "name": "WCAG 2.0",
+      "abbr": "WCAG 2.0",
+      "url": "https://www.w3.org/TR/WCAG20/",
+      "description": "Web Content Accessibility Guidelines 2.0 — W3C Recommendation, December 2008. Referenced by Section 508 as the normative web standard.",
+      "editions": ["508", "INT"]
+    },
+    {
+      "name": "WCAG 2.1",
+      "abbr": "WCAG 2.1",
+      "url": "https://www.w3.org/TR/WCAG21/",
+      "description": "Web Content Accessibility Guidelines 2.1 — W3C Recommendation, June 2018 (updated 2023). Adds criteria for mobile, low vision, and cognitive disabilities.",
+      "editions": ["INT"]
+    },
+    {
+      "name": "WCAG 2.2",
+      "abbr": "WCAG 2.2",
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "description": "Web Content Accessibility Guidelines 2.2 — W3C Recommendation, October 2023. Adds nine new success criteria.",
+      "editions": ["INT"]
+    },
+    {
+      "name": "Section 508 of the Rehabilitation Act (36 CFR Part 1194)",
+      "abbr": "Section 508",
+      "url": "https://www.access-board.gov/ict/",
+      "description": "US federal law requiring ICT procured, developed, maintained, or used by federal agencies to be accessible. Refreshed January 2017 by the US Access Board.",
+      "editions": ["508", "INT"]
+    },
+    {
+      "name": "EN 301 549 V3.2.1",
+      "abbr": "EN 301 549",
+      "url": "https://www.etsi.org/deliver/etsi_en/301500_302000/301549/03.02.01_60/en_301549v030201p.pdf",
+      "description": "Accessibility requirements for ICT products and services — European standard harmonised under the European Accessibility Act. Version 3.2.1, March 2021.",
+      "editions": ["INT"]
+    }
+  ]
+}

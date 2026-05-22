@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createProject, getProject } from "@/src/state/project";
 import { CreateProjectPayloadSchema } from "@/src/types";
 import { setSessionApiKey } from "@/src/state/log";
+import { ensureCriteriaStore } from "@/src/state/criteria-store";
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureCriteriaStore();
     const body = await req.json();
     const payload = CreateProjectPayloadSchema.parse(body);
 

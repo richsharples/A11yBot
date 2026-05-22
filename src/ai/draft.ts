@@ -66,10 +66,21 @@ export async function draftCriterion(criterionId: string): Promise<AiDraftRespon
     } catch (err2) {
       log.error({ err: err2, criterionId }, "AI draft failed on retry");
       writeRunLog({ event: "ai.draft.failed", criterionId, err: String(err2) });
+      const msg = String(err2);
+      let remark: string;
+      if (msg.includes("credit balance is too low")) {
+        remark = "AI draft failed: your Anthropic API credit balance is too low. Add credits at console.anthropic.com → Plans & Billing, then retry.";
+      } else if (msg.includes("invalid_api_key") || msg.includes("authentication") || msg.includes("401")) {
+        remark = "AI draft failed: invalid or missing Anthropic API key. Check your key at console.anthropic.com → API Keys.";
+      } else if (msg.includes("No Anthropic API key")) {
+        remark = "AI draft failed: no Anthropic API key configured. Set ANTHROPIC_API_KEY or enter a key in the setup wizard.";
+      } else {
+        remark = `AI draft failed: ${msg}`;
+      }
       return {
         level: "notEvaluated",
-        remark: "AI draft failed — please fill in manually.",
-        reasoning: String(err2),
+        remark,
+        reasoning: msg,
       };
     }
   }

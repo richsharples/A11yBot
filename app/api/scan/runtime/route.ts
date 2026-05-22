@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addEvidence, requireProject, getCriteriaFile } from "@/src/state/project";
+import { addEvidence, clearScanEvidence, requireProject, getCriteriaFile } from "@/src/state/project";
 import { runLighthouse, mapLighthouseToEvidence } from "@/src/scanners/lighthouse";
 import { log, writeRunLog } from "@/src/state/log";
 import { RuntimeScanPayloadSchema } from "@/src/types";
@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
 
     log.info({ event: "scan.runtime.started", url: payload.url });
     writeRunLog({ event: "scan.runtime.started", url: payload.url, paths: payload.paths });
+    clearScanEvidence("runtime-scan");
 
     const mapping = buildLighthouseMapping(project.edition);
     const paths = payload.paths?.length ? payload.paths : ["/"];

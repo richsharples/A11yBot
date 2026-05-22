@@ -7,9 +7,9 @@ import type {
   Confidence,
   Edition,
 } from "../types";
+import { readFileSync } from "fs";
 import { CriteriaFileSchema } from "../types";
-import criteria508 from "../criteria/vpat-2.5-508.json";
-import criteriaInt from "../criteria/vpat-2.5-int.json";
+import { getCriteriaFilePath } from "./criteria-store";
 import { log, writeRunLog } from "./log";
 
 // Store on globalThis so it survives Next.js App Router module re-evaluation
@@ -39,8 +39,7 @@ export function createProject(params: {
   sourcePath?: string;
   runtimeUrl?: string;
 }): Project {
-  const criteriaRaw = params.edition === "508" ? criteria508 : criteriaInt;
-  const criteriaFile = CriteriaFileSchema.parse(criteriaRaw);
+  const criteriaFile = getCriteriaFile(params.edition);
 
   const criteriaMap: Record<string, CriterionState> = {};
   for (const chapter of criteriaFile.chapters) {
@@ -69,12 +68,22 @@ export function createProject(params: {
   return project;
 }
 
-export function addEvidence(criterionId: string, evidence: Evidence): void {
+export function clearScanEvidence(source: "source-scan" | "runtime-scan"): void {
+  const project = requireProject();
+  for (const cs of Object.values(project.criteria)) {
+    cs.evidence = cs.evidence.filter((e) => e.source !== source);
+  }
+  log.info({ event: "evidence.cleared", source });
+  writeRunLog({ event: "evidence.cleared", source });
+}
+
+export function addEvidence(criterionId: string, evidence: Evidence): boolean {
   const project = requireProject();
   const cs = project.criteria[criterionId];
-  if (!cs) throw new Error(`Unknown criterion: ${criterionId}`);
+  if (!cs) return false; // criterion not in this edition — skip silently
   cs.evidence.push(evidence);
   writeRunLog({ event: "evidence.added", criterionId, evidence });
+  return true;
 }
 
 export function updateCriterion(
@@ -96,6 +105,7 @@ export function updateCriterion(
 }
 
 export function getCriteriaFile(edition: Edition) {
-  const raw = edition === "508" ? criteria508 : criteriaInt;
+  const path = getCriteriaFilePath(edition);
+  const raw = JSON.parse(readFileSync(path, "utf-8"));
   return CriteriaFileSchema.parse(raw);
 }

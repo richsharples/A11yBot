@@ -9,25 +9,25 @@ export async function scanJsx(
   filePaths: string[],
   ruleMapping: RuleMapping
 ): Promise<Map<string, Evidence[]>> {
-  const eslint = new ESLint({
-    overrideConfigFile: true,
+  // Use ESLint v8 eslintrc-style config. @types/eslint ships v9 types so we cast.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const eslint = new (ESLint as any)({
+    useEslintrc: false,
+    resolvePluginsRelativeTo: __dirname,
     overrideConfig: {
-      plugins: { "jsx-a11y": require("eslint-plugin-jsx-a11y") },
+      plugins: ["jsx-a11y"],
       rules: Object.fromEntries(
-        Object.keys(require("eslint-plugin-jsx-a11y").rules).map((r) => [
+        Object.keys(require("eslint-plugin-jsx-a11y").rules).map((r: string) => [
           `jsx-a11y/${r}`,
           "warn",
         ])
       ),
-      languageOptions: {
-        parser: require("@babel/eslint-parser"),
-        parserOptions: {
-          requireConfigFile: false,
-          babelOptions: { presets: ["@babel/preset-react"] },
-        },
+      parser: "@babel/eslint-parser",
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: { presets: ["@babel/preset-react", "@babel/preset-typescript"] },
       },
     },
-    // Only lint the specific files
   });
 
   const results = await eslint.lintFiles(filePaths);
