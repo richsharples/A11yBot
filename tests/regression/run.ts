@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * vpat-tool regression test suite
+ * a11ybot regression test suite
  *
  * Usage:
  *   npm run regression                 # compare against saved baselines
@@ -70,7 +70,7 @@ async function runTarget(
     productVersion: "test",
     productDescription: `Automated regression run for ${target.id}`,
     contactName: "Regression Suite",
-    contactEmail: "regression@vpat-tool.test",
+    contactEmail: "regression@a11ybot.test",
     edition: target.edition,
     mode: "interview",
     productComponents: target.productComponents,

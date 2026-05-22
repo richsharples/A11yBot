@@ -2,7 +2,7 @@ import pino from "pino";
 import { appendFileSync } from "fs";
 import { join } from "path";
 
-const logFile = join(process.cwd(), "vpat-run.log.json");
+const logFile = join(process.cwd(), "a11ybot-run.log.json");
 
 export const log = pino({
   level: process.env.LOG_LEVEL ?? "info",

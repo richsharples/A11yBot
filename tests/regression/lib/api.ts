@@ -1,5 +1,5 @@
 /**
- * Thin HTTP client for the vpat-tool API.
+ * Thin HTTP client for the a11ybot API.
  * All functions throw on non-2xx responses.
  */
 

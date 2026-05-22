@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
 
 const APP_VERSION = "0.1.0-beta.4";
-const GITHUB_ISSUES_URL = "https://github.com/richsharples/vpat-tool/issues";
+const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
 
 interface CriteriaSource {
   name: string;

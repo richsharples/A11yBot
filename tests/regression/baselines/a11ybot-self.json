@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-05-22T13:58:51.323Z",
+  "toolVersion": "2.5.1",
+  "targetId": "a11ybot-self",
+  "sourceScan": {
+    "filesFound": {
+      "html": 0,
+      "vue": 0,
+      "angular": 0,
+      "css": 10,
+      "jsx": 26
+    },
+    "evidenceAdded": 13,
+    "criteriaHit": 7
+  },
+  "criteria": {
+    "total": 57,
+    "notApplicable": 4,
+    "notEvaluated": 53
+  },
+  "export": {
+    "success": true,
+    "sizeKb": 13
+  }
+}

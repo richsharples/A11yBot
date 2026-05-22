@@ -1,4 +1,8 @@
-# VPAT Tool
+<p align="center">
+  <img src="public/a11ybot-logo.png" alt="A11yBot logo" width="320" />
+</p>
+
+# A11yBot
 
 A local web app for generating **VPAT 2.5 Accessibility Conformance Reports** (ACR). It combines automated accessibility scanning with AI-assisted drafting to evaluate WCAG / Section 508 criteria and produce a `.docx` report ready for submission.
 

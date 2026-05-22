@@ -2,7 +2,7 @@
  * REGRESSION TEST FIXTURE — DO NOT FIX THESE VIOLATIONS
  *
  * This file intentionally contains accessibility violations that the
- * vpat-tool source scanner should detect. It is the baseline for the
+ * a11ybot source scanner should detect. It is the baseline for the
  * "fixture" regression target.
  *
  * Expected violations (jsx-a11y rules):

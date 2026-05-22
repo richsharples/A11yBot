@@ -15,13 +15,13 @@ export const TARGETS: TargetConfig[] = [
     matchMode: "exact",
   },
   {
-    id: "vpat-tool-self",
-    name: "vpat-tool (self-scan)",
+    id: "a11ybot-self",
+    name: "a11ybot (self-scan)",
     sourcePath: ROOT,
     productComponents: ["web", "software"],
     edition: "508",
     description:
-      "Scans the vpat-tool codebase itself. Tolerance-based — expected to grow as the app evolves.",
+      "Scans the a11ybot codebase itself. Tolerance-based — expected to grow as the app evolves.",
     matchMode: "tolerance",
   },
   {

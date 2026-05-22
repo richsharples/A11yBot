@@ -50,16 +50,16 @@ function ask(question: string): Promise<string> {
 
 async function main() {
   program
-    .name("vpat")
+    .name("a11ybot")
     .version(pkg.version)
-    .description("VPAT 2.5 Accessibility Conformance Report generator")
+    .description("A11yBot — VPAT 2.5 Accessibility Conformance Report generator")
     .option("--port <port>", "Port to listen on")
     .option("--no-browser", "Don't open browser")
     .parse();
 
   const opts = program.opts<{ port?: string; browser: boolean }>();
 
-  console.log(`\nvpat ${pkg.version}`);
+  console.log(`\nA11yBot ${pkg.version}`);
 
   const config = loadConfig();
 
@@ -99,7 +99,7 @@ async function main() {
   server.listen(port, () => {
     const url = `http://localhost:${port}`;
     console.log(`  ➜ ${url} ${openBrowser ? "(opening browser)" : ""}`);
-    console.log(`  ➜ Logs streaming to ./vpat-run.log.json`);
+    console.log(`  ➜ Logs streaming to ./a11ybot-run.log.json`);
     console.log(`  ➜ Ctrl-C to quit\n`);
 
     if (openBrowser) {
