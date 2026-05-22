@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Project, Edition, InputMode } from "@/src/types";
+import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
 
 const APP_VERSION = "0.1.0-beta.1";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/vpat-tool/issues";
@@ -29,6 +29,14 @@ const EDITIONS: { value: Edition; label: string; description: string }[] = [
   { value: "INT", label: "International (INT)", description: "Combined 508 + EN 301 549 + WCAG 2.1/2.2" },
 ];
 
+const COMPONENTS: { value: ProductComponent; label: string; description: string; icon: string }[] = [
+  { value: "web",      label: "Web / Browser",          description: "Web application, website, or web content",               icon: "🌐" },
+  { value: "software", label: "Desktop / Mobile App",   description: "Native app, Electron, iOS, Android",                     icon: "💻" },
+  { value: "hardware", label: "Hardware",               description: "Physical device with a user interface",                   icon: "🖥️" },
+  { value: "docs",     label: "Documentation",          description: "User manuals, in-product help, release notes",            icon: "📄" },
+  { value: "support",  label: "Support Services",       description: "Help desk, live chat, support portal",                    icon: "🎧" },
+];
+
 const MODES: { value: InputMode; label: string; description: string }[] = [
   { value: "interview", label: "Interview only", description: "Guided Q&A — no scanner needed" },
   { value: "source", label: "Source scan", description: "Point at a local code repository" },
@@ -44,6 +52,7 @@ type FormState = {
   contactEmail: string;
   edition: Edition;
   mode: InputMode;
+  productComponents: ProductComponent[];
   sourcePath: string;
   runtimeUrl: string;
   anthropicApiKey: string;
@@ -55,6 +64,9 @@ type Touched = Partial<Record<FieldKey, boolean>>;
 
 function validate(form: FormState): Errors {
   const errors: Errors = {};
+
+  if (form.productComponents.length === 0)
+    errors.productComponents = "Select at least one component type — this determines which criteria apply.";
 
   if (!form.productName.trim())
     errors.productName = "Product name is required — it appears on the VPAT cover page.";
@@ -90,10 +102,11 @@ function validate(form: FormState): Errors {
 }
 
 const STEP1_FIELDS: FieldKey[] = ["productName", "productVersion", "productDescription", "contactName", "contactEmail", "anthropicApiKey"];
-const STEP2_FIELDS: FieldKey[] = ["sourcePath", "runtimeUrl"];
+const STEP2_FIELDS: FieldKey[] = ["productComponents", "edition", "mode"];
+const STEP3_FIELDS: FieldKey[] = ["sourcePath", "runtimeUrl"];
 
 export function SetupWizard({ onCreated, loading, setLoading, error, setError }: Props) {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
 
   useEffect(() => {
@@ -110,6 +123,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
     contactEmail: "",
     edition: "508",
     mode: "interview",
+    productComponents: ["web"],
     sourcePath: "",
     runtimeUrl: "",
     anthropicApiKey: "",
@@ -128,21 +142,40 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const errors = validate(form);
   const fieldError = (key: FieldKey): string | undefined => (touched[key] ? errors[key] : undefined);
 
+  const toggleComponent = (c: ProductComponent) => {
+    setForm((prev) => {
+      const has = prev.productComponents.includes(c);
+      return {
+        ...prev,
+        productComponents: has
+          ? prev.productComponents.filter((x) => x !== c)
+          : [...prev.productComponents, c],
+      };
+    });
+    setTouched((prev) => ({ ...prev, productComponents: true }));
+  };
+
   const handleContinue = () => {
     touchAll(STEP1_FIELDS);
     const hasErrors = STEP1_FIELDS.some((k) => errors[k]);
     if (!hasErrors) setStep(2);
   };
 
+  const handleContinue2 = () => {
+    touchAll(STEP2_FIELDS);
+    const hasErrors = STEP2_FIELDS.some((k) => errors[k]);
+    if (!hasErrors) setStep(3);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    touchAll([...STEP1_FIELDS, ...STEP2_FIELDS]);
+    touchAll([...STEP1_FIELDS, ...STEP2_FIELDS, ...STEP3_FIELDS]);
     if (Object.keys(errors).length > 0) return;
 
     setLoading(true);
     setError(null);
     try {
-      const payload: Record<string, string> = {
+      const payload: Record<string, unknown> = {
         productName: form.productName,
         productVersion: form.productVersion,
         productDescription: form.productDescription,
@@ -150,6 +183,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
         contactEmail: form.contactEmail,
         edition: form.edition,
         mode: form.mode,
+        productComponents: form.productComponents,
       };
       if (form.sourcePath) payload.sourcePath = form.sourcePath;
       if (form.runtimeUrl) payload.runtimeUrl = form.runtimeUrl;
@@ -254,9 +288,11 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
         <div className="w-full max-w-xl">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-6">
-              <StepDot n={1} active={step === 1} done={step === 2} />
+              <StepDot n={1} active={step === 1} done={step > 1} />
               <div className="flex-1 h-px bg-gray-200" />
-              <StepDot n={2} active={step === 2} done={false} />
+              <StepDot n={2} active={step === 2} done={step > 2} />
+              <div className="flex-1 h-px bg-gray-200" />
+              <StepDot n={3} active={step === 3} done={false} />
             </div>
 
           <form onSubmit={handleSubmit}>
@@ -347,6 +383,56 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
             {step === 2 && (
               <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Product Scope</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select every component type your product includes. Criteria that don't apply will be pre-marked <span className="font-medium text-gray-600">N/A</span>, so you only review what's relevant.
+                  </p>
+                </div>
+
+                <Field label="What does your product include?" error={fieldError("productComponents")}>
+                  <div className="grid grid-cols-1 gap-2 mt-1">
+                    {COMPONENTS.map((c) => {
+                      const checked = form.productComponents.includes(c.value);
+                      return (
+                        <button
+                          key={c.value}
+                          type="button"
+                          onClick={() => toggleComponent(c.value)}
+                          className={`flex items-start gap-3 text-left p-3 rounded-lg border-2 transition-colors ${checked ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
+                        >
+                          <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "border-blue-500 bg-blue-500" : "border-gray-400"}`}>
+                            {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-gray-900">{c.icon} {c.label}</span>
+                            <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+
+                {form.productComponents.length > 0 && (
+                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-700">
+                    <span className="font-semibold">In scope:</span>{" "}
+                    {COMPONENTS.filter((c) => form.productComponents.includes(c.value)).map((c) => c.label).join(", ")}.
+                    {" "}Unselected component types will be pre-marked N/A.
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setStep(1)} className={btnSecondary} title="Go back to product and contact details">← Back</button>
+                  <button type="button" onClick={handleContinue2} className={btnPrimary} title="Continue to edition and scan settings">
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-5">
                 <h2 className="text-lg font-semibold text-gray-900">Edition & Input Mode</h2>
 
                 <Field label="VPAT Edition">
@@ -411,7 +497,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                 )}
 
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setStep(1)} className={btnSecondary} title="Go back to product and contact details">← Back</button>
+                  <button type="button" onClick={() => setStep(2)} className={btnSecondary} title="Go back to product scope">← Back</button>
                   <button type="submit" disabled={loading} className={btnPrimary} title="Create the project and open the criteria review">
                     {loading ? "Creating project…" : "Create Project →"}
                   </button>

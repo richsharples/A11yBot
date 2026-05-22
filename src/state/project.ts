@@ -6,6 +6,7 @@ import type {
   Evidence,
   Confidence,
   Edition,
+  ProductComponent,
 } from "../types";
 import { readFileSync } from "fs";
 import { CriteriaFileSchema } from "../types";
@@ -36,22 +37,37 @@ export function createProject(params: {
   contactEmail: string;
   edition: Edition;
   mode: Project["mode"];
+  productComponents: ProductComponent[];
   sourcePath?: string;
   runtimeUrl?: string;
 }): Project {
   const criteriaFile = getCriteriaFile(params.edition);
+  const componentSet = new Set<string>(params.productComponents);
+  const now = new Date().toISOString();
 
   const criteriaMap: Record<string, CriterionState> = {};
   for (const chapter of criteriaFile.chapters) {
     for (const criterion of chapter.criteria) {
-      criteriaMap[criterion.id] = {
-        id: criterion.id,
-        level: "notEvaluated",
-        remark: "",
-        confidence: "ai-inferred",
-        evidence: [],
-        history: [],
-      };
+      const inScope = criterion.appliesTo.some((c) => componentSet.has(c));
+      if (inScope) {
+        criteriaMap[criterion.id] = {
+          id: criterion.id,
+          level: "notEvaluated",
+          remark: "",
+          confidence: "ai-inferred",
+          evidence: [],
+          history: [],
+        };
+      } else {
+        criteriaMap[criterion.id] = {
+          id: criterion.id,
+          level: "notApplicable",
+          remark: `Not applicable — ${criterion.appliesTo.join("/")} not present in this product.`,
+          confidence: "pm-confirmed",
+          evidence: [],
+          history: [{ at: now, level: "notApplicable", remark: "Auto-set at project creation based on selected product components." }],
+        };
+      }
     }
   }
 

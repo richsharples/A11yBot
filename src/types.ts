@@ -14,6 +14,9 @@ export type ConformanceLevel = z.infer<typeof ConformanceLevelSchema>;
 export const EditionSchema = z.enum(["508", "INT"]);
 export type Edition = z.infer<typeof EditionSchema>;
 
+export const ProductComponentSchema = z.enum(["web", "software", "hardware", "docs", "support"]);
+export type ProductComponent = z.infer<typeof ProductComponentSchema>;
+
 export const InputModeSchema = z.enum(["source", "runtime", "interview", "hybrid"]);
 export type InputMode = z.infer<typeof InputModeSchema>;
 
@@ -99,6 +102,7 @@ export const ProjectSchema = z.object({
   contactEmail: z.string(),
   edition: EditionSchema,
   mode: InputModeSchema,
+  productComponents: z.array(ProductComponentSchema),
   sourcePath: z.string().optional(),
   runtimeUrl: z.string().optional(),
   createdAt: z.string(),
@@ -116,6 +120,7 @@ export const CreateProjectPayloadSchema = z.object({
   contactEmail: z.string().email(),
   edition: EditionSchema,
   mode: InputModeSchema,
+  productComponents: z.array(ProductComponentSchema).min(1, "Select at least one component type"),
   sourcePath: z.string().optional(),
   runtimeUrl: z.string().url().optional(),
   anthropicApiKey: z.string().optional(),
