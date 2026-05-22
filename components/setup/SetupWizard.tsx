@@ -279,10 +279,9 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                         {s.abbr ?? s.name.split(" ")[0]}
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[#39FF14]/80 text-xs font-mono leading-snug">{s.name}</p>
                         <a href={s.url} target="_blank" rel="noopener noreferrer"
-                          className="text-[#39FF14]/40 hover:text-[#39FF14]/70 text-[10px] break-all transition-colors font-mono">
-                          {s.url}
+                          className="text-[#39FF14]/80 hover:text-[#39FF14] text-xs font-mono leading-snug underline underline-offset-2 decoration-[#39FF14]/30 hover:decoration-[#39FF14]/60 transition-colors">
+                          {s.name}
                         </a>
                       </div>
                     </li>
