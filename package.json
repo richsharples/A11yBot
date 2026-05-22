@@ -1,6 +1,6 @@
 {
   "name": "vpat-tool",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "VPAT 2.5 Accessibility Conformance Report generator",
   "bin": {
     "vpat": "./bin/vpat.js"

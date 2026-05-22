@@ -112,6 +112,58 @@ npm run typecheck  # TypeScript type check (tsc --noEmit)
 
 ---
 
+## Regression testing
+
+The regression suite detects scanner and export regressions before each release. It runs the tool against three targets and compares results to committed JSON baselines.
+
+### Targets
+
+| Target | Match mode | Purpose |
+|---|---|---|
+| Synthetic fixture | Exact | Committed JSX with 8 deliberate a11y violations — any scanner drift fails immediately |
+| vpat-tool (self) | ±20% tolerance | Scans the production codebase — catches if the scanner stops finding things |
+| cmdk (OSS) | ±20% tolerance | External React library — baseline against code we don't control |
+
+### One-time setup
+
+Clone the OSS target (only needed once per machine):
+
+```bash
+npm run regression:clone
+```
+
+### Running the suite
+
+The dev server must be running (`npm run dev` in a separate terminal).
+
+```bash
+npm run regression          # compare against baselines — exits 1 on regression
+```
+
+Run this before every release. If it passes, tag. If it regresses, fix first.
+
+### Updating baselines
+
+After intentional changes to the scanner or criteria (expected findings change), update the baselines:
+
+```bash
+npm run regression:update              # update all targets
+npm run regression -- --target fixture # update a single target
+```
+
+Then commit the updated files in `tests/regression/baselines/`.
+
+### How regressions are classified
+
+- **Regression (❌)** — export failed, criteria count changed, or scanner found significantly fewer issues than baseline
+- **Changed (⚠️)** — counts drifted outside tolerance but no hard failure (investigate before releasing)
+- **Improved (📈)** — scanner found more issues than baseline; run `--update-baseline` to accept
+- **Pass (✅)** — all checks within tolerance
+
+Run reports are saved to `.regression-reports/` (gitignored) for post-mortem inspection.
+
+---
+
 ## Project structure
 
 ```
@@ -170,6 +222,9 @@ src/
 ---
 
 ## Changelog
+
+### 0.1.0-beta.3
+- Regression test suite: three-target runner (`fixture`, `vpat-tool-self`, `cmdk`) with committed JSON baselines; exact-match for synthetic fixture, ±20% tolerance for live codebases; `npm run regression` required before every release
 
 ### 0.1.0-beta.2
 - Scope pre-filtering: new Step 2 in setup wizard lets you select which component types are present; unselected types are pre-marked N/A (e.g. a web-only product eliminates all 48 hardware criteria)

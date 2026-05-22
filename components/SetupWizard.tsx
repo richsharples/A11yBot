@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
 
-const APP_VERSION = "0.1.0-beta.2";
+const APP_VERSION = "0.1.0-beta.3";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/vpat-tool/issues";
 
 interface CriteriaSource {
