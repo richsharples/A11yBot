@@ -103,7 +103,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         body: JSON.stringify({ sourcePath: project.sourcePath }),
       });
       const data = await res.json();
-      resolveStatus(sid, "info", `Source scan done — ${data.evidenceAdded} evidence items across ${data.criteriaWithEvidence} criteria.`);
+      const filesScanned = Object.values(data.scanned as Record<string, number>).reduce((a, b) => a + b, 0);
+      resolveStatus(sid, "info", `Source scan done — ${filesScanned} files scanned, ${data.evidenceAdded} evidence items across ${data.criteriaWithEvidence} criteria.`);
       const p = await fetch("/api/project").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {
@@ -389,30 +390,46 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             }
             const totalScannerEvidence = sourceCount + appScanCount;
 
+            const allNA = chapterApplicable.length === 0;
+
             return (
               <button
                 key={chapter.id}
                 onClick={() => { setSelectedChapter(chapter.id); setSelectedCriterion(null); }}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedChapter === chapter.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`}
+                className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${
+                  allNA
+                    ? "opacity-40 cursor-default hover:bg-transparent"
+                    : `hover:bg-gray-50 ${selectedChapter === chapter.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`
+                }`}
               >
-                <div className="text-sm font-medium text-gray-900 leading-tight">{chapter.title}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{chapterEval}/{chapterApplicable.length} evaluated</div>
-                {totalScannerEvidence > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium leading-none">
-                      ⚠ {totalScannerEvidence} issue{totalScannerEvidence !== 1 ? "s" : ""} pending
-                    </span>
-                    {sourceCount > 0 && (
-                      <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
-                        {sourceCount} source
-                      </span>
+                <div className={`text-sm font-medium leading-tight ${allNA ? "text-gray-400" : "text-gray-900"}`}>
+                  {chapter.title}
+                </div>
+                {allNA ? (
+                  <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-400">
+                    Not applicable
+                  </span>
+                ) : (
+                  <>
+                    <div className="text-xs text-gray-500 mt-0.5">{chapterEval}/{chapterApplicable.length} evaluated</div>
+                    {totalScannerEvidence > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium leading-none">
+                          ⚠ {totalScannerEvidence} issue{totalScannerEvidence !== 1 ? "s" : ""} pending
+                        </span>
+                        {sourceCount > 0 && (
+                          <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
+                            {sourceCount} source
+                          </span>
+                        )}
+                        {appScanCount > 0 && (
+                          <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
+                            {appScanCount} app
+                          </span>
+                        )}
+                      </div>
                     )}
-                    {appScanCount > 0 && (
-                      <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
-                        {appScanCount} app
-                      </span>
-                    )}
-                  </div>
+                  </>
                 )}
               </button>
             );
