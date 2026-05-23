@@ -84,6 +84,12 @@ export function createProject(params: {
   return project;
 }
 
+export function resetProject(): void {
+  globalThis.__vpatProject = null;
+  log.info({ event: "project.reset" }, "Project reset — session cleared");
+  writeRunLog({ event: "project.reset" });
+}
+
 export function clearScanEvidence(source: "source-scan" | "runtime-scan"): void {
   const project = requireProject();
   for (const cs of Object.values(project.criteria)) {

@@ -33,9 +33,10 @@ interface Props {
   onCriterionUpdate: (id: string, cs: CriterionState) => void;
   onProjectUpdate: (updates: Partial<Project>) => void;
   onNewProject: () => void;
+  onOpenSettings: () => void;
 }
 
-export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject }: Props) {
+export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onOpenSettings }: Props) {
   const [criteriaData, setCriteriaData] = useState<CriteriaData | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedCriterion, setSelectedCriterion] = useState<string | null>(null);
@@ -46,6 +47,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
   const [showSources, setShowSources] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [confirmNewProject, setConfirmNewProject] = useState(false);
   const statusIdRef = useRef(0);
 
   const pushStatus = useCallback<PushStatus>((level, message) => {
@@ -177,9 +179,10 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     }
   }, [pushStatus, resolveStatus]);
 
-  const totalCriteria = Object.keys(project.criteria).length;
-  const evaluated = Object.values(project.criteria).filter((c) => c.level !== "notEvaluated").length;
-  const confirmed = Object.values(project.criteria).filter((c) => c.confidence === "pm-confirmed").length;
+  const applicableCriteria = Object.values(project.criteria).filter((c) => c.level !== "notApplicable");
+  const totalCriteria = applicableCriteria.length;
+  const evaluated = applicableCriteria.filter((c) => c.level !== "notEvaluated").length;
+  const confirmed = applicableCriteria.filter((c) => c.confidence === "pm-confirmed").length;
 
   // Ordered list of criteria that need PM review (AI inferred, not yet confirmed)
   const reviewList = useMemo(() => {
@@ -238,9 +241,33 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
           </div>
           <div className="flex items-center gap-3">
             <ProgressBar evaluated={evaluated} total={totalCriteria} confirmed={confirmed} />
+            {reviewList.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-yellow-300 bg-yellow-900/40 border border-yellow-500/30 rounded px-2 py-1.5 font-mono">
+                <span className="font-medium">AI review</span>
+                <span className="text-yellow-400/80 ml-1">
+                  {reviewIdx !== null ? `${reviewIdx + 1}/${reviewList.length}` : reviewList.length}
+                </span>
+                <Tooltip text="Previous AI-inferred criterion" side="bottom">
+                  <button onClick={() => navigateReview(-1)} disabled={reviewIdx === 0} className="px-1 hover:text-yellow-100 disabled:opacity-30 disabled:cursor-default" aria-label="Previous AI-inferred criterion">←</button>
+                </Tooltip>
+                <Tooltip text="Next AI-inferred criterion" side="bottom">
+                  <button onClick={() => navigateReview(1)} disabled={reviewIdx === reviewList.length - 1} className="px-1 hover:text-yellow-100 disabled:opacity-30 disabled:cursor-default" aria-label="Next AI-inferred criterion">→</button>
+                </Tooltip>
+              </div>
+            )}
+            {reviewList.length === 0 && confirmed > 0 && (
+              <span className="text-xs text-[#39FF14]/60 border border-[#39FF14]/20 rounded px-2 py-1.5">✓ All reviewed</span>
+            )}
             <Tooltip text="Download the completed VPAT as a .docx file" side="bottom">
               <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-sm font-medium hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
                 {exporting ? "Exporting…" : "Export .docx"}
+              </button>
+            </Tooltip>
+            <Tooltip text="Settings" side="bottom">
+              <button onClick={onOpenSettings} className="py-2 px-2 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] hover:bg-[#39FF14]/20 transition-colors" aria-label="Open settings">
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
               </button>
             </Tooltip>
           </div>
@@ -269,7 +296,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
           </button>
         </Tooltip>
         <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
-          <button onClick={onNewProject} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 text-gray-500">
+          <button onClick={() => setConfirmNewProject(true)} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 text-gray-500">
             New project
           </button>
         </Tooltip>
@@ -282,35 +309,6 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               Sources · v{criteriaStatus.manifest.criteriaVersion}
             </button>
           </Tooltip>
-        )}
-        {reviewList.length > 0 && (
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded px-2 py-1">
-            <span className="font-medium">AI review</span>
-            <span className="text-yellow-600">
-              {reviewIdx !== null ? `${reviewIdx + 1} / ${reviewList.length}` : reviewList.length}
-            </span>
-            <Tooltip text="Previous AI-inferred criterion" side="bottom">
-              <button
-                onClick={() => navigateReview(-1)}
-                disabled={reviewIdx === 0}
-                className="px-1 hover:text-yellow-900 disabled:opacity-30 disabled:cursor-default"
-                aria-label="Previous AI-inferred criterion"
-              >←</button>
-            </Tooltip>
-            <Tooltip text="Next AI-inferred criterion" side="bottom">
-              <button
-                onClick={() => navigateReview(1)}
-                disabled={reviewIdx === reviewList.length - 1}
-                className="px-1 hover:text-yellow-900 disabled:opacity-30 disabled:cursor-default"
-                aria-label="Next AI-inferred criterion"
-              >→</button>
-            </Tooltip>
-          </div>
-        )}
-        {reviewList.length === 0 && confirmed > 0 && (
-          <span className="ml-auto text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-            ✓ All AI drafts reviewed
-          </span>
         )}
       </div>
 
@@ -376,7 +374,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         <nav className="w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
           {criteriaData.chapters.map((chapter) => {
             const chapterCriteria = chapter.criteria.map((c) => project.criteria[c.id]).filter(Boolean);
-            const chapterEval = chapterCriteria.filter((c) => c.level !== "notEvaluated").length;
+            const chapterApplicable = chapterCriteria.filter((c) => c.level !== "notApplicable");
+            const chapterEval = chapterApplicable.filter((c) => c.level !== "notEvaluated").length;
 
             // Count scanner evidence on unevaluated criteria only
             let sourceCount = 0;
@@ -397,7 +396,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                 className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedChapter === chapter.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`}
               >
                 <div className="text-sm font-medium text-gray-900 leading-tight">{chapter.title}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{chapterEval}/{chapter.criteria.length} evaluated</div>
+                <div className="text-xs text-gray-500 mt-0.5">{chapterEval}/{chapterApplicable.length} evaluated</div>
                 {totalScannerEvidence > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium leading-none">
@@ -489,6 +488,34 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       </div>
 
       <StatusBar entries={statusLog} onClear={() => setStatusLog([])} />
+
+      {confirmNewProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#0b1a0d] border border-[#39FF14]/20 rounded-xl shadow-2xl p-6 w-full max-w-sm font-mono" style={{ boxShadow: "0 0 40px #39FF1418" }}>
+            <h2 className="text-[#39FF14] font-bold text-base mb-2" style={{ textShadow: "0 0 8px #39FF14aa" }}>Start a new project?</h2>
+            <p className="text-[#39FF14]/60 text-sm leading-relaxed mb-6">
+              All current compliance information will be lost. This cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmNewProject(false)}
+                className="py-2 px-4 rounded-lg bg-[#39FF14]/5 border border-[#39FF14]/20 text-[#39FF14]/60 text-sm hover:bg-[#39FF14]/10 hover:text-[#39FF14]/80 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmNewProject(false);
+                  fetch("/api/project", { method: "DELETE" }).finally(() => onNewProject());
+                }}
+                className="py-2 px-4 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 text-sm hover:bg-red-900/60 hover:text-red-200 transition-colors"
+              >
+                Discard &amp; start new
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
