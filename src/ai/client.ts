@@ -20,17 +20,25 @@ export async function callLLM(systemPrompt: string, userContent: string): Promis
     headers["X-Title"] = "A11yBot";
   }
 
+  const body: Record<string, unknown> = {
+    model: config.model,
+    max_tokens: 1024,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
+  };
+
+  // Force JSON output mode — Ollama supports this since v0.1.9; prevents small
+  // models from returning Python-style None or unquoted strings.
+  if (config.provider === "ollama") {
+    body.response_format = { type: "json_object" };
+  }
+
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      model: config.model,
-      max_tokens: 1024,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
