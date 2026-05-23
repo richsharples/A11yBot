@@ -8,9 +8,29 @@ export function deriveConfidence(pmAnswer: string | undefined): Confidence {
   return pmAnswer ? "ai-drafted" : "ai-inferred";
 }
 
+function extractJson(text: string): string {
+  // Fast path: already clean JSON
+  const trimmed = text.trim();
+  if (trimmed.startsWith("{")) return trimmed;
+
+  // Strip markdown fences
+  const fenced = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+  if (fenced.startsWith("{")) return fenced;
+
+  // Find first balanced {...} block — handles models that wrap JSON in prose
+  const start = text.indexOf("{");
+  if (start === -1) throw new SyntaxError("No JSON object found in LLM response");
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}") { depth--; if (depth === 0) return text.slice(start, i + 1); }
+  }
+  throw new SyntaxError("Unterminated JSON object in LLM response");
+}
+
 async function callWithParse(userPrompt: string): Promise<AiDraftResponse> {
   const text = await callLLM(SYSTEM_PROMPT, userPrompt);
-  const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  const jsonText = extractJson(text);
   return AiDraftResponseSchema.parse(JSON.parse(jsonText));
 }
 
