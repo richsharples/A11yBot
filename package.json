@@ -1,6 +1,6 @@
 {
   "name": "a11ybot",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "A11yBot — VPAT 2.5 Accessibility Conformance Report generator",
   "bin": {
     "a11ybot": "./bin/vpat.js"
