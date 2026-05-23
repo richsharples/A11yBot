@@ -223,21 +223,21 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-10">
+      <header className="bg-[#0b1a0d] border-b border-[#39FF14]/10 px-6 py-3 sticky top-0 z-10 font-mono">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-blue-700 tracking-wide">Compliance Suite : VPAT</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">Product Name:</span> {project.productName} {project.productVersion}</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">VPAT Type:</span> {project.edition}</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">Date:</span> {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+            <span className="text-sm font-bold text-[#39FF14] tracking-wide" style={{ textShadow: "0 0 8px #39FF14aa" }}>Compliance Suite : VPAT</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Product Name:</span> {project.productName} {project.productVersion}</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">VPAT Type:</span> {project.edition}</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Date:</span> {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
           </div>
           <div className="flex items-center gap-3">
             <ProgressBar evaluated={evaluated} total={totalCriteria} confirmed={confirmed} />
             <Tooltip text="Download the completed VPAT as a .docx file" side="bottom">
-              <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-sm font-medium hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
                 {exporting ? "Exporting…" : "Export .docx"}
               </button>
             </Tooltip>
