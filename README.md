@@ -38,8 +38,8 @@ Everything runs locally in a single session — no database, no login, no data l
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/richsharples/vpat-tool.git
-cd vpat-tool
+git clone https://github.com/richsharples/A11yBot.git
+cd A11yBot
 npm install
 ```
 
@@ -125,7 +125,7 @@ The regression suite detects scanner and export regressions before each release.
 | Target | Match mode | Purpose |
 |---|---|---|
 | Synthetic fixture | Exact | Committed JSX with 8 deliberate a11y violations — any scanner drift fails immediately |
-| vpat-tool (self) | ±20% tolerance | Scans the production codebase — catches if the scanner stops finding things |
+| A11yBot (self) | ±20% tolerance | Scans the production codebase — catches if the scanner stops finding things |
 | cmdk (OSS) | ±20% tolerance | External React library — baseline against code we don't control |
 
 ### One-time setup
