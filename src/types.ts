@@ -192,8 +192,9 @@ export const RuntimeScanPayloadSchema = z.object({
 // ─── AI response ──────────────────────────────────────────────────────────────
 
 export const AiDraftResponseSchema = z.object({
+  // reasoning is optional — omitting it saves ~100 tokens per response on local models
   level: ConformanceLevelSchema,
   remark: z.string(),
-  reasoning: z.string(),
+  reasoning: z.string().optional(),
 });
 export type AiDraftResponse = z.infer<typeof AiDraftResponseSchema>;

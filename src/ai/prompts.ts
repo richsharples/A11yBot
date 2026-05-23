@@ -18,8 +18,7 @@ Rules:
 Output JSON only, matching this exact schema:
 {
   "level": "supports" | "partial" | "doesNotSupport" | "notApplicable" | "notEvaluated",
-  "remark": string,
-  "reasoning": string
+  "remark": string
 }`;
 
 export function buildUserPrompt(params: {
@@ -52,7 +51,6 @@ ${pmAnswer ?? "(none)"}
 Respond with JSON only:
 {
   "level": "supports" | "partial" | "doesNotSupport" | "notApplicable" | "notEvaluated",
-  "remark": string,
-  "reasoning": string
+  "remark": string
 }`;
 }

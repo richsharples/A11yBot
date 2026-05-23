@@ -4,8 +4,12 @@ import React, { useState, useEffect, useRef } from "react";
 import type { StatusLevel, StatusEntry } from "./types";
 import { Tooltip } from "./Tooltip";
 
-export function StatusBar({ entries, onClear }: { entries: StatusEntry[]; onClear: () => void }) {
+export function StatusBar({ entries, onClear, forceExpanded }: { entries: StatusEntry[]; onClear: () => void; forceExpanded?: boolean }) {
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (forceExpanded) setCollapsed(false);
+  }, [forceExpanded]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
