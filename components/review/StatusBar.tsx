@@ -17,16 +17,16 @@ export function StatusBar({ entries, onClear }: { entries: StatusEntry[]; onClea
   const latest = entries[entries.length - 1];
 
   const levelStyle: Record<StatusLevel, string> = {
-    info:    "text-slate-300",
+    info:    "text-[#39FF14]/80",
     warn:    "text-yellow-400",
     error:   "text-red-400",
-    running: "text-blue-400",
+    running: "text-[#39FF14]/60",
   };
   const badgeStyle: Record<StatusLevel, string> = {
-    info:    "bg-green-900 text-green-300",
-    warn:    "bg-yellow-900 text-yellow-300",
-    error:   "bg-red-900 text-red-300",
-    running: "bg-blue-900 text-blue-300",
+    info:    "bg-[#39FF14]/15 text-[#39FF14]",
+    warn:    "bg-yellow-400/15 text-yellow-400",
+    error:   "bg-red-400/15 text-red-400",
+    running: "bg-[#39FF14]/10 text-[#39FF14]/70",
   };
   const badgeIcon: Record<StatusLevel, React.ReactNode> = {
     info:    "✓",
@@ -36,33 +36,33 @@ export function StatusBar({ entries, onClear }: { entries: StatusEntry[]; onClea
   };
 
   return (
-    <div className="sticky bottom-0 z-20 border-t border-slate-700 bg-slate-900 text-xs font-mono select-text">
+    <div className="sticky bottom-0 z-20 border-t border-[#39FF14]/20 bg-[#0b1a0d] text-xs font-mono select-text">
       {/* Title bar */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-700">
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[#39FF14]/10">
         <Tooltip text={collapsed ? "Expand status panel" : "Collapse status panel"}>
           <button
             onClick={() => setCollapsed((c) => !c)}
-            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-colors"
+            className="flex items-center gap-1.5 text-[#39FF14]/40 hover:text-[#39FF14] transition-colors"
             aria-label={collapsed ? "Expand status" : "Collapse status"}
           >
-            <span className="text-slate-500">{collapsed ? "▲" : "▼"}</span>
-            <span className="font-semibold tracking-wide uppercase text-slate-400">Status</span>
+            <span className="text-[#39FF14]/30">{collapsed ? "▲" : "▼"}</span>
+            <span className="font-semibold tracking-widest uppercase text-[#39FF14]/60">Status</span>
           </button>
         </Tooltip>
         {collapsed && latest && (
           <span className={`truncate max-w-xl ${levelStyle[latest.level]}`}>
-            <span className="text-slate-500 mr-1">{latest.ts}</span>
+            <span className="text-[#39FF14]/30 mr-1">{latest.ts}</span>
             {latest.message}
           </span>
         )}
         <div className="ml-auto flex items-center gap-3">
           {entries.length > 0 && (
-            <span className="text-slate-500">{entries.length} entr{entries.length === 1 ? "y" : "ies"}</span>
+            <span className="text-[#39FF14]/30">{entries.length} entr{entries.length === 1 ? "y" : "ies"}</span>
           )}
           <Tooltip text="Clear all status messages">
             <button
               onClick={onClear}
-              className="text-slate-500 hover:text-slate-300 transition-colors px-1"
+              className="text-[#39FF14]/30 hover:text-[#39FF14] transition-colors px-1"
             >
               Clear
             </button>
@@ -74,11 +74,11 @@ export function StatusBar({ entries, onClear }: { entries: StatusEntry[]; onClea
       {!collapsed && (
         <div ref={scrollRef} className="h-32 overflow-y-auto px-3 py-1.5 space-y-0.5">
           {entries.length === 0 ? (
-            <div className="text-slate-600 italic py-1">No activity yet.</div>
+            <div className="text-[#39FF14]/20 italic py-1">No activity yet.</div>
           ) : (
             entries.map((e) => (
               <div key={e.id} className={`flex gap-2 items-start leading-5 ${levelStyle[e.level]}`}>
-                <span className="text-slate-600 shrink-0">{e.ts}</span>
+                <span className="text-[#39FF14]/30 shrink-0">{e.ts}</span>
                 <span className={`shrink-0 px-1 rounded text-[10px] font-semibold ${badgeStyle[e.level]}`}>
                   {badgeIcon[e.level]}
                 </span>

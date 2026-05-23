@@ -223,21 +223,21 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-10">
+      <header className="bg-[#0b1a0d] border-b border-[#39FF14]/20 px-6 py-3 sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-blue-700 tracking-wide">Compliance Suite : VPAT</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">Product Name:</span> {project.productName} {project.productVersion}</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">VPAT Type:</span> {project.edition}</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-600"><span className="font-medium text-gray-800">Date:</span> {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+          <div className="flex items-center gap-3 font-mono">
+            <span className="text-sm font-bold text-[#39FF14] tracking-wide" style={{ textShadow: "0 0 8px #39FF14aa" }}>Compliance Suite : VPAT</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/70"><span className="font-semibold text-[#39FF14]/90">Product:</span> {project.productName} {project.productVersion}</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/70"><span className="font-semibold text-[#39FF14]/90">Type:</span> {project.edition}</span>
+            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-sm text-[#39FF14]/70"><span className="font-semibold text-[#39FF14]/90">Date:</span> {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
           </div>
           <div className="flex items-center gap-3">
             <ProgressBar evaluated={evaluated} total={totalCriteria} confirmed={confirmed} />
             <Tooltip text="Download the completed VPAT as a .docx file" side="bottom">
-              <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/40 text-[#39FF14] text-sm font-medium font-mono hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
                 {exporting ? "Exporting…" : "Export .docx"}
               </button>
             </Tooltip>
@@ -246,28 +246,28 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       </header>
 
       {/* Scan / AI action bar */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap">
+      <div className="bg-[#0d1f0f] border-b border-[#39FF14]/10 px-6 py-2.5 flex items-center gap-2 flex-wrap">
         {(project.mode === "source" || project.mode === "hybrid") && project.sourcePath && (
           <Tooltip text="Scan JSX/TSX source files for accessibility violations using ESLint + jsx-a11y" side="bottom">
-            <button onClick={runSourceScan} disabled={scanning} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
+            <button onClick={runSourceScan} disabled={scanning} className="py-1.5 px-3 rounded bg-[#0b1a0d] border border-[#39FF14]/30 text-[#39FF14]/70 text-xs font-mono hover:bg-[#39FF14]/10 hover:text-[#39FF14] disabled:opacity-40 transition-colors">
               {scanning ? "Scanning…" : "Run source scan"}
             </button>
           </Tooltip>
         )}
         {(project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl && (
           <Tooltip text="Run Lighthouse against the configured URL to detect runtime accessibility issues" side="bottom">
-            <button onClick={runRuntimeScan} disabled={scanning} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
+            <button onClick={runRuntimeScan} disabled={scanning} className="py-1.5 px-3 rounded bg-[#0b1a0d] border border-[#39FF14]/30 text-[#39FF14]/70 text-xs font-mono hover:bg-[#39FF14]/10 hover:text-[#39FF14] disabled:opacity-40 transition-colors">
               {scanning ? "Scanning…" : "Run AppScan"}
             </button>
           </Tooltip>
         )}
         <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
-          <button onClick={draftAll} disabled={draftingAll} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
+          <button onClick={draftAll} disabled={draftingAll} className="py-1.5 px-3 rounded bg-[#0b1a0d] border border-[#39FF14]/30 text-[#39FF14]/70 text-xs font-mono hover:bg-[#39FF14]/10 hover:text-[#39FF14] disabled:opacity-40 transition-colors">
             {draftingAll ? "Drafting…" : `AI draft all (${totalCriteria - evaluated} remaining)`}
           </button>
         </Tooltip>
         <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
-          <button onClick={onNewProject} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 text-gray-500">
+          <button onClick={onNewProject} className="py-1.5 px-3 rounded bg-[#0b1a0d] border border-[#39FF14]/20 text-[#39FF14]/40 text-xs font-mono hover:bg-[#39FF14]/10 hover:text-[#39FF14]/70 transition-colors">
             New project
           </button>
         </Tooltip>
@@ -275,23 +275,23 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
           <Tooltip text="View compliance standard sources and criteria version" side="bottom">
             <button
               onClick={() => setShowSources((s) => !s)}
-              className={`py-1.5 px-3 rounded border text-sm transition-colors ${showSources ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+              className={`py-1.5 px-3 rounded border text-xs font-mono transition-colors ${showSources ? "bg-[#39FF14]/15 border-[#39FF14]/50 text-[#39FF14]" : "bg-[#0b1a0d] border-[#39FF14]/20 text-[#39FF14]/50 hover:bg-[#39FF14]/10 hover:text-[#39FF14]/80"}`}
             >
               Sources · v{criteriaStatus.manifest.criteriaVersion}
             </button>
           </Tooltip>
         )}
         {reviewList.length > 0 && (
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded px-2 py-1">
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 rounded px-2 py-1 font-mono">
             <span className="font-medium">AI review</span>
-            <span className="text-yellow-600">
+            <span className="text-yellow-400/70">
               {reviewIdx !== null ? `${reviewIdx + 1} / ${reviewList.length}` : reviewList.length}
             </span>
             <Tooltip text="Previous AI-inferred criterion" side="bottom">
               <button
                 onClick={() => navigateReview(-1)}
                 disabled={reviewIdx === 0}
-                className="px-1 hover:text-yellow-900 disabled:opacity-30 disabled:cursor-default"
+                className="px-1 hover:text-yellow-300 disabled:opacity-30 disabled:cursor-default"
                 aria-label="Previous AI-inferred criterion"
               >←</button>
             </Tooltip>
@@ -299,14 +299,14 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               <button
                 onClick={() => navigateReview(1)}
                 disabled={reviewIdx === reviewList.length - 1}
-                className="px-1 hover:text-yellow-900 disabled:opacity-30 disabled:cursor-default"
+                className="px-1 hover:text-yellow-300 disabled:opacity-30 disabled:cursor-default"
                 aria-label="Next AI-inferred criterion"
               >→</button>
             </Tooltip>
           </div>
         )}
         {reviewList.length === 0 && confirmed > 0 && (
-          <span className="ml-auto text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+          <span className="ml-auto text-xs text-[#39FF14]/70 bg-[#39FF14]/10 border border-[#39FF14]/30 rounded px-2 py-1 font-mono">
             ✓ All AI drafts reviewed
           </span>
         )}
