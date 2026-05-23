@@ -119,6 +119,37 @@ export const ProviderSchema = z.object({
 });
 export type ProviderConfig = z.infer<typeof ProviderSchema>;
 
+// ─── User config ─────────────────────────────────────────────────────────────
+
+export const SavedProductSchema = z.object({
+  name: z.string().min(1),
+  version: z.string().default(""),
+  description: z.string().default(""),
+  components: z.array(ProductComponentSchema).default([]),
+  edition: EditionSchema.default("508"),
+  mode: InputModeSchema.default("interview"),
+  sourcePath: z.string().optional(),
+  runtimeUrl: z.string().optional(),
+  apiKey: z.string().optional(),
+});
+export type SavedProduct = z.infer<typeof SavedProductSchema>;
+
+export const UserConfigSchema = z.object({
+  port: z.number().default(5173),
+  openBrowser: z.boolean().default(true),
+  contact: z.object({
+    name: z.string().default(""),
+    email: z.string().default(""),
+  }).default({}),
+  aiDefaults: z.object({
+    provider: z.enum(["openrouter", "ollama", "none"]).default("none"),
+    model: z.string().default(""),
+    apiKey: z.string().optional(),
+  }).default({}),
+  products: z.array(SavedProductSchema).default([]),
+});
+export type UserConfig = z.infer<typeof UserConfigSchema>;
+
 // ─── API payloads ─────────────────────────────────────────────────────────────
 
 export const CreateProjectPayloadSchema = z.object({

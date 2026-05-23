@@ -27,16 +27,21 @@ export function SettingsPanel({ open, onClose }: Props) {
     setTestResult({ status: "idle" });
     setSaveOk(false);
 
-    fetch("/api/ai/provider")
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => {
-        if (!d) return;
-        setOllamaStatus(d.ollama);
-        setProvider(d.current.provider ?? "openrouter");
-        setModel(d.current.model || DEFAULT_OPENROUTER_MODEL);
-        // apiKey comes back masked — don't pre-fill
-      })
-      .catch(() => setOllamaStatus({ available: false, models: [] }));
+    Promise.all([
+      fetch("/api/ai/provider").then((r) => r.ok ? r.json() : null),
+      fetch("/api/user-config").then((r) => r.ok ? r.json() : null),
+    ]).then(([providerData, configData]) => {
+      if (providerData) {
+        setOllamaStatus(providerData.ollama);
+        // In-memory provider takes precedence; fall back to persisted config
+        const p = providerData.current.provider !== "none"
+          ? providerData.current.provider
+          : configData?.aiDefaults?.provider ?? "openrouter";
+        const m = providerData.current.model || configData?.aiDefaults?.model || DEFAULT_OPENROUTER_MODEL;
+        setProvider(p);
+        setModel(m);
+      }
+    }).catch(() => setOllamaStatus({ available: false, models: [] }));
   }, [open]);
 
   const handleTest = async () => {
@@ -61,6 +66,14 @@ export function SettingsPanel({ open, onClose }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, apiKey: apiKey || undefined, model }),
+      });
+      // Persist to ~/.a11ybot/config.json so settings survive restarts
+      await fetch("/api/user-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aiDefaults: { provider, model, apiKey: apiKey || undefined },
+        }),
       });
       setSaveOk(true);
       setTimeout(onClose, 800);

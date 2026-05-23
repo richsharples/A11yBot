@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Project, Edition, InputMode, ProductComponent } from "@/src/types";
+import type { Project, Edition, InputMode, ProductComponent, UserConfig } from "@/src/types";
 import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 
 const APP_VERSION = "0.1.0-beta.4";
@@ -111,11 +111,27 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
+  const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
 
   useEffect(() => {
     fetch("/api/criteria-status")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d) setCriteriaStatus(d); })
+      .catch(() => {});
+    fetch("/api/user-config")
+      .then((r) => r.ok ? r.json() : null)
+      .then((cfg: UserConfig | null) => {
+        if (!cfg) return;
+        setUserConfig(cfg);
+        // Pre-fill contact and AI defaults
+        setForm((prev) => ({
+          ...prev,
+          contactName: cfg.contact?.name || prev.contactName,
+          contactEmail: cfg.contact?.email || prev.contactEmail,
+          aiProvider: (cfg.aiDefaults?.provider !== "none" ? cfg.aiDefaults?.provider : prev.aiProvider) ?? prev.aiProvider,
+          aiModel: cfg.aiDefaults?.model || prev.aiModel,
+        }));
+      })
       .catch(() => {});
   }, []);
 
@@ -344,6 +360,35 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {step === 1 && (
                 <div className="space-y-5">
                   <h2 className="text-lg font-semibold text-gray-900">Product & Contact</h2>
+
+                  {/* Saved product quick-select */}
+                  {userConfig && userConfig.products.length > 0 && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                      <p className="text-xs font-medium text-blue-700 mb-2">Load saved product</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {userConfig.products.map((p, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setForm((prev) => ({
+                              ...prev,
+                              productName: p.name,
+                              productVersion: p.version || "",
+                              productDescription: p.description || "",
+                              productComponents: p.components.length ? p.components : prev.productComponents,
+                              edition: p.edition || prev.edition,
+                              mode: p.mode || prev.mode,
+                              sourcePath: p.sourcePath || "",
+                              runtimeUrl: p.runtimeUrl || "",
+                            }))}
+                            className="px-3 py-1.5 rounded-md bg-white border border-blue-300 text-sm text-blue-700 hover:bg-blue-100 transition-colors font-medium"
+                          >
+                            {p.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <Field label="Product Name" required error={fieldError("productName")}>
                     <input aria-label="Product Name" className={inputCls(!!fieldError("productName"))}
