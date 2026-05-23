@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-05-23T12:04:30.611Z",
+  "toolVersion": "2.5.1",
+  "targetId": "fixture-int",
+  "sourceScan": {
+    "filesFound": {
+      "html": 0,
+      "vue": 0,
+      "angular": 0,
+      "css": 0,
+      "jsx": 1
+    },
+    "evidenceAdded": 13,
+    "criteriaHit": 9
+  },
+  "criteria": {
+    "total": 141,
+    "notApplicable": 30,
+    "notEvaluated": 111
+  },
+  "export": {
+    "success": true,
+    "sizeKb": 19
+  }
+}

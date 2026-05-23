@@ -1,33 +1,10 @@
 #!/usr/bin/env node
 import { program } from "commander";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
-import { homedir } from "os";
 import { createRequire } from "module";
 
 const pkg = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf-8")) as { version: string };
-const CONFIG_DIR = join(homedir(), ".a11ybot");
-const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-const DEFAULT_CONFIG = JSON.parse(readFileSync(join(__dirname, "../config/default.json"), "utf-8")) as {
-  port: number;
-  openBrowser: boolean;
-};
-
-interface Config {
-  port: number;
-  openBrowser: boolean;
-}
-
-function loadConfig(): Config {
-  const base = { ...DEFAULT_CONFIG };
-  if (existsSync(CONFIG_FILE)) {
-    try {
-      const saved = JSON.parse(readFileSync(CONFIG_FILE, "utf-8")) as Partial<Config>;
-      return { ...base, ...saved };
-    } catch {}
-  }
-  return base;
-}
 
 async function main() {
   program
@@ -41,9 +18,20 @@ async function main() {
   const opts = program.opts<{ port?: string; browser: boolean }>();
   console.log(`\nA11yBot ${pkg.version}`);
 
-  const config = loadConfig();
+  const { readUserConfig } = await import("../src/state/user-config");
+  const config = readUserConfig();
   const port = parseInt(opts.port ?? process.env.VPAT_PORT ?? String(config.port), 10);
   const openBrowser = opts.browser !== false && config.openBrowser;
+
+  // Seed AI provider from persisted config so settings survive restarts
+  if (config.aiDefaults.provider !== "none" && config.aiDefaults.model) {
+    const { setProviderConfig } = await import("../src/state/provider");
+    setProviderConfig({
+      provider: config.aiDefaults.provider,
+      model: config.aiDefaults.model,
+      apiKey: config.aiDefaults.apiKey,
+    });
+  }
 
   console.log("  Starting server…");
 

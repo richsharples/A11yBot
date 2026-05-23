@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-05-23T12:04:37.266Z",
+  "toolVersion": "2.5.1",
+  "targetId": "fixture-docs-support",
+  "sourceScan": {
+    "filesFound": {
+      "html": 0,
+      "vue": 0,
+      "angular": 0,
+      "css": 0,
+      "jsx": 1
+    },
+    "evidenceAdded": 12,
+    "criteriaHit": 8
+  },
+  "criteria": {
+    "total": 127,
+    "notApplicable": 122,
+    "notEvaluated": 5
+  },
+  "export": {
+    "success": true,
+    "sizeKb": 17
+  }
+}

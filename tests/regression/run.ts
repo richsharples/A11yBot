@@ -21,6 +21,7 @@ import { VpatApiClient } from "./lib/api";
 import { compare } from "./lib/compare";
 import { printReport, saveReport } from "./lib/report";
 import { ensureCloned, isCloned } from "./lib/clone";
+import { runConfigTests, printConfigResults } from "./lib/config-tests";
 import type { ScanSnapshot, ComparisonResult, RunReport } from "./types";
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -138,6 +139,15 @@ async function main(): Promise<void> {
   const toolVersion = await api.getToolVersion();
   console.log(`  Server OK — criteria version ${toolVersion}`);
 
+  // ── Config integration tests (always run, skip with --target flag) ──
+  let configFailed = 0;
+  if (!targetFilter) {
+    console.log("\n  Running config integration tests…");
+    const configResults = await runConfigTests(api);
+    const { failed } = printConfigResults(configResults);
+    configFailed = failed;
+  }
+
   // ── Filter targets ──
   const targets = targetFilter
     ? TARGETS.filter((t) => t.id === targetFilter)
@@ -245,7 +255,7 @@ async function main(): Promise<void> {
     console.log(`  Report saved: ${path.relative(ROOT, saved)}\n`);
   }
 
-  process.exit(summary.regressed > 0 ? 1 : 0);
+  process.exit(summary.regressed > 0 || configFailed > 0 ? 1 : 0);
 }
 
 main().catch((err) => {

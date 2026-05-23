@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-05-23T12:04:37.538Z",
+  "toolVersion": "2.5.1",
+  "targetId": "fixture-all-components",
+  "sourceScan": {
+    "filesFound": {
+      "html": 0,
+      "vue": 0,
+      "angular": 0,
+      "css": 0,
+      "jsx": 1
+    },
+    "evidenceAdded": 12,
+    "criteriaHit": 8
+  },
+  "criteria": {
+    "total": 127,
+    "notApplicable": 0,
+    "notEvaluated": 127
+  },
+  "export": {
+    "success": true,
+    "sizeKb": 16
+  }
+}
