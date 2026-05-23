@@ -7,7 +7,9 @@ node_modules/
 
 # Run artifacts
 vpat-run.log.json
+a11ybot-run.log.json
 vpat-*.docx
+a11ybot-*.docx
 
 # Config (has API key)
 ~/.vpat/
