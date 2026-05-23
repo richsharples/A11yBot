@@ -249,6 +249,14 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
         throw new Error(data.error ?? "Failed to create project");
       }
       const project = await res.json() as Project;
+
+      // Persist contact info so it pre-fills on the next session
+      fetch("/api/user-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact: { name: form.contactName, email: form.contactEmail } }),
+      }).catch(() => {});
+
       onCreated(project);
     } catch (err) {
       setError(String(err));
