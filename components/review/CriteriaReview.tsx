@@ -7,6 +7,7 @@ import { Tooltip } from "./Tooltip";
 import { StatusBar } from "./StatusBar";
 import { ProgressBar } from "./ProgressBar";
 import { CriterionDetail } from "./CriterionDetail";
+import pkg from "../../package.json";
 
 // Inlined to avoid importing from server-only module
 interface CriteriaManifest {
@@ -226,7 +227,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       <header className="bg-[#0b1a0d] border-b border-[#39FF14]/10 px-6 py-3 sticky top-0 z-10 font-mono">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-[#39FF14] tracking-wide" style={{ textShadow: "0 0 8px #39FF14aa" }}>Compliance Suite : VPAT</span>
+            <span className="text-sm font-bold text-[#39FF14] tracking-wide" style={{ textShadow: "0 0 8px #39FF14aa" }}>A11yBot</span>
+            <span className="px-1.5 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-[10px] font-semibold">v{pkg.version}</span>
             <span className="text-[#39FF14]/20">|</span>
             <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Product Name:</span> {project.productName} {project.productVersion}</span>
             <span className="text-[#39FF14]/20">|</span>
