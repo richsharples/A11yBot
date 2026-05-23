@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-05-22T21:53:42.356Z",
+  "capturedAt": "2026-05-23T02:45:54.265Z",
   "toolVersion": "2.5.1",
   "targetId": "a11ybot-self",
   "sourceScan": {
@@ -7,19 +7,19 @@
       "html": 0,
       "vue": 0,
       "angular": 0,
-      "css": 10,
-      "jsx": 32
+      "css": 1,
+      "jsx": 11
     },
-    "evidenceAdded": 23,
-    "criteriaHit": 7
+    "evidenceAdded": 25,
+    "criteriaHit": 8
   },
   "criteria": {
-    "total": 57,
-    "notApplicable": 4,
-    "notEvaluated": 53
+    "total": 127,
+    "notApplicable": 53,
+    "notEvaluated": 74
   },
   "export": {
     "success": true,
-    "sizeKb": 13
+    "sizeKb": 17
   }
 }
