@@ -94,4 +94,20 @@ export class VpatApiClient {
     const bytes = await res.arrayBuffer();
     return { success: true, sizeKb: Math.round(bytes.byteLength / 1024) };
   }
+
+  async resetProject(): Promise<void> {
+    await fetch(`${this.baseUrl}/api/project`, { method: "DELETE" });
+  }
+
+  async getUserConfig(): Promise<Record<string, unknown>> {
+    return this.json<Record<string, unknown>>("/api/user-config");
+  }
+
+  async patchUserConfig(patch: Record<string, unknown>): Promise<void> {
+    await this.json("/api/user-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+  }
 }
