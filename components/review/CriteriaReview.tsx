@@ -5,7 +5,6 @@ import type { Project, CriterionState } from "@/src/types";
 import { StatusEntry, StatusLevel, PushStatus, ResolveStatus, CriteriaData, LEVEL_LABELS, LEVEL_COLORS, getEvidenceSignal } from "./types";
 import { Tooltip } from "./Tooltip";
 import { StatusBar } from "./StatusBar";
-import { ProgressBar } from "./ProgressBar";
 import { CriterionDetail } from "./CriterionDetail";
 import pkg from "../../package.json";
 
@@ -40,8 +39,12 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   const [criteriaData, setCriteriaData] = useState<CriteriaData | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedCriterion, setSelectedCriterion] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const [scanningSource, setScanningSource] = useState(false);
+  const [scanningRuntime, setScanningRuntime] = useState(false);
+  const initialScanDone = useRef(false);
   const [draftingAll, setDraftingAll] = useState(false);
+  const [draftCount, setDraftCount] = useState(0);
+  const [draftTotal, setDraftTotal] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [statusLog, setStatusLog] = useState<StatusEntry[]>([]);
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
@@ -73,6 +76,17 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       .catch(() => {});
   }, [project.edition]);
 
+  // Auto-run applicable scans once on mount
+  useEffect(() => {
+    if (initialScanDone.current) return;
+    initialScanDone.current = true;
+    const hasSource = (project.mode === "source" || project.mode === "hybrid") && project.sourcePath;
+    const hasRuntime = (project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl;
+    if (hasSource) runSourceScan();
+    if (hasRuntime) runRuntimeScan();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCheckUpdate = async () => {
     setCheckingUpdate(true);
     const sid = pushStatus("running", "Checking for criteria updates…");
@@ -94,7 +108,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
 
   const runSourceScan = useCallback(async () => {
     if (!project.sourcePath) return;
-    setScanning(true);
+    setScanningSource(true);
     const sid = pushStatus("running", "Source scan running…");
     try {
       const res = await fetch("/api/scan/source", {
@@ -110,13 +124,13 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     } catch (err) {
       resolveStatus(sid, "error", `Source scan failed: ${err}`);
     } finally {
-      setScanning(false);
+      setScanningSource(false);
     }
   }, [project.sourcePath, onProjectUpdate, pushStatus, resolveStatus]);
 
   const runRuntimeScan = useCallback(async () => {
     if (!project.runtimeUrl) return;
-    setScanning(true);
+    setScanningRuntime(true);
     const sid = pushStatus("running", "AppScan running…");
     try {
       const res = await fetch("/api/scan/runtime", {
@@ -131,33 +145,69 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     } catch (err) {
       resolveStatus(sid, "error", `AppScan failed: ${err}`);
     } finally {
-      setScanning(false);
+      setScanningRuntime(false);
     }
   }, [project.runtimeUrl, onProjectUpdate, pushStatus, resolveStatus]);
 
   const draftAll = useCallback(async () => {
+    if (!criteriaData) return;
+    const toDraft = Object.entries(project.criteria)
+      .filter(([, cs]) => cs.level === "notEvaluated")
+      .map(([id]) => id);
+    if (toDraft.length === 0) return;
+
     setDraftingAll(true);
-    const sid = pushStatus("running", "AI drafting all unevaluated criteria…");
-    try {
-      const res = await fetch("/api/ai/draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ draftAll: true }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "AI draft failed");
-      }
-      const data = await res.json();
-      resolveStatus(sid, "info", `AI draft complete — ${data.updated} criteria drafted.`);
-      const p = await fetch("/api/project").then((r) => r.json());
-      onProjectUpdate({ criteria: p.criteria });
-    } catch (err) {
-      resolveStatus(sid, "error", `AI draft all failed: ${err}`);
-    } finally {
-      setDraftingAll(false);
+    setDraftCount(0);
+    setDraftTotal(toDraft.length);
+    pushStatus("running", `AI drafting ${toDraft.length} criteria…`);
+
+    // Build a ref lookup for friendly log messages
+    const refById: Record<string, string> = {};
+    for (const ch of criteriaData.chapters) {
+      for (const c of ch.criteria) refById[c.id] = c.ref;
     }
-  }, [onProjectUpdate, pushStatus, resolveStatus]);
+
+    let completed = 0;
+    let failed = 0;
+    // Local models (Ollama) have one GPU — parallel requests queue internally
+    // and cause VRAM thrashing. Serial is faster for local; parallel for cloud.
+    const providerRes = await fetch("/api/ai/provider").then((r) => r.ok ? r.json() : null).catch(() => null);
+    const isLocal = providerRes?.current?.provider === "ollama";
+    const BATCH = isLocal ? 1 : 5;
+
+    for (let i = 0; i < toDraft.length; i += BATCH) {
+      const batch = toDraft.slice(i, i + BATCH);
+      await Promise.all(batch.map(async (criterionId) => {
+        const t0 = Date.now();
+        try {
+          const res = await fetch("/api/ai/draft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ criterionId }),
+          });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "failed");
+          const cs = await res.json() as CriterionState;
+          onCriterionUpdate(criterionId, cs);
+          completed++;
+          setDraftCount(completed);
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          pushStatus("info", `${refById[criterionId] ?? criterionId} — ${cs.level} (${elapsed}s)`);
+        } catch (err) {
+          failed++;
+          completed++;
+          setDraftCount(completed);
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          pushStatus("error", `${refById[criterionId] ?? criterionId} — failed (${elapsed}s): ${err}`);
+        }
+      }));
+    }
+
+    pushStatus(failed > 0 ? "warn" : "info",
+      `AI draft complete — ${toDraft.length - failed} drafted${failed > 0 ? `, ${failed} timed out — click "AI draft all" again to retry` : ""}.`);
+    setDraftingAll(false);
+    setDraftCount(0);
+    setDraftTotal(0);
+  }, [criteriaData, project.criteria, onCriterionUpdate, pushStatus]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -228,44 +278,59 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-[#0b1a0d] border-b border-[#39FF14]/10 px-6 py-3 sticky top-0 z-10 font-mono">
+      <header className="bg-[#0b1a0d] border-b border-[#39FF14]/10 px-6 pt-3 pb-2 sticky top-0 z-10 font-mono">
+        {/* Row 1: identity + actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-[#39FF14] tracking-wide" style={{ textShadow: "0 0 8px #39FF14aa" }}>A11yBot</span>
-            <span className="px-1.5 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-[10px] font-semibold">v{pkg.version}</span>
+            <Tooltip text={`v${pkg.version}`} side="bottom">
+              <span className="text-sm font-bold text-[#39FF14] tracking-wide cursor-default" style={{ textShadow: "0 0 8px #39FF14aa" }}>A11yBot</span>
+            </Tooltip>
             <span className="text-[#39FF14]/20">|</span>
             <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Product Name:</span> {project.productName} {project.productVersion}</span>
             <span className="text-[#39FF14]/20">|</span>
-            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">VPAT Type:</span> {project.edition}</span>
-            <span className="text-[#39FF14]/20">|</span>
-            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Date:</span> {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+            <Tooltip text={showSources ? "Hide compliance sources" : `View compliance sources${criteriaStatus ? ` · v${criteriaStatus.manifest.criteriaVersion}` : ""}`} side="bottom">
+              <button onClick={() => setShowSources((s) => !s)} className={`text-sm transition-colors ${showSources ? "text-[#39FF14]" : "text-[#39FF14]/50 hover:text-[#39FF14]/80"}`}>
+                <span className="font-medium text-[#39FF14]/70">Standard:</span> {project.edition}
+              </button>
+            </Tooltip>
           </div>
-          <div className="flex items-center gap-3">
-            <ProgressBar evaluated={evaluated} total={totalCriteria} confirmed={confirmed} />
-            {reviewList.length > 0 && (
-              <div className="flex items-center gap-1 text-xs text-yellow-300 bg-yellow-900/40 border border-yellow-500/30 rounded px-2 py-1.5 font-mono">
-                <span className="font-medium">AI review</span>
-                <span className="text-yellow-400/80 ml-1">
-                  {reviewIdx !== null ? `${reviewIdx + 1}/${reviewList.length}` : reviewList.length}
-                </span>
-                <Tooltip text="Previous AI-inferred criterion" side="bottom">
-                  <button onClick={() => navigateReview(-1)} disabled={reviewIdx === 0} className="px-1 hover:text-yellow-100 disabled:opacity-30 disabled:cursor-default" aria-label="Previous AI-inferred criterion">←</button>
-                </Tooltip>
-                <Tooltip text="Next AI-inferred criterion" side="bottom">
-                  <button onClick={() => navigateReview(1)} disabled={reviewIdx === reviewList.length - 1} className="px-1 hover:text-yellow-100 disabled:opacity-30 disabled:cursor-default" aria-label="Next AI-inferred criterion">→</button>
-                </Tooltip>
-              </div>
-            )}
-            {reviewList.length === 0 && confirmed > 0 && (
-              <span className="text-xs text-[#39FF14]/60 border border-[#39FF14]/20 rounded px-2 py-1.5">✓ All reviewed</span>
-            )}
-            <Tooltip text="Download the completed VPAT as a .docx file" side="bottom">
-              <button onClick={handleExport} disabled={exporting} className="py-2 px-4 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-sm font-medium hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
-                {exporting ? "Exporting…" : "Export .docx"}
+          <div className="flex items-center gap-2">
+            {/* Review progress + navigator */}
+            {(() => {
+              const reviewTotal = confirmed + reviewList.length;
+              const pct = reviewTotal > 0 ? Math.round((confirmed / reviewTotal) * 100) : 0;
+              return (
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-1.5 bg-[#39FF14]/10 rounded-full overflow-hidden border border-[#39FF14]/20">
+                    <div className="h-full bg-[#39FF14] rounded-full transition-all" style={{ width: `${pct}%`, boxShadow: "0 0 6px #39FF14aa" }} />
+                  </div>
+                  {reviewList.length > 0 ? (
+                    <>
+                      <span className="text-sm text-[#39FF14]/50">
+                        <span className="text-[#39FF14]/70">{reviewList.length} of {reviewTotal}</span> to review
+                      </span>
+                      <Tooltip text="Previous item to review" side="bottom">
+                        <button onClick={() => navigateReview(-1)} disabled={reviewIdx === 0} className="py-1 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-30 disabled:cursor-default transition-colors" aria-label="Previous item to review">&lt;</button>
+                      </Tooltip>
+                      <Tooltip text="Next item to review" side="bottom">
+                        <button onClick={() => navigateReview(1)} disabled={reviewIdx === reviewList.length - 1} className="py-1 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-30 disabled:cursor-default transition-colors" aria-label="Next item to review">&gt;</button>
+                      </Tooltip>
+                    </>
+                  ) : confirmed > 0 ? (
+                    <span className="text-sm text-[#39FF14]/50">✓ <span className="text-[#39FF14]/70">{confirmed}</span> reviewed</span>
+                  ) : (
+                    <span className="text-sm text-[#39FF14]/50"><span className="text-[#39FF14]/70">{evaluated}/{totalCriteria}</span> evaluated</span>
+                  )}
+                </div>
+              );
+            })()}
+            <Tooltip text="Generate and download the VPAT as a .docx file" side="bottom">
+              <button onClick={handleExport} disabled={exporting} className="py-1.5 px-4 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
+                {exporting ? "Generating…" : "Create report"}
               </button>
             </Tooltip>
             <Tooltip text="Settings" side="bottom">
-              <button onClick={onOpenSettings} className="py-2 px-2 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] hover:bg-[#39FF14]/20 transition-colors" aria-label="Open settings">
+              <button onClick={onOpenSettings} className="py-1.5 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 hover:bg-[#39FF14]/20 transition-colors" aria-label="Open settings">
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
@@ -273,45 +338,36 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             </Tooltip>
           </div>
         </div>
-      </header>
 
-      {/* Scan / AI action bar */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap">
-        {(project.mode === "source" || project.mode === "hybrid") && project.sourcePath && (
-          <Tooltip text="Scan JSX/TSX source files for accessibility violations using ESLint + jsx-a11y" side="bottom">
-            <button onClick={runSourceScan} disabled={scanning} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
-              {scanning ? "Scanning…" : "Run source scan"}
+        {/* Row 2: action buttons */}
+        <div className="flex items-center gap-2 mt-2 pb-1 border-t border-[#39FF14]/10 pt-2">
+          {((project.mode === "source" || project.mode === "hybrid") && project.sourcePath) ||
+           ((project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl) ? (
+            <Tooltip text="Re-run all applicable scans to pick up code changes" side="bottom">
+              <button
+                onClick={() => {
+                  if ((project.mode === "source" || project.mode === "hybrid") && project.sourcePath) runSourceScan();
+                  if ((project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl) runRuntimeScan();
+                }}
+                disabled={scanningSource || scanningRuntime}
+                className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors"
+              >
+                {(scanningSource || scanningRuntime) ? "Scanning…" : "Re-scan"}
+              </button>
+            </Tooltip>
+          ) : null}
+          <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
+            <button onClick={draftAll} disabled={draftingAll} className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
+              {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${totalCriteria - evaluated} remaining)`}
             </button>
           </Tooltip>
-        )}
-        {(project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl && (
-          <Tooltip text="Run Lighthouse against the configured URL to detect runtime accessibility issues" side="bottom">
-            <button onClick={runRuntimeScan} disabled={scanning} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
-              {scanning ? "Scanning…" : "Run AppScan"}
+          <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
+            <button onClick={() => setConfirmNewProject(true)} className="py-1 px-3 rounded bg-[#39FF14]/5 border border-[#39FF14]/20 text-[#39FF14]/40 text-sm hover:bg-[#39FF14]/10 hover:text-[#39FF14]/60 transition-colors">
+              New project
             </button>
           </Tooltip>
-        )}
-        <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
-          <button onClick={draftAll} disabled={draftingAll} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
-            {draftingAll ? "Drafting…" : `AI draft all (${totalCriteria - evaluated} remaining)`}
-          </button>
-        </Tooltip>
-        <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
-          <button onClick={() => setConfirmNewProject(true)} className="py-1.5 px-3 rounded bg-white border border-gray-300 text-sm hover:bg-gray-50 text-gray-500">
-            New project
-          </button>
-        </Tooltip>
-        {criteriaStatus && (
-          <Tooltip text="View compliance standard sources and criteria version" side="bottom">
-            <button
-              onClick={() => setShowSources((s) => !s)}
-              className={`py-1.5 px-3 rounded border text-sm transition-colors ${showSources ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-            >
-              Sources · v{criteriaStatus.manifest.criteriaVersion}
-            </button>
-          </Tooltip>
-        )}
-      </div>
+        </div>
+      </header>
 
       {/* Criteria sources panel */}
       {showSources && criteriaStatus && (
@@ -504,7 +560,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         </div>
       </div>
 
-      <StatusBar entries={statusLog} onClear={() => setStatusLog([])} />
+      <StatusBar entries={statusLog} onClear={() => setStatusLog([])} forceExpanded={draftingAll} />
 
       {confirmNewProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">

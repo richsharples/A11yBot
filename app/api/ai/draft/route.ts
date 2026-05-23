@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { draftCriterion, deriveConfidence } from "@/src/ai/draft";
 import { updateCriterion, requireProject } from "@/src/state/project";
 
+// Allow up to 5 minutes — local models can be slow
+export const maxDuration = 300;
+
 // POST /api/ai/draft — draft one criterion or all notEvaluated
 export async function POST(req: NextRequest) {
   try {

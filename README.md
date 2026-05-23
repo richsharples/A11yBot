@@ -226,10 +226,33 @@ src/
 
 ---
 
+## Local model performance
+
+A11yBot supports local models via [Ollama](https://ollama.com). AI drafting performance varies significantly by model size. Each criterion requires one LLM call; a full 508 run (59 applicable criteria for a web product) can take anywhere from 2 minutes to over an hour depending on the model and hardware.
+
+Tested on Apple Silicon (M-series) and NVIDIA consumer GPUs. Cloud models via OpenRouter are always faster for bulk drafting.
+
+| Model | Size | Speed (tok/s) | Full run estimate | Quality | Notes |
+|---|---|---|---|---|---|
+| `qwen2.5:3b` | 2 GB | ~35–50 | ~5 min | Good | Best starting point; fast, reliable JSON |
+| `phi4-mini:3.8b` | 2.5 GB | ~30–40 | ~7 min | Very good | Excellent instruction following; recommended |
+| `gemma3:4b` | 3 GB | ~25–35 | ~8 min | Good | Strong structured output |
+| `qwen2.5:7b` | 4.7 GB | ~15–25 | ~15 min | Very good | Better remarks quality than 3b |
+| `mistral:7b` | 4.1 GB | ~15–25 | ~15 min | Good | Solid JSON compliance |
+| `qwen2.5-coder:14b` | 9 GB | ~8–12 | ~30 min | Excellent | Overkill for VPAT; use 7b instead |
+
+**Tips for faster local drafting:**
+- A11yBot automatically uses serial requests (batch size 1) for Ollama, since parallel requests to a single GPU cause VRAM thrashing and are slower
+- If inference is slow, run `ollama ps` to confirm the model is running on GPU (`100% GPU`). CPU inference is 10–50× slower
+- The `:coder` model variants are optimised for code generation; the base variants (`qwen2.5:7b` not `qwen2.5-coder:7b`) produce better natural-language VPAT remarks
+- Pull a model with `ollama pull <model>`, then select it in Settings
+
+---
+
 ## Notes
 
 - **Session only** — all project state is held in memory. Refreshing the page or restarting the server starts a new session. Export your `.docx` before closing.
-- **Anthropic API key** — entered in the setup wizard and stored in memory for the session only. Never written to disk.
+- **Config file** — `~/.a11ybot/config.json` persists contact info, AI defaults, and saved products across sessions. Contact info is automatically saved on first project creation.
 - **Scope pre-filtering** — criteria marked N/A at creation can be overridden manually in the review. Creating a new project is the only way to change the component scope selection.
 
 ---
