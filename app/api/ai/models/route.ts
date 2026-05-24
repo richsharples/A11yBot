@@ -23,7 +23,7 @@ export interface OpenRouterModelInfo {
 }
 
 function isUsable(m: RawModel): boolean {
-  if (m.architecture.modality !== "text->text") return false;
+  if (!m.architecture.modality.endsWith("->text")) return false;
   if (m.context_length < MIN_CONTEXT) return false;
   if (m.expiration_date && new Date(m.expiration_date) <= TODAY) return false;
   return true;
