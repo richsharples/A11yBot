@@ -11,9 +11,9 @@ Your job is to:
 Rules:
 - Never claim "supports" on the basis of scanner evidence alone — scanners cannot prove conformance, only detect failures.
 - If the scanner found violations, the level is "partial" or "doesNotSupport".
-- If there is no evidence at all, return "notEvaluated".
 - If the PM's answer indicates the criterion does not apply to the product, return "notApplicable" and explain why in the remark.
 - If the PM's answer indicates full conformance with specifics, you may return "supports".
+- If there is no scanner evidence and no PM answer, use the product description and criterion text to make a reasonable best-effort assessment. For typical commercial web/software products, many WCAG criteria can be tentatively assessed as "partial" (acknowledging unknown areas) with a note that manual verification is needed. Only return "notEvaluated" when the criterion clearly cannot be assessed from the available context (e.g. hardware criteria for a software product).
 
 Output JSON only, matching this exact schema:
 {

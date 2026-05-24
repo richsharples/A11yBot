@@ -64,6 +64,10 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     setStatusLog((prev) => prev.map((e) => e.id === id ? { ...e, level, message } : e));
   }, []);
 
+  const updateStatus = useCallback((id: number, message: string) => {
+    setStatusLog((prev) => prev.map((e) => e.id === id ? { ...e, message } : e));
+  }, []);
+
   // Fetch criteria structure and store status
   useEffect(() => {
     fetch(`/api/criteria?edition=${project.edition}`)
@@ -131,7 +135,12 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   const runRuntimeScan = useCallback(async () => {
     if (!project.runtimeUrl) return;
     setScanningRuntime(true);
-    const sid = pushStatus("running", "AppScan running…");
+    const sid = pushStatus("running", "AppScan running — Lighthouse + axe (0s)…");
+    const started = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = Math.round((Date.now() - started) / 1000);
+      updateStatus(sid, `AppScan running — Lighthouse + axe (${elapsed}s)…`);
+    }, 1000);
     try {
       const res = await fetch("/api/scan/runtime", {
         method: "POST",
@@ -139,20 +148,23 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         body: JSON.stringify({ url: project.runtimeUrl }),
       });
       const data = await res.json();
-      resolveStatus(sid, "info", `AppScan done — ${data.evidenceAdded} evidence items across ${data.pathsScanned} path(s).`);
+      const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+      resolveStatus(sid, "info", `AppScan done in ${elapsed}s — ${data.evidenceAdded} evidence items across ${data.pathsScanned} path(s).`);
       const p = await fetch("/api/project").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {
       resolveStatus(sid, "error", `AppScan failed: ${err}`);
     } finally {
+      clearInterval(timer);
       setScanningRuntime(false);
     }
   }, [project.runtimeUrl, onProjectUpdate, pushStatus, resolveStatus]);
 
   const draftAll = useCallback(async () => {
     if (!criteriaData) return;
+    // Only draft criteria not yet attempted — ai-attempted means AI tried but needs more evidence
     const toDraft = Object.entries(project.criteria)
-      .filter(([, cs]) => cs.level === "notEvaluated")
+      .filter(([, cs]) => cs.level === "notEvaluated" && cs.confidence !== "ai-attempted")
       .map(([id]) => id);
     if (toDraft.length === 0) return;
 
@@ -169,6 +181,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
 
     let completed = 0;
     let failed = 0;
+    let completedAsNotEval = 0;
     // Local models (Ollama) have one GPU — parallel requests queue internally
     // and cause VRAM thrashing. Serial is faster for local; parallel for cloud.
     const providerRes = await fetch("/api/ai/provider").then((r) => r.ok ? r.json() : null).catch(() => null);
@@ -187,8 +200,11 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
           });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "failed");
           const cs = await res.json() as CriterionState;
+          // draftCriterion swallows LLM errors and returns notEvaluated with the error in the remark
+          if (cs.remark.startsWith("AI draft failed:")) throw new Error(cs.remark.replace("AI draft failed: ", ""));
           onCriterionUpdate(criterionId, cs);
           completed++;
+          if (cs.level === "notEvaluated") completedAsNotEval++;
           setDraftCount(completed);
           const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
           pushStatus("info", `${refById[criterionId] ?? criterionId} — ${cs.level} (${elapsed}s)`);
@@ -202,8 +218,9 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       }));
     }
 
+    const withLevel = (toDraft.length - failed) - completedAsNotEval;
     pushStatus(failed > 0 ? "warn" : "info",
-      `AI draft complete — ${toDraft.length - failed} drafted${failed > 0 ? `, ${failed} timed out — click "AI draft all" again to retry` : ""}.`);
+      `AI draft complete — ${withLevel} assessed with a conformance level${completedAsNotEval > 0 ? `, ${completedAsNotEval} need scan or interview evidence before AI can assess` : ""}${failed > 0 ? `, ${failed} failed — click "AI draft all" to retry` : ""}.`);
     setDraftingAll(false);
     setDraftCount(0);
     setDraftTotal(0);
@@ -357,8 +374,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             </Tooltip>
           ) : null}
           <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
-            <button onClick={draftAll} disabled={draftingAll} className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
-              {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${totalCriteria - evaluated} remaining)`}
+            <button onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime} className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
+              {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${Object.values(project.criteria).filter((c) => c.level === "notEvaluated" && c.confidence !== "ai-attempted").length} remaining)`}
             </button>
           </Tooltip>
           <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
@@ -447,12 +464,13 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             const totalScannerEvidence = sourceCount + appScanCount;
 
             const allNA = chapterApplicable.length === 0;
+            const unconfirmedNA = chapterCriteria.filter((c) => c.level === "notApplicable" && c.confidence !== "pm-confirmed");
 
             return (
+              <div key={chapter.id} className="border-b border-gray-100">
               <button
-                key={chapter.id}
                 onClick={() => { setSelectedChapter(chapter.id); setSelectedCriterion(null); }}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${
+                className={`w-full text-left px-4 py-3 transition-colors ${
                   allNA
                     ? "opacity-40 cursor-default hover:bg-transparent"
                     : `hover:bg-gray-50 ${selectedChapter === chapter.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`
@@ -488,6 +506,30 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                   </>
                 )}
               </button>
+              {/* Bulk confirm N/A — only for chapters with unconfirmed notApplicable criteria */}
+              {!allNA && unconfirmedNA.length > 0 && unconfirmedNA.length === chapterCriteria.length && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    for (const cs of unconfirmedNA) {
+                      const res = await fetch("/api/criterion", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ criterionId: cs.id, level: "notApplicable", remark: cs.remark }),
+                      });
+                      if (res.ok) {
+                        const updated = await res.json() as import("@/src/types").CriterionState;
+                        onCriterionUpdate(cs.id, updated);
+                      }
+                    }
+                    pushStatus("info", `${chapter.title} — ${unconfirmedNA.length} N/A criteria confirmed.`);
+                  }}
+                  className="w-full px-4 py-1.5 text-left text-[11px] text-blue-600 hover:bg-blue-50 border-b border-gray-100 transition-colors"
+                >
+                  ✓ Confirm all N/A ({unconfirmedNA.length})
+                </button>
+              )}
+              </div>
             );
           })}
         </nav>
@@ -550,6 +592,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                 onUpdate={onCriterionUpdate}
                 onStatus={pushStatus}
                 onResolveStatus={resolveStatus}
+                onConfirmAndNext={reviewList.length > 0 ? () => navigateReview(1) : undefined}
               />
             ) : selectedChapter ? (
               <div className="text-gray-500 text-sm">Select a criterion from the list.</div>

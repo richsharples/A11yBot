@@ -29,10 +29,13 @@ export async function callLLM(systemPrompt: string, userContent: string): Promis
     ],
   };
 
-  // Force JSON output mode — Ollama supports this since v0.1.9; prevents small
-  // models from returning Python-style None or unquoted strings.
+  // Ollama-specific options
   if (config.provider === "ollama") {
+    // Force JSON output mode — prevents small models returning Python-style None or unquoted strings
     body.response_format = { type: "json_object" };
+    // Reset the model keep-alive timer on every request so the model isn't evicted
+    // mid-run during slow serial drafting (default keep-alive is 5 min)
+    body.keep_alive = "10m";
   }
 
   const res = await fetch(`${baseUrl}/chat/completions`, {

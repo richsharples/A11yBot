@@ -5,6 +5,7 @@ export type StatusEntry = { id: number; ts: string; level: StatusLevel; message:
 
 export type PushStatus = (level: StatusLevel, message: string) => number;
 export type ResolveStatus = (id: number, level: Exclude<StatusLevel, "running">, message: string) => void;
+export type UpdateStatus = (id: number, message: string) => void;
 
 export type EvidenceSignal = { scannerCount: number; interviewCount: number };
 

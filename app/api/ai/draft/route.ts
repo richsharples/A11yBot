@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
           batch.map(async (id) => {
             const draft = await draftCriterion(id);
             const pmAnswer = project.criteria[id].evidence.find((e) => e.source === "interview")?.detail;
-            const confidence = deriveConfidence(pmAnswer);
+            const confidence = draft.level === "notEvaluated" ? "ai-attempted" : deriveConfidence(pmAnswer);
             updateCriterion(id, { level: draft.level, remark: draft.remark, confidence });
             results[id] = { level: draft.level, remark: draft.remark };
           })
@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     const project = requireProject();
     const draft = await draftCriterion(criterionId);
     const pmAnswer = project.criteria[criterionId]?.evidence.find((e) => e.source === "interview")?.detail;
-    const confidence = deriveConfidence(pmAnswer);
+    // ai-attempted = AI tried but couldn't assess (returned notEvaluated); distinguishes from un-attempted criteria
+    const confidence = draft.level === "notEvaluated" ? "ai-attempted" : deriveConfidence(pmAnswer);
     const cs = updateCriterion(criterionId, { level: draft.level, remark: draft.remark, confidence });
 
     return NextResponse.json({ ...cs, reasoning: draft.reasoning });

@@ -538,7 +538,10 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                     {/* OpenRouter */}
                     <ProviderCard
                       selected={form.aiProvider === "openrouter"}
-                      onClick={() => setForm((p) => ({ ...p, aiProvider: "openrouter", aiModel: p.aiModel || DEFAULT_OPENROUTER_MODEL }))}
+                      onClick={() => setForm((p) => {
+                        const validForOpenRouter = OPENROUTER_MODELS.some((m) => m.id === p.aiModel);
+                        return { ...p, aiProvider: "openrouter", aiModel: validForOpenRouter ? p.aiModel : DEFAULT_OPENROUTER_MODEL };
+                      })}
                     >
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-gray-900">OpenRouter</span>

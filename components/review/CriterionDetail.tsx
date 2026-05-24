@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { CriterionState, ConformanceLevel } from "@/src/types";
 import { LEVEL_LABELS, LEVEL_COLORS, PushStatus, ResolveStatus, getEvidenceSignal } from "./types";
 import { Tooltip } from "./Tooltip";
@@ -13,6 +13,7 @@ export function CriterionDetail({
   onUpdate,
   onStatus,
   onResolveStatus,
+  onConfirmAndNext,
 }: {
   criterionId: string;
   criterionDef: { id: string; ref: string; text: string; interviewQuestion?: string };
@@ -20,6 +21,7 @@ export function CriterionDetail({
   onUpdate: (id: string, cs: CriterionState) => void;
   onStatus: PushStatus;
   onResolveStatus: ResolveStatus;
+  onConfirmAndNext?: () => void;
 }) {
   const [level, setLevel] = useState<ConformanceLevel>(cs?.level ?? "notEvaluated");
   const [remark, setRemark] = useState(cs?.remark ?? "");
@@ -36,7 +38,7 @@ export function CriterionDetail({
     setError(null);
   }, [criterionId, cs]);
 
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     setSaving(true);
     setError(null);
     try {
@@ -48,14 +50,53 @@ export function CriterionDetail({
       if (!res.ok) throw new Error(await res.text());
       const updated = await res.json() as CriterionState;
       onUpdate(criterionId, updated);
-      onStatus("info", `${criterionDef.ref} saved.`);
+      return true;
     } catch (err) {
       setError(String(err));
       onStatus("error", `Save failed for ${criterionDef.ref}: ${err}`);
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  // Optimistic save — update UI instantly, persist in background
+  const saveAndNext = useCallback(() => {
+    if (!onConfirmAndNext) return;
+    // Immediately synthesise the pm-confirmed state so the UI updates now
+    const optimistic: CriterionState = {
+      ...cs,
+      level,
+      remark,
+      confidence: "pm-confirmed",
+      history: [...(cs?.history ?? []), { at: new Date().toISOString(), level: cs?.level ?? "notEvaluated", remark: cs?.remark ?? "" }],
+    };
+    onUpdate(criterionId, optimistic);
+    onConfirmAndNext();
+    // Persist in background — show error if it fails but don't block navigation
+    fetch("/api/criterion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ criterionId, level, remark }),
+    }).then((r) => {
+      if (!r.ok) onStatus("error", `Save failed for ${criterionDef.ref} — please re-confirm`);
+    }).catch(() => onStatus("error", `Save failed for ${criterionDef.ref} — please re-confirm`));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [criterionId, level, remark, cs, onConfirmAndNext, onUpdate, onStatus, criterionDef.ref]);
+
+  // Space = confirm & next (only when review queue is active and focus isn't in a field)
+  useEffect(() => {
+    if (!onConfirmAndNext) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.code !== "Space") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      e.preventDefault();
+      saveAndNext();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onConfirmAndNext, saveAndNext]);
 
   const submitAnswer = async () => {
     if (!answer.trim()) return;
@@ -198,21 +239,38 @@ export function CriterionDetail({
               </div>
             )}
 
-            {/* Scanner violations */}
-            {scannerEvidence.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1.5">Scanner findings</p>
-                <ul className="space-y-1.5">
-                  {scannerEvidence.map((e, i) => (
-                    <li key={i} className="text-xs text-orange-900 bg-orange-50 border border-orange-200 rounded px-3 py-2">
-                      <span className="font-medium">{e.detail}</span>
-                      {e.ref && <span className="block text-orange-400 mt-0.5 font-mono text-[10px] break-all">{e.ref}</span>}
-                      <FindingActions evidence={e} criterionRef={criterionDef.ref} criterionText={criterionDef.text} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* Scanner violations — grouped by rule so duplicate messages collapse */}
+            {scannerEvidence.length > 0 && (() => {
+              const groups = new Map<string, typeof scannerEvidence>();
+              for (const e of scannerEvidence) {
+                const key = e.rawId ?? e.detail;
+                groups.set(key, [...(groups.get(key) ?? []), e]);
+              }
+              return (
+                <div>
+                  <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1.5">
+                    Scanner findings ({groups.size} rule{groups.size !== 1 ? "s" : ""}, {scannerEvidence.length} instance{scannerEvidence.length !== 1 ? "s" : ""})
+                  </p>
+                  <ul className="space-y-1.5">
+                    {[...groups.entries()].map(([key, items]) => (
+                      <li key={key} className="text-xs text-orange-900 bg-orange-50 border border-orange-200 rounded px-3 py-2">
+                        <span className="font-medium">{items[0].detail}</span>
+                        {items.some((e) => e.ref) && (
+                          <ul className="mt-1.5 space-y-0.5">
+                            {items.filter((e) => e.ref).map((e, i) => (
+                              <li key={i} className="text-orange-400 font-mono text-[10px] break-all">
+                                {items.length > 1 && <span className="text-orange-300 mr-1">↳</span>}{e.ref}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <FindingActions evidence={items[0]} criterionRef={criterionDef.ref} criterionText={criterionDef.text} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
 
             {/* Interview responses */}
             {interviewEvidence.length > 0 && (
@@ -329,11 +387,26 @@ export function CriterionDetail({
         {error && <div className="text-sm text-red-600">{error}</div>}
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Tooltip text="Save the current level and remarks, marking this criterion as PM-confirmed">
-            <button onClick={save} disabled={saving} className="py-2 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
-              {saving ? "Saving…" : "Confirm & save"}
-            </button>
-          </Tooltip>
+          {onConfirmAndNext ? (
+            <>
+              <Tooltip text="Confirm this assessment and move to the next item to review  [Space]">
+                <button onClick={saveAndNext} disabled={saving} className="py-2 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                  {saving ? "Saving…" : "Confirm & next →"}
+                </button>
+              </Tooltip>
+              <Tooltip text="Save without advancing — stay on this criterion">
+                <button onClick={save} disabled={saving} className="py-2 px-3 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50 text-gray-600">
+                  {saving ? "…" : "Save only"}
+                </button>
+              </Tooltip>
+            </>
+          ) : (
+            <Tooltip text="Save the current level and remarks, marking this criterion as PM-confirmed">
+              <button onClick={save} disabled={saving} className="py-2 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                {saving ? "Saving…" : "Confirm & save"}
+              </button>
+            </Tooltip>
+          )}
           <Tooltip text="Ask Claude to draft a conformance assessment from all available evidence">
             <button onClick={draftOnly} disabled={drafting} className="py-2 px-4 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
               {drafting ? "Drafting…" : "AI draft"}
@@ -341,12 +414,8 @@ export function CriterionDetail({
           </Tooltip>
           {cs?.level !== "notEvaluated" && (
             <Tooltip text="Clear the current assessment and return this criterion to unevaluated" className="ml-auto">
-              <button
-                onClick={resetCriterion}
-                disabled={saving}
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
-              >
-                Reset to Not Evaluated
+              <button onClick={resetCriterion} disabled={saving} className="text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50">
+                Reset
               </button>
             </Tooltip>
           )}
