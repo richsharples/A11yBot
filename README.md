@@ -6,18 +6,21 @@
 
 A local web app for generating **VPAT 2.5 Accessibility Conformance Reports** (ACR). It combines automated accessibility scanning with AI-assisted drafting to evaluate WCAG / Section 508 criteria and produce a `.docx` report ready for submission.
 
-Everything runs locally in a single session — no database, no login, no data leaves your machine (except Anthropic API calls for AI drafting).
+Everything runs locally — no database, no login, no data leaves your machine (except Anthropic API calls for AI drafting). Projects are saved to `~/.a11ybot/projects/` so you can pick up where you left off across sessions.
 
 ---
 
 ## Features
 
+- **Project Hub** — saved projects are listed on launch so you can resume any previous VPAT or start a new one; one active project at a time with a confirmation prompt before switching
+- **File-backed persistence** — projects auto-save to `~/.a11ybot/projects/` on every change so you never lose work between sessions
 - **Scope pre-filtering** — select which component types your product includes (SaaS/Web, Desktop/Mobile, Hardware, Documentation, Support Services); criteria that don't apply are immediately marked N/A so you only review what's relevant
 - **Full VPAT 2.5 criteria coverage** — all criteria for both editions: Section 508 (~124 criteria) and International/EN 301 549 (~160 criteria)
 - **Source scan** — runs ESLint + `jsx-a11y` rules against a local React/JSX/TSX codebase and maps violations to VPAT criteria
 - **Runtime scan** — runs Lighthouse against a live URL and maps audit failures to VPAT criteria
 - **Interview mode** — guided Q&A so a PM can answer plain-language questions for each criterion without needing to read the scanner output
 - **AI drafting** — sends criterion definition + evidence to Claude, which produces a conformance level (`Supports`, `Partially Supports`, `Does Not Support`, `Not Applicable`) and the formal vendor remarks paragraph
+- **Dynamic model list** — connects to OpenRouter to show all currently available models that meet the minimum context length; falls back to a curated static list when offline or no key is configured
 - **Export** — produces a `.docx` VPAT 2.5 file including a Compliance Standards table
 - **Editions** — Section 508 (WCAG 2.0 + 36 CFR Part 1194) and International (EN 301 549 V3.2.1 + WCAG 2.0/2.1/2.2)
 
@@ -51,7 +54,9 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### 3. Create a project
+### 3. Open or create a project
+
+If you have existing projects, the **Project Hub** opens on launch — select one to resume or click **+ New project**. On first launch (no saved projects), the setup wizard opens directly.
 
 The three-step setup wizard asks for:
 
@@ -73,6 +78,12 @@ The three-step setup wizard asks for:
 
 ## Usage
 
+### Navigating projects
+
+Use the **← Projects** button in the top-left of the review page to return to the Project Hub at any time. The active project is saved automatically before you leave.
+
+To delete a project, hover its card in the Project Hub and click the trash icon.
+
 ### Running scans
 
 Once a project is created, use the action bar at the top of the review page:
@@ -81,7 +92,7 @@ Once a project is created, use the action bar at the top of the review page:
 - **Run runtime scan** — runs Lighthouse against the URL you provided
 - **AI draft all** — sends all unevaluated criteria to Claude for drafting in parallel (max 5 concurrent)
 
-Scans clear previous results before adding new ones, so re-running after fixing issues shows clean results.
+Scans clear previous results before adding new ones, so re-running after fixing issues shows clean results. Re-scanning also resets any criteria that were at the `ai-inferred` confidence level (scanner-only assessments with no PM review) so stale inferences don't persist after the underlying code changes.
 
 ### Reviewing criteria
 
@@ -172,16 +183,20 @@ Run reports are saved to `.regression-reports/` (gitignored) for post-mortem ins
 
 ```
 app/
-  page.tsx                    # SPA shell
+  page.tsx                    # SPA shell (hub / setup / review routing)
   api/
-    project/route.ts          # POST: create in-memory project
+    projects/route.ts         # GET: list projects; POST: create project
+    projects/[id]/route.ts    # GET/PATCH/DELETE a project by ID (or "active")
     criteria/route.ts         # GET: criteria structure for edition
     criterion/route.ts        # PATCH: update criterion state
     scan/source/route.ts      # POST: source scan (ESLint + jsx-a11y)
     scan/runtime/route.ts     # POST: Lighthouse scan
     ai/draft/route.ts         # POST: AI-draft one or all criteria
+    ai/models/route.ts        # GET: live OpenRouter model list (with fallback)
     export/route.ts           # POST: build .docx
 components/
+  hub/
+    ProjectHub.tsx            # Project list with resume/delete/new actions
   review/
     CriteriaReview.tsx        # Main review shell + orchestrator
     CriterionDetail.tsx       # Per-criterion editing panel
@@ -204,7 +219,8 @@ src/
     client.ts                 # Anthropic client
     draft.ts                  # Per-criterion AI orchestration + deriveConfidence()
   state/
-    project.ts                # In-memory project store
+    project.ts                # In-memory active project + mutation helpers
+    project-store.ts          # File-backed persistence (~/.a11ybot/projects/)
   types.ts                    # Zod schemas + TypeScript types
 ```
 
@@ -251,13 +267,27 @@ Tested on Apple Silicon (M-series) and NVIDIA consumer GPUs. Cloud models via Op
 
 ## Notes
 
-- **Session only** — all project state is held in memory. Refreshing the page or restarting the server starts a new session. Export your `.docx` before closing.
+- **Auto-save** — projects save automatically on every change (1.5 s debounce) to `~/.a11ybot/projects/`. Restarting the server or refreshing the page does not lose work; just return to the Project Hub and resume.
 - **Config file** — `~/.a11ybot/config.json` persists contact info, AI defaults, and saved products across sessions. Contact info is automatically saved on first project creation.
 - **Scope pre-filtering** — criteria marked N/A at creation can be overridden manually in the review. Creating a new project is the only way to change the component scope selection.
+- **One active project at a time** — loading a different project while one is active prompts for confirmation. The previous project is already saved so nothing is lost.
 
 ---
 
 ## Changelog
+
+### 0.1.0-beta.8
+- **Project Hub** — first screen when saved projects exist; shows all projects with name, version, last-modified time, and a progress bar (% criteria confirmed); one active project at a time with a confirmation prompt before switching
+- **File-backed persistence** — projects auto-save to `~/.a11ybot/projects/{id}.json` on every change (1.5 s debounce); `~/.a11ybot/index.json` tracks the project list; resuming after a restart requires no action
+- **Delete project** — hover a project card in the hub and click the trash icon; confirmation dialog prevents accidental deletion
+- **← Projects button** — back button in the review header returns to the hub without losing project state
+- **No auto-scan on load** — opening a saved project no longer triggers an automatic source+runtime scan; scans are user-initiated
+- **Rescan resets AI-inferred criteria** — re-running a scan clears any criteria that were only at `ai-inferred` confidence (scanner-only, no PM review); `ai-drafted` and `pm-confirmed` criteria are never touched
+- **API routes migrated** — `POST /api/projects`, `GET /api/projects/active`, `DELETE /api/projects/active` replace the old `/api/project` routes
+
+### 0.1.0-beta.7
+- **Dynamic OpenRouter model list** — Settings panel fetches live models from OpenRouter on open; filters to models with `context_length ≥ 32768` that produce text output; falls back to a curated static list when no key is configured or the API is unreachable
+- **OpenRouter model grouping** — models shown grouped by provider in the selector (`anthropic`, `google`, `openai`, etc.)
 
 ### 0.1.0-beta.6
 - **Review mode** — "Confirm & Next →" primary button with optimistic save (instant, no round-trip delay); Space shortcut advances through AI-drafted criteria; "Confirm all N/A" bulk button per chapter

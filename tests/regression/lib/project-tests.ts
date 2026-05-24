@@ -108,7 +108,7 @@ export async function runProjectTests(api: VpatApiClient): Promise<ProjectTestRe
   }));
 
   // ── Reset clears state for fresh project ──────────────────────────────────
-  results.push(await test("DELETE /api/project clears state: subsequent GET returns 404", async () => {
+  results.push(await test("DELETE /api/projects/active clears state: subsequent GET returns 404", async () => {
     await api.createProject({ ...BASE_PROJECT, edition: "508", productComponents: ["web"] });
     await api.resetProject();
     try {
@@ -145,6 +145,29 @@ export async function runProjectTests(api: VpatApiClient): Promise<ProjectTestRe
         `criterion ${firstId} should be notEvaluated in new project, got ${criterion.level}`
       );
     }
+  }));
+
+  // ── Project list includes newly created project ───────────────────────────
+  results.push(await test("GET /api/projects: lists saved projects", async () => {
+    await api.resetProject();
+    await api.createProject({ ...BASE_PROJECT, edition: "508", productComponents: ["web"] });
+    const list = await api.listProjects();
+    assert(list.length > 0, "project list should be non-empty after creating a project");
+    const match = list.find((p) => p.productName === BASE_PROJECT.productName);
+    assert(!!match, `list should contain project "${BASE_PROJECT.productName}"`);
+    assert(typeof match!.progressPct === "number", "list entry should include progressPct");
+  }));
+
+  // ── Load project by ID returns full project ───────────────────────────────
+  results.push(await test("GET /api/projects/:id: loads saved project by ID", async () => {
+    await api.resetProject();
+    const id = await api.createProject({ ...BASE_PROJECT, edition: "508", productComponents: ["web"] });
+    const list = await api.listProjects();
+    const entry = list.find((p) => p.id === id);
+    assert(!!entry, "newly created project should appear in list");
+    const loaded = await api.loadProject(id) as { id: string; criteria: Record<string, unknown> };
+    assert(loaded.id === id, `loaded project id should match, got ${loaded.id}`);
+    assert(typeof loaded.criteria === "object", "loaded project should have criteria");
   }));
 
   await api.resetProject();

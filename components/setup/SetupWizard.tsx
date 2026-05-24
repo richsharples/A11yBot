@@ -19,7 +19,7 @@ function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterMode
   return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
 }
 
-const APP_VERSION = "0.1.0-beta.7";
+const APP_VERSION = "0.1.0-beta.8";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
 
 interface CriteriaSource {
