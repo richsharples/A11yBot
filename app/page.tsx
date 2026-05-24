@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Project, CriterionState, ConformanceLevel } from "@/src/types";
+import type { Project, CriterionState } from "@/src/types";
 import { SetupWizard } from "@/components/setup";
 import { CriteriaReview } from "@/components/review";
 import { SettingsPanel } from "@/components/settings";
+import { ProjectHub } from "@/components/hub";
 
-type AppView = "setup" | "review";
+type AppView = "hub" | "setup" | "review";
 
 export default function Home() {
   const [view, setView] = useState<AppView>("setup");
@@ -16,13 +17,26 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/projects/active")
-      .then((r) => r.ok ? r.json() : null)
-      .then((p) => { if (p) { setProject(p); setView("review"); } })
-      .catch(() => {});
+    Promise.all([
+      fetch("/api/projects/active").then((r) => r.ok ? r.json() : null),
+      fetch("/api/projects").then((r) => r.ok ? r.json() : []),
+    ]).then(([active, list]) => {
+      if (active) {
+        setProject(active);
+        setView("review");
+      } else if (list.length > 0) {
+        setView("hub");
+      }
+      // else stay on "setup" (wizard)
+    }).catch(() => {});
   }, []);
 
   const handleProjectCreated = useCallback((p: Project) => {
+    setProject(p);
+    setView("review");
+  }, []);
+
+  const handleProjectLoaded = useCallback((p: Project) => {
     setProject(p);
     setView("review");
   }, []);
@@ -37,6 +51,25 @@ export default function Home() {
       return { ...prev, criteria: { ...prev.criteria, [criterionId]: cs } };
     });
   }, []);
+
+  const handleNewProject = useCallback(() => {
+    setProject(null);
+    setView("setup");
+  }, []);
+
+  const handleGoToHub = useCallback(() => {
+    setProject(null);
+    setView("hub");
+  }, []);
+
+  if (view === "hub") {
+    return (
+      <ProjectHub
+        onNewProject={handleNewProject}
+        onProjectLoaded={handleProjectLoaded}
+      />
+    );
+  }
 
   if (view === "setup") {
     return (
@@ -58,7 +91,7 @@ export default function Home() {
         project={project}
         onCriterionUpdate={handleCriterionUpdate}
         onProjectUpdate={handleProjectUpdate}
-        onNewProject={() => { setProject(null); setView("setup"); }}
+        onNewProject={handleGoToHub}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
