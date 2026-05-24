@@ -23,6 +23,7 @@ export async function runAxe(
 
   try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(60_000);
 
     if (headers && Object.keys(headers).length > 0) {
       await page.setExtraHTTPHeaders(headers);
