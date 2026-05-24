@@ -304,7 +304,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-3">
             <Tooltip text={`v${pkg.version}`} side="bottom">
-              <span className="cursor-default"><LogoLockup size={20} /></span>
+              <span className="cursor-default"><LogoLockup size={48} /></span>
             </Tooltip>
             <span className="text-rule">|</span>
             <div>
