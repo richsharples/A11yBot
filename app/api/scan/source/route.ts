@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     log.info({ event: "scan.source.started", sourcePath });
     writeRunLog({ event: "scan.source.started", sourcePath });
-    clearScanEvidence("source-scan");
+    const { aiInferredReset } = clearScanEvidence("source-scan");
 
     const ruleMapping = buildRuleMapping(project.edition);
     const evidenceTotals: Record<string, number> = {};
@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       scanned: { html: htmlFiles.length, vue: vueFiles.length, angular: angularFiles.length, css: cssFiles.length, jsx: jsxFiles.length },
       evidenceAdded: totalEvidence,
       criteriaWithEvidence: Object.keys(evidenceTotals).length,
+      aiInferredReset,
     });
   } catch (err) {
     log.error({ err }, "Source scan failed");

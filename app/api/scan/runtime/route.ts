@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     log.info({ event: "scan.runtime.started", url: payload.url });
     writeRunLog({ event: "scan.runtime.started", url: payload.url, paths: payload.paths });
-    clearScanEvidence("runtime-scan");
+    const { aiInferredReset } = clearScanEvidence("runtime-scan");
 
     const lighthouseMapping = buildLighthouseMapping(project.edition);
     const axeMapping = buildAxeMapping(project.edition);
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     log.info({ event: "scan.runtime.finished", totalEvidence });
     writeRunLog({ event: "scan.runtime.finished", totalEvidence });
 
-    return NextResponse.json({ pathsScanned: paths.length, evidenceAdded: totalEvidence });
+    return NextResponse.json({ pathsScanned: paths.length, evidenceAdded: totalEvidence, aiInferredReset });
   } catch (err) {
     log.error({ err }, "Runtime scan failed");
     return NextResponse.json({ error: String(err) }, { status: 500 });

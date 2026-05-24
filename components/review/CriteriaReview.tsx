@@ -126,7 +126,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       });
       const data = await res.json();
       const filesScanned = Object.values(data.scanned as Record<string, number>).reduce((a, b) => a + b, 0);
-      resolveStatus(sid, "info", `Source scan done — ${filesScanned} files scanned, ${data.evidenceAdded} evidence items across ${data.criteriaWithEvidence} criteria.`);
+      const resetNote = data.aiInferredReset > 0 ? ` ${data.aiInferredReset} AI-inferred criteria reset — run Draft All to regenerate.` : "";
+      resolveStatus(sid, "info", `Source scan done — ${filesScanned} files scanned, ${data.evidenceAdded} evidence items across ${data.criteriaWithEvidence} criteria.${resetNote}`);
       const p = await fetch("/api/projects/active").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {
@@ -153,7 +154,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       });
       const data = await res.json();
       const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-      resolveStatus(sid, "info", `AppScan done in ${elapsed}s — ${data.evidenceAdded} evidence items across ${data.pathsScanned} path(s).`);
+      const resetNote = data.aiInferredReset > 0 ? ` ${data.aiInferredReset} AI-inferred criteria reset — run Draft All to regenerate.` : "";
+      resolveStatus(sid, "info", `AppScan done in ${elapsed}s — ${data.evidenceAdded} evidence items across ${data.pathsScanned} path(s).${resetNote}`);
       const p = await fetch("/api/projects/active").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {

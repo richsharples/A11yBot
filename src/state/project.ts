@@ -92,14 +92,24 @@ export function resetProject(): void {
   writeRunLog({ event: "project.reset" });
 }
 
-export function clearScanEvidence(source: "source-scan" | "runtime-scan"): void {
+export function clearScanEvidence(source: "source-scan" | "runtime-scan"): { aiInferredReset: number } {
   const project = requireProject();
   for (const cs of Object.values(project.criteria)) {
     cs.evidence = cs.evidence.filter((e) => e.source !== source);
   }
-  log.info({ event: "evidence.cleared", source });
-  writeRunLog({ event: "evidence.cleared", source });
+  // ai-inferred text was derived purely from scanner evidence — it's stale after a rescan
+  let aiInferredReset = 0;
+  for (const cs of Object.values(project.criteria)) {
+    if (cs.confidence === "ai-inferred") {
+      cs.level = "notEvaluated";
+      cs.remark = "";
+      aiInferredReset++;
+    }
+  }
+  log.info({ event: "evidence.cleared", source, aiInferredReset });
+  writeRunLog({ event: "evidence.cleared", source, aiInferredReset });
   scheduleSave();
+  return { aiInferredReset };
 }
 
 export function addEvidence(criterionId: string, evidence: Evidence): boolean {
