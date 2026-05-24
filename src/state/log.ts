@@ -6,9 +6,8 @@ const logFile = join(process.cwd(), "a11ybot-run.log.json");
 
 export const log = pino({
   level: process.env.LOG_LEVEL ?? "info",
-  transport: process.env.NODE_ENV === "development"
-    ? { target: "pino-pretty", options: { colorize: true } }
-    : undefined,
+  // pino-pretty uses a worker thread and adds ~10-50ms per log call in dev.
+  // Plain pino writes JSON to stderr — fast, still readable with pino-pretty piped externally.
 });
 
 let writeTimer: ReturnType<typeof setTimeout> | null = null;

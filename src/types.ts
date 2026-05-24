@@ -74,7 +74,7 @@ export const EvidenceSchema = z.object({
 });
 export type Evidence = z.infer<typeof EvidenceSchema>;
 
-export const ConfidenceSchema = z.enum(["ai-inferred", "ai-drafted", "pm-confirmed"]);
+export const ConfidenceSchema = z.enum(["ai-inferred", "ai-attempted", "ai-drafted", "pm-confirmed"]);
 export type Confidence = z.infer<typeof ConfidenceSchema>;
 
 export const HistoryEntrySchema = z.object({

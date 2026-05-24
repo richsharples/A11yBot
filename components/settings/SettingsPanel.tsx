@@ -105,7 +105,7 @@ export function SettingsPanel({ open, onClose }: Props) {
             <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Provider</h3>
             <div className="space-y-2">
               {/* OpenRouter */}
-              <SettingsProviderCard selected={provider === "openrouter"} onClick={() => { setProvider("openrouter"); setModel((m) => m || DEFAULT_OPENROUTER_MODEL); }}>
+              <SettingsProviderCard selected={provider === "openrouter"} onClick={() => { setProvider("openrouter"); setModel((m) => OPENROUTER_MODELS.some((r) => r.id === m) ? m : DEFAULT_OPENROUTER_MODEL); }}>
                 <span className="text-sm font-medium text-gray-900">OpenRouter</span>
                 <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Recommended</span>
               </SettingsProviderCard>
