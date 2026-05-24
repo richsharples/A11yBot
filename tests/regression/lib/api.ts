@@ -51,12 +51,20 @@ export class VpatApiClient {
     mode: "interview";
     productComponents: string[];
   }): Promise<string> {
-    const project = await this.json<{ id: string }>("/api/project", {
+    const project = await this.json<{ id: string }>("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
     });
     return project.id;
+  }
+
+  async listProjects(): Promise<Array<{ id: string; productName: string; productVersion: string; progressPct: number }>> {
+    return this.json("/api/projects");
+  }
+
+  async loadProject(id: string): Promise<Record<string, unknown>> {
+    return this.json(`/api/projects/${id}`);
   }
 
   async runSourceScan(sourcePath: string): Promise<SourceScanResult> {
@@ -79,7 +87,7 @@ export class VpatApiClient {
   async getCriteriaState(): Promise<ProjectCriteria> {
     const project = await this.json<{
       criteria: Record<string, { level: string }>;
-    }>("/api/project");
+    }>("/api/projects/active");
     const all = Object.values(project.criteria);
     return {
       total: all.length,
@@ -96,11 +104,11 @@ export class VpatApiClient {
   }
 
   async resetProject(): Promise<void> {
-    await fetch(`${this.baseUrl}/api/project`, { method: "DELETE" });
+    await fetch(`${this.baseUrl}/api/projects/active`, { method: "DELETE" });
   }
 
   async getProject(): Promise<Record<string, unknown>> {
-    return this.json<Record<string, unknown>>("/api/project");
+    return this.json<Record<string, unknown>>("/api/projects/active");
   }
 
   async updateCriterion(criterionId: string, level: string, remark: string): Promise<Record<string, unknown>> {
