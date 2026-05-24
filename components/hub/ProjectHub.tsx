@@ -28,6 +28,8 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ entry: ProjectIndexEntry } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ entry: ProjectIndexEntry } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -86,6 +88,19 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/projects/${confirmDelete.entry.id}`, { method: "DELETE" });
+      setProjects((prev) => prev.filter((p) => p.id !== confirmDelete.entry.id));
+      if (activeId === confirmDelete.entry.id) setActiveId(null);
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(null);
+    }
+  };
+
   const activeEntry = projects.find((p) => p.id === activeId);
 
   return (
@@ -116,6 +131,7 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
               const isLoading = loadingId === entry.id;
               return (
                 <li key={entry.id}>
+                  <div className="relative group">
                   <button
                     type="button"
                     onClick={() => handleSelect(entry)}
@@ -159,12 +175,44 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                       <p className="mt-2 text-caption text-accent">Loading…</p>
                     )}
                   </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${entry.productName}`}
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ entry }); }}
+                    className="absolute top-3 right-3 p-1.5 rounded-md text-ink-4 hover:text-issue hover:bg-issue-bg opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  </div>
                 </li>
               );
             })}
           </ul>
         )}
       </main>
+
+      {/* Delete confirmation modal */}
+      {confirmDelete && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setConfirmDelete(null)} aria-hidden="true" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-surface rounded-xl shadow-xl p-6 max-w-sm w-full space-y-4">
+              <h2 className="font-semibold text-ink-1">Delete project?</h2>
+              <p className="text-small text-ink-3">
+                <span className="font-medium text-ink-1">"{confirmDelete.entry.productName} v{confirmDelete.entry.productVersion}"</span> will be permanently deleted. This cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button variant="secondary" onClick={() => setConfirmDelete(null)} disabled={deleting}>Cancel</Button>
+                <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? "Deleting…" : "Delete"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Switch confirmation modal */}
       {confirm && (

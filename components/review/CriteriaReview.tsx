@@ -36,16 +36,16 @@ interface Props {
   onCriterionUpdate: (id: string, cs: CriterionState) => void;
   onProjectUpdate: (updates: Partial<Project>) => void;
   onNewProject: () => void;
+  onGoToHub: () => void;
   onOpenSettings: () => void;
 }
 
-export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onOpenSettings }: Props) {
+export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onGoToHub, onOpenSettings }: Props) {
   const [criteriaData, setCriteriaData] = useState<CriteriaData | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedCriterion, setSelectedCriterion] = useState<string | null>(null);
   const [scanningSource, setScanningSource] = useState(false);
   const [scanningRuntime, setScanningRuntime] = useState(false);
-  const initialScanDone = useRef(false);
   const [draftingAll, setDraftingAll] = useState(false);
   const [draftCount, setDraftCount] = useState(0);
   const [draftTotal, setDraftTotal] = useState(0);
@@ -84,16 +84,6 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       .catch(() => {});
   }, [project.edition]);
 
-  // Auto-run applicable scans once on mount
-  useEffect(() => {
-    if (initialScanDone.current) return;
-    initialScanDone.current = true;
-    const hasSource = (project.mode === "source" || project.mode === "hybrid") && project.sourcePath;
-    const hasRuntime = (project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl;
-    if (hasSource) runSourceScan();
-    if (hasRuntime) runRuntimeScan();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleCheckUpdate = async () => {
     setCheckingUpdate(true);
@@ -305,6 +295,11 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         {/* Row 1: identity + progress + actions */}
         <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-3">
+            <Tooltip text="Back to all projects" side="bottom">
+              <Button variant="ghost" onClick={onGoToHub} className="text-ink-3 hover:text-ink-1 px-2">
+                ← Projects
+              </Button>
+            </Tooltip>
             <Tooltip text={`v${pkg.version}`} side="bottom">
               <span className="cursor-default"><LogoLockup size={48} /></span>
             </Tooltip>

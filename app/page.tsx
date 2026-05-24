@@ -92,6 +92,7 @@ export default function Home() {
         onCriterionUpdate={handleCriterionUpdate}
         onProjectUpdate={handleProjectUpdate}
         onNewProject={handleGoToHub}
+        onGoToHub={() => setView("hub")}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
