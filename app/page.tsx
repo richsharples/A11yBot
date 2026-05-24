@@ -16,7 +16,7 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/project")
+    fetch("/api/projects/active")
       .then((r) => r.ok ? r.json() : null)
       .then((p) => { if (p) { setProject(p); setView("review"); } })
       .catch(() => {});
