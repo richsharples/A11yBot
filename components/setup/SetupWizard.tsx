@@ -5,7 +5,19 @@ import type { Project, Edition, InputMode, ProductComponent, UserConfig } from "
 import { LogoLockup } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
+import { DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
+import type { OpenRouterModelInfo } from "@/app/api/ai/models/route";
+
+function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterModelInfo[]][] {
+  const groups = new Map<string, OpenRouterModelInfo[]>();
+  for (const m of models) {
+    const provider = m.id.split("/")[0];
+    const group = groups.get(provider) ?? [];
+    group.push(m);
+    groups.set(provider, group);
+  }
+  return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+}
 
 const APP_VERSION = "0.1.0-beta.4";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
@@ -115,6 +127,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
   const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
+  const [openrouterModels, setOpenrouterModels] = useState<OpenRouterModelInfo[]>([]);
+  const [modelsSource, setModelsSource] = useState<"live" | "fallback">("fallback");
 
   useEffect(() => {
     fetch("/api/criteria-status")
@@ -138,13 +152,27 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
       .catch(() => {});
   }, []);
 
+  const fetchModels = (key?: string) => {
+    const url = key ? `/api/ai/models?key=${encodeURIComponent(key)}` : "/api/ai/models";
+    fetch(url)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (!d) return;
+        setOpenrouterModels(d.models);
+        setModelsSource(d.source);
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
     if (step !== 4) return;
     setOllamaStatus(null);
-    fetch("/api/ai/provider")
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => { if (d) setOllamaStatus(d.ollama); })
-      .catch(() => setOllamaStatus({ available: false, models: [] }));
+    Promise.all([
+      fetch("/api/ai/provider").then((r) => r.ok ? r.json() : null),
+    ]).then(([providerData]) => {
+      if (providerData) setOllamaStatus(providerData.ollama);
+    }).catch(() => setOllamaStatus({ available: false, models: [] }));
+    fetchModels();
   }, [step]);
 
   const [form, setForm] = useState<FormState>({
@@ -534,7 +562,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                     <ProviderCard
                       selected={form.aiProvider === "openrouter"}
                       onClick={() => setForm((p) => {
-                        const validForOpenRouter = OPENROUTER_MODELS.some((m) => m.id === p.aiModel);
+                        const validForOpenRouter = openrouterModels.some((m) => m.id === p.aiModel);
                         return { ...p, aiProvider: "openrouter", aiModel: validForOpenRouter ? p.aiModel : DEFAULT_OPENROUTER_MODEL };
                       })}
                     >
@@ -555,7 +583,10 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                               className={inputCls(!!fieldError("aiApiKey")) + " flex-1"}
                               value={form.aiApiKey}
                               onChange={set("aiApiKey")}
-                              onBlur={touch("aiApiKey")}
+                              onBlur={(e) => {
+                                touch("aiApiKey")();
+                                if (e.target.value.startsWith("sk-or-")) fetchModels(e.target.value);
+                              }}
                               placeholder="sk-or-v1-…"
                             />
                             <Button variant="secondary" type="button" onClick={handleTest} disabled={!form.aiApiKey || !form.aiModel || testResult.status === "testing"}>
@@ -568,19 +599,18 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                           </a>
                         </Field>
 
-                        <Field label="Model">
+                        <Field label="Model" hint={modelsSource === "fallback" ? "Default list shown — enter your key above to load your available models" : undefined}>
                           <select aria-label="AI Model" className={inputCls(false)}
                             value={form.aiModel} onChange={(e) => setForm((p) => ({ ...p, aiModel: e.target.value }))}>
-                            <optgroup label="★ Recommended">
-                              {OPENROUTER_MODELS.filter((m) => m.tier === "recommended").map((m) => (
-                                <option key={m.id} value={m.id}>{m.label}</option>
-                              ))}
-                            </optgroup>
-                            <optgroup label="Other capable models">
-                              {OPENROUTER_MODELS.filter((m) => m.tier === "capable").map((m) => (
-                                <option key={m.id} value={m.id}>{m.label}</option>
-                              ))}
-                            </optgroup>
+                            {openrouterModels.length === 0 ? (
+                              <option value={DEFAULT_OPENROUTER_MODEL}>{DEFAULT_OPENROUTER_MODEL}</option>
+                            ) : groupByProvider(openrouterModels).map(([provider, models]) => (
+                              <optgroup key={provider} label={provider}>
+                                {models.map((m) => (
+                                  <option key={m.id} value={m.id}>{m.name}</option>
+                                ))}
+                              </optgroup>
+                            ))}
                           </select>
                         </Field>
                       </div>
