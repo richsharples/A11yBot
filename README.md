@@ -259,6 +259,18 @@ Tested on Apple Silicon (M-series) and NVIDIA consumer GPUs. Cloud models via Op
 
 ## Changelog
 
+### 0.1.0-beta.6
+- **Review mode** — "Confirm & Next →" primary button with optimistic save (instant, no round-trip delay); Space shortcut advances through AI-drafted criteria; "Confirm all N/A" bulk button per chapter
+- **axe-core runtime scanner** — runs alongside Lighthouse in parallel with zero new dependencies (both already transitive deps); ~3× more accessibility rule coverage
+- **AI draft improvements** — `ai-attempted` confidence prevents re-drafting criteria the AI already reviewed; prompt relaxed to make best-effort assessments; Ollama `keep_alive=10m` fixes 10-criteria cutoff; silent API failures now shown as errors
+- **OpenRouter** — model list updated to current IDs (`claude-sonnet-4.6`, `gemini-2.5-flash`, etc.); switching provider resets model to a valid default
+- **User config** — `~/.a11ybot/config.json` persists contact info, AI defaults, and saved products; contact name/email saved on first project creation; product quick-select in wizard
+- **Performance** — pino-pretty worker thread removed (10–50ms saved per save); optimistic confirm removes API wait from review hot path; axe + Lighthouse run in parallel per URL
+- **UX polish** — dark header with second action row; auto-scan on project creation; Re-scan button; scanner evidence grouped by rule; N/A chapters dimmed; AI draft progress counter; AppScan elapsed timer; .docx table column widths fixed for Apple Pages/LibreOffice
+
+### 0.1.0-beta.5
+- Ollama JSON reliability fix and logo panel theme update
+
 ### 0.1.0-beta.4
 - Codebase reorganised for second-developer onboarding: `CriteriaReview.tsx` (1106 lines) split into `components/review/` sub-components; `SetupWizard.tsx` moved to `components/setup/`
 - `buildRuleMapping` extracted from API route into `src/scanners/rule-mapping.ts`; confidence logic de-duplicated via exported `deriveConfidence()` in `src/ai/draft.ts`
