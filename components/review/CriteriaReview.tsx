@@ -313,9 +313,9 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             </div>
             <span className="text-rule">|</span>
             <Tooltip text={showSources ? "Hide compliance sources" : `View compliance sources${criteriaStatus ? ` · v${criteriaStatus.manifest.criteriaVersion}` : ""}`} side="bottom">
-              <button onClick={() => setShowSources((s) => !s)} className={`text-small transition-colors ${showSources ? "text-accent font-medium" : "text-ink-3 hover:text-ink-1"}`}>
-                <span className="eyebrow mr-1">Standard</span>{project.edition}
-              </button>
+              <Button variant={showSources ? "secondary" : "ghost"} onClick={() => setShowSources((s) => !s)} className={showSources ? "border-accent-rule text-accent" : ""}>
+                Standard: {project.edition}
+              </Button>
             </Tooltip>
           </div>
           <div className="flex items-center gap-2">
@@ -379,8 +379,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               </Button>
             </Tooltip>
           ) : null}
-          <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
-            <Button variant="ghost" onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime}>
+          <Tooltip text="Send all unevaluated criteria to A11yBot for automated AI assessment" side="bottom">
+            <Button variant="secondary" onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime}>
               {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${Object.values(project.criteria).filter((c) => c.level === "notEvaluated" && c.confidence !== "ai-attempted").length} remaining)`}
             </Button>
           </Tooltip>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/components/useTheme";
+import type { Project } from "@/src/types";
 
 type AiProvider = "openrouter" | "ollama" | "none";
 
@@ -13,10 +14,15 @@ interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: st
 interface Props {
   open: boolean;
   onClose: () => void;
+  project?: Project | null;
+  onProjectUpdate?: (updates: Partial<Project>) => void;
 }
 
-export function SettingsPanel({ open, onClose }: Props) {
+export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props) {
   const { theme, setTheme } = useTheme();
+  const [sourcePath, setSourcePath] = useState(project?.sourcePath ?? "");
+  const [runtimeUrl, setRuntimeUrl] = useState(project?.runtimeUrl ?? "");
+  const [pathsSaved, setPathsSaved] = useState(false);
   const [provider, setProvider] = useState<AiProvider>("openrouter");
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_OPENROUTER_MODEL);
@@ -27,6 +33,9 @@ export function SettingsPanel({ open, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    setSourcePath(project?.sourcePath ?? "");
+    setRuntimeUrl(project?.runtimeUrl ?? "");
+    setPathsSaved(false);
     setTestResult({ status: "idle" });
     setSaveOk(false);
 
@@ -196,6 +205,54 @@ export function SettingsPanel({ open, onClose }: Props) {
               <div className="mt-3 rounded-md bg-issue-bg border border-issue-rule text-issue text-caption p-2">{testResult.message}</div>
             )}
           </section>
+
+          {project && (
+            <section>
+              <h3 className="text-small font-semibold text-ink-2 mb-3">Project — Scan Paths</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-caption font-medium text-ink-2 mb-1">Source path</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 font-mono focus:outline-none focus:ring-2 focus:ring-accent"
+                    placeholder="/Users/you/projects/myapp/src"
+                    value={sourcePath}
+                    onChange={(e) => { setSourcePath(e.target.value); setPathsSaved(false); }}
+                  />
+                  <p className="mt-1 text-caption text-ink-4">Absolute path scanned for accessibility violations</p>
+                </div>
+                <div>
+                  <label className="block text-caption font-medium text-ink-2 mb-1">App URL</label>
+                  <input
+                    type="url"
+                    className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 font-mono focus:outline-none focus:ring-2 focus:ring-accent"
+                    placeholder="https://staging.example.com"
+                    value={runtimeUrl}
+                    onChange={(e) => { setRuntimeUrl(e.target.value); setPathsSaved(false); }}
+                  />
+                  <p className="mt-1 text-caption text-ink-4">URL for Lighthouse + axe runtime scan</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  disabled={pathsSaved}
+                  onClick={async () => {
+                    const res = await fetch("/api/project", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ sourcePath: sourcePath || null, runtimeUrl: runtimeUrl || null }),
+                    });
+                    if (res.ok) {
+                      const updated = await res.json() as Project;
+                      onProjectUpdate?.({ sourcePath: updated.sourcePath, runtimeUrl: updated.runtimeUrl });
+                      setPathsSaved(true);
+                    }
+                  }}
+                >
+                  {pathsSaved ? "✓ Saved" : "Save paths"}
+                </Button>
+              </div>
+            </section>
+          )}
 
           <section>
             <h3 className="text-small font-semibold text-ink-2 mb-3">Appearance</h3>
