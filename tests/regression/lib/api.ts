@@ -99,6 +99,41 @@ export class VpatApiClient {
     await fetch(`${this.baseUrl}/api/project`, { method: "DELETE" });
   }
 
+  async getProject(): Promise<Record<string, unknown>> {
+    return this.json<Record<string, unknown>>("/api/project");
+  }
+
+  async updateCriterion(criterionId: string, level: string, remark: string): Promise<Record<string, unknown>> {
+    return this.json<Record<string, unknown>>("/api/criterion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ criterionId, level, remark }),
+    });
+  }
+
+  async resetCriterion(criterionId: string): Promise<Record<string, unknown>> {
+    return this.json<Record<string, unknown>>("/api/criterion", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ criterionId, level: "notEvaluated", remark: "" }),
+    });
+  }
+
+  async submitInterviewAnswer(criterionId: string, answer: string): Promise<void> {
+    await this.json("/api/criterion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ criterionId, answer }),
+    });
+  }
+
+  async exportDocxBuffer(): Promise<{ success: boolean; sizeKb: number; buffer?: ArrayBuffer }> {
+    const res = await fetch(`${this.baseUrl}/api/export`, { method: "POST" });
+    if (!res.ok) return { success: false, sizeKb: 0 };
+    const buffer = await res.arrayBuffer();
+    return { success: true, sizeKb: Math.round(buffer.byteLength / 1024), buffer };
+  }
+
   async getUserConfig(): Promise<Record<string, unknown>> {
     return this.json<Record<string, unknown>>("/api/user-config");
   }

@@ -22,6 +22,9 @@ import { compare } from "./lib/compare";
 import { printReport, saveReport } from "./lib/report";
 import { ensureCloned, isCloned } from "./lib/clone";
 import { runConfigTests, printConfigResults } from "./lib/config-tests";
+import { runProjectTests, printProjectResults } from "./lib/project-tests";
+import { runCriterionTests, printCriterionResults } from "./lib/criterion-tests";
+import { runExportTests, printExportResults } from "./lib/export-tests";
 import type { ScanSnapshot, ComparisonResult, RunReport } from "./types";
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -139,13 +142,28 @@ async function main(): Promise<void> {
   const toolVersion = await api.getToolVersion();
   console.log(`  Server OK — criteria version ${toolVersion}`);
 
-  // ── Config integration tests (always run, skip with --target flag) ──
-  let configFailed = 0;
+  // ── Functional integration tests (always run, skip with --target flag) ──
+  let functionalFailed = 0;
   if (!targetFilter) {
     console.log("\n  Running config integration tests…");
     const configResults = await runConfigTests(api);
-    const { failed } = printConfigResults(configResults);
-    configFailed = failed;
+    const { failed: cf } = printConfigResults(configResults);
+    functionalFailed += cf;
+
+    console.log("\n  Running project state tests…");
+    const projectResults = await runProjectTests(api);
+    const { failed: pf } = printProjectResults(projectResults);
+    functionalFailed += pf;
+
+    console.log("\n  Running criterion workflow tests…");
+    const criterionResults = await runCriterionTests(api);
+    const { failed: crf } = printCriterionResults(criterionResults);
+    functionalFailed += crf;
+
+    console.log("\n  Running export content tests…");
+    const exportResults = await runExportTests(api);
+    const { failed: ef } = printExportResults(exportResults);
+    functionalFailed += ef;
   }
 
   // ── Filter targets ──
@@ -255,7 +273,7 @@ async function main(): Promise<void> {
     console.log(`  Report saved: ${path.relative(ROOT, saved)}\n`);
   }
 
-  process.exit(summary.regressed > 0 || configFailed > 0 ? 1 : 0);
+  process.exit(summary.regressed > 0 || functionalFailed > 0 ? 1 : 0);
 }
 
 main().catch((err) => {
