@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent, UserConfig } from "@/src/types";
+import { LogoLockup } from "@/components/Logo";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 
 const APP_VERSION = "0.1.0-beta.4";
@@ -267,71 +270,64 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel — phosphor green terminal theme */}
-      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col h-screen sticky top-0 bg-[#0b1a0d] p-8 shrink-0 border-r border-[#39FF14]/10">
+      {/* Left rail — professional paper surface */}
+      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col h-screen sticky top-0 bg-surface-2 p-8 shrink-0 border-r border-rule">
         {/* Logo */}
-        <div className="mb-6 -mx-2">
-          <img src="/a11ybot-logo.png" alt="A11yBot" className="w-full rounded-lg opacity-95" />
+        <div className="mb-6">
+          <LogoLockup size={48} />
         </div>
 
         <div className="mb-6">
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-2xl font-extrabold text-[#39FF14] font-mono tracking-tight" style={{ textShadow: "0 0 12px #39FF14aa" }}>
-              A11yBot
-            </span>
-            <span className="px-1.5 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-[10px] font-mono font-semibold">
+            <span className="px-1.5 py-0.5 rounded-sm bg-surface-3 text-ink-3 font-mono text-caption">
               v{APP_VERSION}
             </span>
           </div>
-          <p className="text-[#39FF14]/60 text-sm leading-relaxed font-mono">
+          <p className="text-small text-ink-3 leading-relaxed">
             Generate VPAT 2.5 Accessibility Conformance Reports — interview, scanning, and AI-assisted drafting.
           </p>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0">
-          <p className="text-[#39FF14]/40 text-[10px] uppercase tracking-widest font-mono font-semibold mb-3 shrink-0">Compliance Standards</p>
-          <div className="flex-1 overflow-y-auto rounded-lg border border-[#39FF14]/10 bg-[#39FF14]/5 p-3 scrollbar-thin" style={{ scrollbarColor: "#39FF14aa transparent" }}>
+          <p className="eyebrow mb-3 shrink-0">Compliance Standards</p>
+          <div className="flex-1 overflow-y-auto space-y-3">
             {criteriaStatus ? (
               <>
-                <p className="text-[#39FF14]/50 text-[10px] font-mono mb-3">
+                <p className="text-caption text-ink-4 font-mono">
                   Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-2.5">
                   {criteriaStatus.manifest.sources.map((s) => (
                     <li key={s.url} className="flex items-start gap-2">
-                      <span className="mt-0.5 shrink-0 px-1 py-0.5 rounded bg-[#39FF14]/10 border border-[#39FF14]/20 text-[#39FF14]/80 text-[9px] font-mono font-bold uppercase">
-                        {s.abbr ?? s.name.split(" ")[0]}
-                      </span>
-                      <div className="min-w-0">
-                        <a href={s.url} target="_blank" rel="noopener noreferrer"
-                          className="text-[#39FF14]/80 hover:text-[#39FF14] text-xs font-mono leading-snug underline underline-offset-2 decoration-[#39FF14]/30 hover:decoration-[#39FF14]/60 transition-colors">
-                          {s.name}
-                        </a>
-                      </div>
+                      <Badge variant="neutral" className="mt-0.5 shrink-0">{s.abbr ?? s.name.split(" ")[0]}</Badge>
+                      <a href={s.url} target="_blank" rel="noopener noreferrer"
+                        className="text-small text-ink-2 hover:text-accent underline underline-offset-2 decoration-rule hover:decoration-accent transition-colors leading-snug">
+                        {s.name}
+                      </a>
                     </li>
                   ))}
                 </ul>
                 {criteriaStatus.manifest.notes && (
-                  <p className="mt-4 pt-4 border-t border-[#39FF14]/10 text-[#39FF14]/30 text-[10px] leading-relaxed font-mono">
+                  <p className="mt-3 pt-3 border-t border-rule text-caption text-warn bg-warn-bg border border-warn-rule rounded-md px-3 py-2">
                     {criteriaStatus.manifest.notes}
                   </p>
                 )}
               </>
             ) : (
-              <p className="text-[#39FF14]/30 text-xs font-mono">Loading…</p>
+              <p className="text-small text-ink-4">Loading…</p>
             )}
           </div>
         </div>
 
         <footer className="mt-8 space-y-2">
-          <p className="text-[#39FF14]/30 text-[10px] font-mono">
+          <p className="text-caption text-ink-4">
             &copy; {new Date().getFullYear()}{" "}
-            <a href="mailto:rich.sharples@gmail.com" className="hover:text-[#39FF14]/60 underline underline-offset-2 transition-colors">
+            <a href="mailto:rich.sharples@gmail.com" className="hover:text-ink-2 underline underline-offset-2 transition-colors">
               Rich Sharples
             </a>
           </p>
           <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[#39FF14]/30 hover:text-[#39FF14]/60 text-[10px] font-mono transition-colors">
+            className="inline-flex items-center gap-1 text-caption text-ink-4 hover:text-ink-2 transition-colors">
             <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
             </svg>
@@ -341,25 +337,24 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface overflow-y-auto">
         <div className="lg:hidden mb-6 text-center">
           <div className="flex items-baseline justify-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">A11yBot</h1>
-            <span className="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 text-gray-500 text-[10px] font-mono">v{APP_VERSION}</span>
+            <LogoLockup size={24} />
           </div>
-          <p className="mt-1 text-gray-500 text-sm">Generate a VPAT 2.5 Accessibility Conformance Report</p>
+          <p className="mt-1 text-small text-ink-3">Generate a VPAT 2.5 Accessibility Conformance Report</p>
         </div>
 
         <div className="w-full max-w-xl">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="bg-surface rounded-xl shadow-sm border border-rule p-8">
             {/* Step indicator */}
             <div className="flex items-center gap-3 mb-6">
               <StepDot n={1} active={step === 1} done={step > 1} />
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-rule" />
               <StepDot n={2} active={step === 2} done={step > 2} />
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-rule" />
               <StepDot n={3} active={step === 3} done={step > 3} />
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-rule" />
               <StepDot n={4} active={step === 4} done={false} />
             </div>
 
@@ -367,7 +362,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {/* ── Step 1: Product & Contact ── */}
               {step === 1 && (
                 <div className="space-y-5">
-                  <h2 className="text-lg font-semibold text-gray-900">Product & Contact</h2>
+                  <h2 className="text-heading font-semibold text-ink-1">Product & Contact</h2>
 
                   {/* Saved product quick-select */}
                   {userConfig && userConfig.products.length > 0 && (
@@ -426,7 +421,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   </div>
 
                   <div className="pt-2">
-                    <button type="button" onClick={handleContinue} className={btnPrimary}>Continue →</button>
+                    <Button variant="primary" type="button" onClick={handleContinue} className="flex-1">Continue →</Button>
                   </div>
                 </div>
               )}
@@ -435,8 +430,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {step === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Product Scope</h2>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h2 className="text-heading font-semibold text-ink-1">Product Scope</h2>
+                    <p className="text-small text-ink-3 mt-1">
                       Select every component type your product includes. Criteria that don&apos;t apply will be pre-marked <span className="font-medium text-gray-600">N/A</span>.
                     </p>
                   </div>
@@ -452,8 +447,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                               {checked && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                             </div>
                             <div>
-                              <span className="text-sm font-medium text-gray-900">{c.icon} {c.label}</span>
-                              <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
+                              <span className="text-small font-medium text-ink-1">{c.icon} {c.label}</span>
+                              <p className="text-caption text-ink-3 mt-0.5">{c.description}</p>
                             </div>
                           </button>
                         );
@@ -470,8 +465,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setStep(1)} className={btnSecondary}>← Back</button>
-                    <button type="button" onClick={handleContinue2} className={btnPrimary}>Continue →</button>
+                    <Button variant="secondary" type="button" onClick={() => setStep(1)}>← Back</Button>
+                    <Button variant="primary" type="button" onClick={handleContinue2} className="flex-1">Continue →</Button>
                   </div>
                 </div>
               )}
@@ -479,14 +474,14 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {/* ── Step 3: Edition & Input Mode ── */}
               {step === 3 && (
                 <div className="space-y-5">
-                  <h2 className="text-lg font-semibold text-gray-900">Edition & Input Mode</h2>
+                  <h2 className="text-heading font-semibold text-ink-1">Edition & Input Mode</h2>
 
                   <Field label="VPAT Edition">
                     <div className="grid grid-cols-2 gap-3">
                       {EDITIONS.map((e) => (
                         <RadioCard key={e.value} selected={form.edition === e.value} onClick={() => setForm((p) => ({ ...p, edition: e.value }))}>
                           <div className="font-medium text-sm">{e.label}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{e.description}</div>
+                          <div className="text-caption text-ink-3 mt-0.5">{e.description}</div>
                         </RadioCard>
                       ))}
                     </div>
@@ -497,7 +492,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                       {MODES.map((m) => (
                         <RadioCard key={m.value} selected={form.mode === m.value} onClick={() => setForm((p) => ({ ...p, mode: m.value }))}>
                           <div className="font-medium text-sm">{m.label}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{m.description}</div>
+                          <div className="text-caption text-ink-3 mt-0.5">{m.description}</div>
                         </RadioCard>
                       ))}
                     </div>
@@ -518,8 +513,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setStep(2)} className={btnSecondary}>← Back</button>
-                    <button type="button" onClick={handleContinue3} className={btnPrimary}>Continue →</button>
+                    <Button variant="secondary" type="button" onClick={() => setStep(2)}>← Back</Button>
+                    <Button variant="primary" type="button" onClick={handleContinue3} className="flex-1">Continue →</Button>
                   </div>
                 </div>
               )}
@@ -528,8 +523,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {step === 4 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">AI Setup</h2>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h2 className="text-heading font-semibold text-ink-1">AI Setup</h2>
+                    <p className="text-small text-ink-3 mt-1">
                       Choose how A11yBot drafts conformance language. You can change this later in Settings.
                     </p>
                   </div>
@@ -544,10 +539,10 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                       })}
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-gray-900">OpenRouter</span>
+                        <span className="text-small font-medium text-ink-1">OpenRouter</span>
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Recommended</span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">Access Claude, GPT-4o, Gemini and 100+ models with one API key</p>
+                      <p className="text-caption text-ink-3 mt-0.5">Access Claude, GPT-4o, Gemini and 100+ models with one API key</p>
                     </ProviderCard>
 
                     {form.aiProvider === "openrouter" && (
@@ -563,17 +558,12 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                               onBlur={touch("aiApiKey")}
                               placeholder="sk-or-v1-…"
                             />
-                            <button
-                              type="button"
-                              onClick={handleTest}
-                              disabled={!form.aiApiKey || !form.aiModel || testResult.status === "testing"}
-                              className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors whitespace-nowrap"
-                            >
+                            <Button variant="secondary" type="button" onClick={handleTest} disabled={!form.aiApiKey || !form.aiModel || testResult.status === "testing"}>
                               {testResult.status === "testing" ? "Testing…" : "Test"}
-                            </button>
+                            </Button>
                           </div>
                           <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                            className="text-caption text-accent hover:underline mt-1 inline-block">
                             Get a free OpenRouter key →
                           </a>
                         </Field>
@@ -607,19 +597,19 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                       }}
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-gray-900">Ollama</span>
-                        <span className="text-xs text-gray-400">local · free · private</span>
-                        {ollamaStatus === null && <span className="text-xs text-gray-400">Detecting…</span>}
+                        <span className="text-small font-medium text-ink-1">Ollama</span>
+                        <span className="text-caption text-ink-4">local · free · private</span>
+                        {ollamaStatus === null && <span className="text-caption text-ink-4">Detecting…</span>}
                         {ollamaStatus?.available && (
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
                             Detected · {ollamaStatus.models.length} model{ollamaStatus.models.length !== 1 ? "s" : ""}
                           </span>
                         )}
                         {ollamaStatus && !ollamaStatus.available && (
-                          <span className="text-xs text-red-500">Not detected</span>
+                          <span className="text-caption text-issue">Not detected</span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-caption text-ink-3 mt-0.5">
                         Run models privately on your machine.{" "}
                         {ollamaStatus && !ollamaStatus.available && (
                           <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
@@ -648,8 +638,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                       selected={form.aiProvider === "none"}
                       onClick={() => setForm((p) => ({ ...p, aiProvider: "none", aiModel: "" }))}
                     >
-                      <span className="text-sm font-medium text-gray-900">Skip for now</span>
-                      <p className="text-xs text-gray-500 mt-0.5">Interview-only mode — no AI drafting. Add a provider later in Settings.</p>
+                      <span className="text-small font-medium text-ink-1">Skip for now</span>
+                      <p className="text-caption text-ink-3 mt-0.5">Interview-only mode — no AI drafting. Add a provider later in Settings.</p>
                     </ProviderCard>
                   </div>
 
@@ -668,10 +658,10 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setStep(3)} className={btnSecondary}>← Back</button>
-                    <button type="submit" disabled={loading} className={btnPrimary}>
+                    <Button variant="secondary" type="button" onClick={() => setStep(3)}>← Back</Button>
+                    <Button variant="primary" type="submit" disabled={loading} className="flex-1">
                       {loading ? "Creating project…" : "Create Project →"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -685,7 +675,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
 
 function StepDot({ n, active, done }: { n: number; active: boolean; done: boolean }) {
   return (
-    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${active ? "bg-blue-600 text-white" : done ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"}`}>
+    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-small font-medium ${active ? "bg-accent text-white" : done ? "bg-ok text-white" : "bg-surface-3 text-ink-3"}`}>
       {done ? "✓" : n}
     </div>
   );
@@ -697,15 +687,15 @@ function ProviderCard({ selected, disabled, onClick, children }: { selected: boo
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-        selected ? "border-blue-500 bg-blue-50" :
-        disabled ? "border-gray-100 opacity-50 cursor-not-allowed" :
-        "border-gray-200 hover:border-gray-300"
+      className={`w-full text-left p-4 rounded-md border-2 transition-colors ${
+        selected ? "border-accent bg-accent-soft" :
+        disabled ? "border-rule opacity-50 cursor-not-allowed" :
+        "border-rule hover:border-accent-rule"
       }`}
     >
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-blue-500" : "border-gray-400"}`}>
-          {selected && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+        <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-accent" : "border-ink-4"}`}>
+          {selected && <div className="w-2 h-2 rounded-full bg-accent" />}
         </div>
         <div className="flex-1">{children}</div>
       </div>
@@ -716,12 +706,12 @@ function ProviderCard({ selected, disabled, onClick, children }: { selected: boo
 function Field({ label, required, hint, error, children }: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <span className="block text-sm font-medium text-gray-700">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      <span className="block text-small font-medium text-ink-2">
+        {label}{required && <span className="text-issue ml-0.5">*</span>}
       </span>
-      {hint && <p className="text-xs text-gray-500">{hint}</p>}
+      {hint && <p className="text-caption text-ink-3">{hint}</p>}
       {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-caption text-issue">{error}</p>}
     </div>
   );
 }
@@ -729,16 +719,16 @@ function Field({ label, required, hint, error, children }: { label: string; requ
 function RadioCard({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button type="button" onClick={onClick}
-      className={`text-left p-3 rounded-lg border-2 transition-colors ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+      className={`text-left p-3 rounded-md border-2 transition-colors ${selected ? "border-accent bg-accent-soft" : "border-rule hover:border-accent-rule"}`}>
       {children}
     </button>
   );
 }
 
 const inputCls = (hasError = false) =>
-  `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${
-    hasError ? "border-red-400 focus:ring-red-400 bg-red-50" : "border-gray-300 focus:ring-blue-500"
+  `w-full rounded border px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:border-transparent ${
+    hasError ? "border-issue-rule focus:ring-issue bg-issue-bg" : "border-rule focus:ring-accent"
   }`;
 
-const btnPrimary = "flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
-const btnSecondary = "py-2 px-4 rounded-lg bg-gray-100 text-gray-700 font-medium text-sm hover:bg-gray-200 transition-colors";
+const btnPrimary = ""; // replaced by <Button variant="primary">
+const btnSecondary = ""; // replaced by <Button variant="secondary">

@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>A11yBot — Professional Blue direction</title>
+<meta name="viewport" content="width=1280" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* surface — cool near-white */
+    --surface:#FBFCFD;
+    --surface-2:#F2F4F8;
+    --surface-3:#E5E9F0;
+    --rule:#D8DDE6;
+    --rule-2:#E8EBF1;
+
+    /* ink — slate-navy */
+    --ink-1:#0B1B33;
+    --ink-2:#2F3D55;
+    --ink-3:#5A6878;
+    --ink-4:#8A95A4;
+    --ink-5:#B5BEC9;
+
+    /* brand */
+    --brand:#0B1B33;            /* deep navy — wordmark, primary surface ink */
+    --accent:#1F6FEB;           /* bright blue — primary CTAs, links */
+    --accent-hover:#1559C4;
+    --accent-soft:#E8EFFC;      /* selection background, fills */
+    --accent-rule:#C7D7F1;
+
+    /* semantic */
+    --issue:#B23A1C;     --issue-bg:#FBEAE2;   --issue-rule:#F0CDBC;
+    --warn:#8A6B14;      --warn-bg:#F6EFD8;    --warn-rule:#E5D9B0;
+    --ok:#1F6B3A;        --ok-bg:#E4EFE5;      --ok-rule:#C9DDCB;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#EAEDF2}
+  body{
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    color:var(--ink-2);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  .doc{
+    max-width:1240px;margin:0 auto;padding:64px 56px 120px;
+    background:var(--surface);
+    border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+  }
+  .mono{font-family:"IBM Plex Mono",monospace;font-feature-settings:"zero"}
+  .serif{font-family:"IBM Plex Serif",Georgia,serif}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:600;
+  }
+  h1.title{
+    font-family:"IBM Plex Serif",Georgia,serif;font-weight:500;
+    font-size:60px;line-height:1.04;letter-spacing:-0.02em;
+    color:var(--ink-1);margin:14px 0 16px;
+  }
+  h2{
+    font-weight:600;font-size:30px;line-height:1.15;letter-spacing:-0.015em;
+    color:var(--ink-1);margin:0 0 18px;
+  }
+  h3{
+    font-weight:600;font-size:18px;line-height:1.3;color:var(--ink-1);margin:0 0 10px;
+  }
+  h4{
+    font-weight:600;font-size:13px;line-height:1.3;
+    color:var(--ink-1);margin:0 0 6px;
+    font-family:"IBM Plex Mono",monospace;letter-spacing:.04em;text-transform:uppercase;
+  }
+  p{font-size:15.5px;line-height:1.6;margin:0 0 14px;color:var(--ink-2)}
+  p.lead{font-size:19px;line-height:1.55;color:var(--ink-1);max-width:62ch}
+  .small{font-size:13.5px;line-height:1.55;color:var(--ink-3)}
+  .tiny{font-size:12px;line-height:1.5;color:var(--ink-3)}
+  code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-1);background:var(--surface-2);padding:1px 6px;border-radius:3px;border:1px solid var(--rule)}
+
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  section:first-of-type{border-top:0}
+  .section-head{display:flex;align-items:baseline;gap:24px;margin-bottom:32px}
+  .section-head .num{
+    font-family:"IBM Plex Mono",monospace;font-weight:600;
+    color:var(--ink-4);font-size:13px;letter-spacing:.05em;width:48px;flex:none;
+  }
+
+  .hero{padding-bottom:48px}
+  .hero-meta{display:flex;gap:36px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);letter-spacing:.04em;margin-top:28px;padding-top:20px;border-top:1px solid var(--rule)}
+  .hero-meta b{color:var(--ink-1);font-weight:600;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.08em;font-size:10.5px}
+
+  /* what changes table */
+  .changes{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff}
+  .changes > div{padding:24px 28px}
+  .changes > div + div{border-left:1px solid var(--rule)}
+  .changes h3{margin-bottom:14px}
+  .changes ul{margin:0;padding:0;list-style:none}
+  .changes li{padding:8px 0;border-top:1px dashed var(--rule-2);font-size:14px;line-height:1.5;color:var(--ink-2);display:flex;gap:10px}
+  .changes li:first-child{border-top:none}
+  .changes li .marker{flex:none;width:16px;font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);font-size:12px;line-height:21px}
+  .changes .stays li .marker{color:var(--ok)}
+  .changes .changes-l li .marker{color:var(--accent)}
+
+  /* tokens */
+  .token-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .token{border:1px solid var(--rule);border-radius:8px;background:#fff;overflow:hidden}
+  .token .chip{height:56px}
+  .token .meta{padding:8px 10px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-2)}
+  .token .meta b{color:var(--ink-1);display:block;font-size:11px;margin-bottom:1px}
+
+  /* logo gallery */
+  .logo-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .logo-card{border:1px solid var(--rule);border-radius:10px;background:#fff;overflow:hidden}
+  .logo-stage{height:200px;display:flex;align-items:center;justify-content:center;background:var(--surface-2)}
+  .logo-stage.dark{background:var(--brand)}
+  .logo-meta{padding:14px 18px;border-top:1px solid var(--rule)}
+  .logo-meta h4{margin-bottom:4px}
+  .logo-meta .small{margin:0;font-size:12.5px}
+
+  /* applied uses */
+  .applied{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px}
+  .applied-card{border:1px solid var(--rule);border-radius:10px;background:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:center;min-height:120px}
+
+  /* PROPOSED buttons */
+  .pbtn{display:inline-flex;align-items:center;gap:6px;font:500 13.5px/1 "IBM Plex Sans",sans-serif;padding:9px 16px;border-radius:6px;border:1px solid transparent;cursor:default}
+  .pbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pbtn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  .pbtn.secondary{background:#fff;color:var(--ink-1);border-color:var(--rule)}
+  .pbtn.ghost{background:transparent;color:var(--ink-2);padding-left:6px;padding-right:6px}
+  .pbtn.danger{background:transparent;color:var(--issue);padding-left:6px;padding-right:6px}
+
+  /* badges and chips */
+  .pbadge{display:inline-flex;align-items:center;gap:5px;font:500 11.5px/1.3 "IBM Plex Sans",sans-serif;padding:3px 9px;border-radius:99px;border:1px solid}
+  .pbadge .icon{font-family:"IBM Plex Mono",monospace;font-size:10px;line-height:1}
+  .pbadge.issue{background:var(--issue-bg);color:var(--issue);border-color:var(--issue-rule)}
+  .pbadge.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-rule)}
+  .pbadge.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-rule)}
+  .pbadge.accent{background:var(--accent-soft);color:var(--accent-hover);border-color:var(--accent-rule)}
+  .pbadge.neutral{background:var(--surface-2);color:var(--ink-2);border-color:var(--rule)}
+
+  .pchip{display:inline-flex;align-items:center;font:600 11px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid}
+  .pchip.s{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-rule)}
+  .pchip.p{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-rule)}
+  .pchip.d{background:var(--issue-bg);color:var(--issue);border-color:var(--issue-rule)}
+  .pchip.n{background:var(--surface-2);color:var(--ink-3);border-color:var(--rule)}
+  .pchip.e{background:transparent;color:var(--ink-4);border-color:var(--ink-5);border-style:dashed}
+
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .inv-card{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:22px 24px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .callout{
+    background:var(--surface-2);border:1px solid var(--rule);border-left:3px solid var(--accent);
+    padding:16px 20px;border-radius:6px;margin:18px 0;
+  }
+  .callout p:last-child{margin-bottom:0}
+
+  /* ─── Redesigned review screen — BLUE ─── */
+  .redesign{
+    background:#fff;border:1px solid var(--rule);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 0 var(--rule), 0 30px 60px -30px rgba(11,27,51,0.18);
+  }
+  .rd-header{
+    background:#fff;padding:14px 24px 0;border-bottom:1px solid var(--rule);
+  }
+  .rd-h-row{display:flex;align-items:center;gap:16px}
+  .rd-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--ink-1);letter-spacing:-.01em}
+  .rd-brand .ver{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:11px;color:var(--ink-4);background:var(--surface-2);padding:2px 8px;border-radius:4px;letter-spacing:.02em}
+  .rd-sep{width:1px;height:18px;background:var(--rule)}
+  .rd-meta{display:flex;align-items:center;gap:18px;font-size:13px;color:var(--ink-3);flex:1}
+  .rd-meta .k{color:var(--ink-4);text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;font-family:"IBM Plex Mono",monospace;font-weight:600;margin-right:6px}
+  .rd-meta .v{color:var(--ink-1);font-weight:500}
+  .rd-prog{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+  .rd-prog .count b{color:var(--ink-1);font-weight:600}
+  .rd-bar{width:80px;height:5px;border-radius:99px;background:var(--surface-3);overflow:hidden}
+  .rd-bar i{display:block;height:100%;width:62%;background:var(--accent)}
+  .rd-nav{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden;background:#fff}
+  .rd-nav button{
+    background:#fff;border:none;color:var(--ink-2);
+    width:26px;height:24px;font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1;cursor:default;font-weight:600;
+  }
+  .rd-nav button + button{border-left:1px solid var(--rule)}
+  .rd-h-row-2{display:flex;align-items:center;gap:2px;margin-top:12px;position:relative}
+  .rd-tab{font-size:13.5px;color:var(--ink-3);padding:8px 14px 14px;border-bottom:2px solid transparent;cursor:default;font-weight:500;margin-bottom:-1px}
+  .rd-tab.active{color:var(--ink-1);border-bottom-color:var(--accent);font-weight:600}
+  .rd-h-row-2 .spacer{flex:1}
+  .rd-h-action{
+    background:#fff;border:1px solid var(--rule);color:var(--ink-1);
+    font-size:13px;padding:7px 13px;border-radius:6px;cursor:default;font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .rd-h-action.ghost{background:transparent;border-color:transparent;color:var(--ink-3)}
+  .rd-h-action.ghost:hover{background:var(--surface-2)}
+  .rd-h-action.cta{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .rd-h-action.cta:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  .rd-h-action .pill{display:inline-flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent-hover);font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;padding:1px 6px;border-radius:99px;margin-left:2px}
+  .rd-h-action.cta .pill{background:rgba(255,255,255,.22);color:#fff}
+  .rd-h-action-wrap{display:flex;align-items:center;gap:8px;padding:0 0 12px}
+
+  .rd-body{display:grid;grid-template-columns:280px 320px 1fr;height:640px;background:#fff}
+  .rd-pane{overflow:hidden;border-right:1px solid var(--rule);background:#fff}
+  .rd-pane:last-child{border-right:none;background:var(--surface)}
+  .rd-pane-head{padding:18px 22px 8px;display:flex;align-items:center;justify-content:space-between}
+  .rd-pane-head .eyebrow{font-size:10.5px;letter-spacing:.18em}
+  .rd-chapter{
+    padding:13px 22px;display:flex;align-items:flex-start;gap:12px;cursor:default;
+    border-left:2px solid transparent;
+  }
+  .rd-chapter:hover{background:var(--surface-2)}
+  .rd-chapter.active{background:var(--accent-soft);border-left-color:var(--accent)}
+  .rd-chapter.na{opacity:.45}
+  .rd-chapter .name{font-size:14px;color:var(--ink-1);font-weight:500;line-height:1.35}
+  .rd-chapter .sub{font-size:11.5px;color:var(--ink-3);margin-top:3px;font-family:"IBM Plex Mono",monospace}
+  .rd-chapter .badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .rd-chapter-num{
+    font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:11px;color:var(--ink-4);
+    background:transparent;width:22px;flex:none;padding-top:2px;text-align:right;
+  }
+  .rd-chapter.active .rd-chapter-num{color:var(--accent-hover)}
+
+  .rd-crit{
+    padding:14px 20px;border-bottom:1px solid var(--rule-2);
+    display:flex;flex-direction:column;gap:6px;cursor:default;
+  }
+  .rd-crit:hover{background:var(--surface-2)}
+  .rd-crit.active{background:#fff;border-left:2px solid var(--accent);padding-left:18px;box-shadow:inset -1px 0 0 var(--rule)}
+  .rd-crit .row1{display:flex;align-items:center;gap:8px}
+  .rd-crit .ref{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;color:var(--ink-1);letter-spacing:.01em}
+  .rd-crit .title{font-size:13px;color:var(--ink-2);line-height:1.45}
+  .rd-crit .row3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+  .rd-detail{padding:32px 40px;overflow-y:auto}
+  .rd-detail-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+  .rd-ref-big{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;color:var(--ink-4);letter-spacing:.04em}
+  .rd-detail h2.crit-title{font-size:24px;font-weight:600;color:var(--ink-1);letter-spacing:-.005em;margin:6px 0 16px;line-height:1.25}
+  .rd-detail .crit-def{font-size:14.5px;line-height:1.6;color:var(--ink-2);max-width:62ch;margin-bottom:24px}
+  .rd-section-rule{display:flex;align-items:center;gap:10px;margin:24px 0 12px}
+  .rd-section-rule .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .rd-section-rule .ln{flex:1;height:1px;background:var(--rule)}
+
+  .rd-banner{
+    border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  }
+  .rd-banner.issue{background:var(--issue-bg);border:1px solid var(--issue-rule);color:var(--issue)}
+  .rd-banner.warn{background:var(--warn-bg);border:1px solid var(--warn-rule);color:var(--warn)}
+  .rd-banner .b-head{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px}
+  .rd-banner .b-head .ix{
+    width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    background:currentColor;color:#fff;font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:11px;
+  }
+  .rd-banner .b-head .ix::after{content:"";display:none}
+  .rd-banner p{font-size:13.5px;color:inherit;opacity:.9;margin:2px 0 0;line-height:1.5}
+  .rd-finding{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:14px 16px;margin-top:10px}
+  .rd-finding .head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .rd-finding .rule-id{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--issue);background:var(--issue-bg);padding:2px 8px;border-radius:4px;border:1px solid var(--issue-rule);font-weight:500}
+  .rd-finding .msg{font-size:13.5px;color:var(--ink-1);font-weight:500}
+  .rd-finding .path{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3);margin-top:4px;padding-left:18px;position:relative;line-height:1.5}
+  .rd-finding .path::before{content:"↳";position:absolute;left:0;color:var(--ink-4)}
+  .rd-finding .actions{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule-2)}
+  .rd-finding .actions a{font-size:12.5px;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-rule);padding-bottom:1px;font-weight:500}
+  .rd-finding .actions a:hover{color:var(--accent-hover);border-bottom-color:var(--accent-hover)}
+
+  .rd-form-row{display:grid;grid-template-columns:120px 1fr;gap:24px;margin-top:18px;align-items:flex-start}
+  .rd-form-row .label{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.16em;padding-top:11px;font-weight:600}
+  .rd-input{
+    width:100%;border:1px solid var(--rule);background:#fff;border-radius:6px;
+    padding:10px 12px;font:14px/1.5 "IBM Plex Sans",sans-serif;color:var(--ink-1);
+  }
+  .rd-input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+  .rd-segment{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:#fff}
+  .rd-segment .seg{padding:9px 14px;font:500 12.5px/1 "IBM Plex Sans",sans-serif;color:var(--ink-2);border-right:1px solid var(--rule);cursor:default;display:flex;align-items:center;gap:6px}
+  .rd-segment .seg:last-child{border-right:none}
+  .rd-segment .seg .pchip{padding:2px 5px;font-size:10px}
+  .rd-segment .seg.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .rd-segment .seg.active .pchip{display:none}
+  .rd-actions-row{display:flex;align-items:center;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--rule)}
+  .rd-actions-row .spacer{flex:1}
+  .rd-hotkey{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.18);padding:2px 6px;border-radius:3px;margin-left:6px}
+
+  /* status — quiet inline strip */
+  .rd-status{
+    background:var(--surface-2);color:var(--ink-2);
+    padding:10px 24px;border-top:1px solid var(--rule);
+    font-size:13px;display:flex;align-items:center;gap:14px;
+  }
+  .rd-status .lbl{
+    text-transform:uppercase;letter-spacing:.18em;color:var(--ink-4);font-weight:600;font-size:10.5px;
+    font-family:"IBM Plex Mono",monospace;
+  }
+  .rd-status .ts{color:var(--ink-4);font-size:12px;font-family:"IBM Plex Mono",monospace}
+  .rd-status .ok-dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .rd-status .msg{color:var(--ink-2);font-size:13px}
+
+  .figure-cap{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-4);margin-top:10px;text-align:center;
+  }
+
+  /* applied logo + login + favicon scale */
+  .row-applied{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+  .ap-card{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:140px}
+  .ap-card .small{margin:0;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-4);letter-spacing:.06em}
+
+  /* roadmap */
+  .step{display:grid;grid-template-columns:56px 1fr;gap:20px;padding:18px 0;border-top:1px solid var(--rule);align-items:flex-start}
+  .step:first-child{border-top:none}
+  .step .n{
+    font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;
+    background:var(--ink-1);color:#fff;width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin-top:2px;
+  }
+  .step h4{margin-bottom:6px;font-size:14.5px;color:var(--ink-1);font-family:"IBM Plex Sans",sans-serif;text-transform:none;letter-spacing:0;font-weight:600}
+  .step p{font-size:14px;margin:0;color:var(--ink-2)}
+</style>
+</head>
+<body>
+
+<!-- ───────── reusable logo SVG ───────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- A11yBot mark — geometric robot head, line + fill variants share viewBox -->
+    <symbol id="bot-line" viewBox="0 0 48 48">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- antenna -->
+        <path d="M24 4v6"/>
+        <circle cx="24" cy="3" r="1.5" fill="currentColor"/>
+        <!-- head -->
+        <rect x="8" y="10" width="32" height="26" rx="4"/>
+        <!-- ears -->
+        <path d="M8 18h-3v8h3"/>
+        <path d="M40 18h3v8h-3"/>
+        <!-- eyes -->
+        <rect x="15" y="18" width="6" height="6" rx="1" fill="currentColor" stroke="none"/>
+        <rect x="27" y="18" width="6" height="6" rx="1" fill="currentColor" stroke="none"/>
+        <!-- smile -->
+        <path d="M18 29h12"/>
+        <!-- baseline / neck -->
+        <path d="M20 36v4M28 36v4"/>
+      </g>
+    </symbol>
+
+    <symbol id="bot-solid" viewBox="0 0 48 48">
+      <g fill="currentColor">
+        <rect x="8" y="10" width="32" height="26" rx="4"/>
+        <rect x="5" y="18" width="3" height="8" rx="1"/>
+        <rect x="40" y="18" width="3" height="8" rx="1"/>
+        <rect x="22.5" y="2" width="3" height="9" rx="1.5"/>
+        <circle cx="24" cy="2.5" r="2"/>
+        <rect x="20" y="36" width="3" height="5" rx="1"/>
+        <rect x="25" y="36" width="3" height="5" rx="1"/>
+      </g>
+      <g fill="#fff">
+        <rect x="15" y="18" width="6" height="6" rx="1"/>
+        <rect x="27" y="18" width="6" height="6" rx="1"/>
+        <path d="M18 28h12v2H18z"/>
+      </g>
+    </symbol>
+
+    <symbol id="bot-accent" viewBox="0 0 48 48">
+      <!-- like solid but the eyes are accent blue -->
+      <g fill="currentColor">
+        <rect x="8" y="10" width="32" height="26" rx="4"/>
+        <rect x="5" y="18" width="3" height="8" rx="1"/>
+        <rect x="40" y="18" width="3" height="8" rx="1"/>
+        <rect x="22.5" y="2" width="3" height="9" rx="1.5"/>
+        <circle cx="24" cy="2.5" r="2"/>
+        <rect x="20" y="36" width="3" height="5" rx="1"/>
+        <rect x="25" y="36" width="3" height="5" rx="1"/>
+      </g>
+      <g fill="#1F6FEB">
+        <rect x="15" y="18" width="6" height="6" rx="1"/>
+        <rect x="27" y="18" width="6" height="6" rx="1"/>
+      </g>
+      <path d="M18 28h12v2H18z" fill="#fff" opacity=".9"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="doc">
+
+  <!-- ───────── HERO ───────── -->
+  <section class="hero">
+    <div class="eyebrow">A11yBot · Direction B · Professional blue</div>
+    <h1 class="title">One language.<br/>Ink and a single blue.</h1>
+    <p class="lead">Dropping the phosphor brand simplifies the system rather than complicates it. The audit findings still hold — color sprawl, button vocabulary, type chaos — but the answer collapses to a single working surface with one blue accent, a calibrated semantic palette, and a redrawn robot mark that keeps the personality without the CRT theatrics.</p>
+    <div class="hero-meta">
+      <div><b>Direction</b><span>Single-language · ink + blue</span></div>
+      <div><b>Type</b><span>IBM Plex Sans + Plex Mono (unchanged)</span></div>
+      <div><b>Brand</b><span>Navy wordmark + geometric robot mark</span></div>
+      <div><b>Effort</b><span>~⅔ of original blue-path; logo redraw added</span></div>
+    </div>
+  </section>
+
+  <!-- ───────── WHAT CHANGES ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">01</div>
+      <div>
+        <div class="eyebrow">Does the recommendation change?</div>
+        <h2>Mostly it gets simpler.</h2>
+      </div>
+    </div>
+
+    <div class="changes">
+      <div class="stays">
+        <h3>Still true from the audit</h3>
+        <ul>
+          <li><span class="marker">✓</span><span>The color sprawl is the headline visual problem.</span></li>
+          <li><span class="marker">✓</span><span>Button vocabulary has at least seven hand-tuned styles that should consolidate to four.</span></li>
+          <li><span class="marker">✓</span><span>Type sizes are ad-hoc — commit to a 6-step scale.</span></li>
+          <li><span class="marker">✓</span><span>Badges and chips should split into three categories: conformance level, evidence density, neutral metadata.</span></li>
+          <li><span class="marker">✓</span><span>The 3-pane review IA, the workflow, the keyboard model all work. Don't touch them.</span></li>
+          <li><span class="marker">✓</span><span>The "New project" modal is too theatrical — destructive confirmation should feel grave, not styled.</span></li>
+        </ul>
+      </div>
+      <div class="changes-l">
+        <h3>What changes by going blue</h3>
+        <ul>
+          <li><span class="marker">→</span><span>No more "two zones." The whole product is one paper surface.</span></li>
+          <li><span class="marker">→</span><span>The contrast risk in the header largely evaporates — no more low-alpha-on-dark.</span></li>
+          <li><span class="marker">→</span><span>Save / confirm becomes <b>blue</b> (the primary CTA color), not green. Green goes back to meaning "PM confirmed" only.</span></li>
+          <li><span class="marker">→</span><span>The status log loses the CRT mood and becomes a quiet inline strip — fine, because the brand isn't carrying it anymore.</span></li>
+          <li><span class="marker">→</span><span>The logo redraws. Same robot character, geometric line art, no scanline texture or glow.</span></li>
+          <li><span class="marker">→</span><span>Surface shifts from warm paper to cool near-white. Better for procurement / institutional contexts.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── PALETTE ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">02</div>
+      <div>
+        <div class="eyebrow">The palette</div>
+        <h2>Twenty values, three families.</h2>
+      </div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Surface &amp; ink</div>
+    <div class="token-grid">
+      <div class="token"><div class="chip" style="background:#FBFCFD"></div><div class="meta"><b>surface</b>#FBFCFD</div></div>
+      <div class="token"><div class="chip" style="background:#F2F4F8"></div><div class="meta"><b>surface-2</b>#F2F4F8</div></div>
+      <div class="token"><div class="chip" style="background:#E5E9F0"></div><div class="meta"><b>surface-3</b>#E5E9F0</div></div>
+      <div class="token"><div class="chip" style="background:#D8DDE6"></div><div class="meta"><b>rule</b>#D8DDE6</div></div>
+      <div class="token"><div class="chip" style="background:#0B1B33"></div><div class="meta" style="background:#0B1B33"><b style="color:#fff">ink-1</b><span style="color:#cfd6e2">#0B1B33</span></div></div>
+      <div class="token"><div class="chip" style="background:#2F3D55"></div><div class="meta" style="background:#2F3D55"><b style="color:#fff">ink-2</b><span style="color:#cfd6e2">#2F3D55</span></div></div>
+    </div>
+
+    <div class="eyebrow" style="margin:24px 0 10px">Brand &amp; accent</div>
+    <div class="token-grid">
+      <div class="token"><div class="chip" style="background:#0B1B33"></div><div class="meta" style="background:#0B1B33"><b style="color:#fff">brand</b><span style="color:#cfd6e2">#0B1B33</span></div></div>
+      <div class="token"><div class="chip" style="background:#1F6FEB"></div><div class="meta" style="background:#1F6FEB"><b style="color:#fff">accent</b><span style="color:#e3eaf8">#1F6FEB</span></div></div>
+      <div class="token"><div class="chip" style="background:#1559C4"></div><div class="meta" style="background:#1559C4"><b style="color:#fff">accent-h</b><span style="color:#cfd6e2">#1559C4</span></div></div>
+      <div class="token"><div class="chip" style="background:#E8EFFC"></div><div class="meta"><b>accent-soft</b>#E8EFFC</div></div>
+      <div class="token"><div class="chip" style="background:#C7D7F1"></div><div class="meta"><b>accent-rule</b>#C7D7F1</div></div>
+      <div class="token"><div class="chip" style="background:#8A95A4"></div><div class="meta"><b>ink-4</b>#8A95A4</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin:24px 0 10px">Semantic — same logic as the audit</div>
+    <div class="token-grid">
+      <div class="token"><div class="chip" style="background:#B23A1C"></div><div class="meta" style="background:#B23A1C"><b style="color:#fff">issue</b><span style="color:#fae5dd">#B23A1C</span></div></div>
+      <div class="token"><div class="chip" style="background:#FBEAE2"></div><div class="meta"><b>issue-bg</b>#FBEAE2</div></div>
+      <div class="token"><div class="chip" style="background:#8A6B14"></div><div class="meta" style="background:#8A6B14"><b style="color:#fff">warn</b><span style="color:#f0e9cf">#8A6B14</span></div></div>
+      <div class="token"><div class="chip" style="background:#F6EFD8"></div><div class="meta"><b>warn-bg</b>#F6EFD8</div></div>
+      <div class="token"><div class="chip" style="background:#1F6B3A"></div><div class="meta" style="background:#1F6B3A"><b style="color:#fff">ok</b><span style="color:#d6e6da">#1F6B3A</span></div></div>
+      <div class="token"><div class="chip" style="background:#E4EFE5"></div><div class="meta"><b>ok-bg</b>#E4EFE5</div></div>
+    </div>
+
+    <div class="callout" style="margin-top:24px">
+      <p><b>One rule about blue:</b> the brand navy <code>#0B1B33</code> is used for the wordmark and as the deepest ink. The bright accent <code>#1F6FEB</code> is reserved for: primary buttons, links, the focus ring, active selection, and progress fills. Nothing else. If a label is just informational, it's ink — not accent. This is the discipline that keeps the screen calm.</p>
+    </div>
+  </section>
+
+  <!-- ───────── LOGO ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">03</div>
+      <div>
+        <div class="eyebrow">Mark direction</div>
+        <h2>Same robot, fewer pretensions.</h2>
+      </div>
+    </div>
+    <p style="max-width:62ch">The CRT robot worked as a brand idea — it's literally personable for an automated tool. Carry the personality forward, but redraw it as a precise geometric mark: square head, square eyes, optional antenna. Three weights below show how it can flex across contexts.</p>
+
+    <div class="logo-gallery" style="margin-top:24px">
+      <div class="logo-card">
+        <div class="logo-stage">
+          <svg width="84" height="84" style="color:#0B1B33"><use href="#bot-line"/></svg>
+        </div>
+        <div class="logo-meta">
+          <h4>A · Outline</h4>
+          <p class="small">Lightweight mark for headers, docs, favicons. Renders cleanly at 16px.</p>
+        </div>
+      </div>
+      <div class="logo-card">
+        <div class="logo-stage">
+          <svg width="84" height="84" style="color:#0B1B33"><use href="#bot-accent"/></svg>
+        </div>
+        <div class="logo-meta">
+          <h4>B · Solid with accent eyes</h4>
+          <p class="small">Default app icon. Navy body, accent-blue eyes signal "active / on-line." This is the canonical mark.</p>
+        </div>
+      </div>
+      <div class="logo-card">
+        <div class="logo-stage dark">
+          <svg width="84" height="84" style="color:#fff"><use href="#bot-solid"/></svg>
+        </div>
+        <div class="logo-meta">
+          <h4>C · Reversed</h4>
+          <p class="small">For dark backgrounds — splash, login, the GitHub README hero. Solid white on navy.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:36px">Applied across sizes</h3>
+    <div class="row-applied">
+      <div class="ap-card">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:700;color:#0B1B33;font-size:24px;letter-spacing:-.012em">
+          <svg width="28" height="28" style="color:#0B1B33"><use href="#bot-accent"/></svg>
+          A11yBot
+        </div>
+        <p class="small">Wordmark · in-app brand</p>
+      </div>
+      <div class="ap-card">
+        <div style="display:flex;align-items:center;gap:8px;background:#0B1B33;color:#fff;padding:8px 14px;border-radius:6px;font-weight:600;font-size:14px">
+          <svg width="18" height="18" style="color:#fff"><use href="#bot-solid"/></svg>
+          A11yBot
+        </div>
+        <p class="small">Compact reversed</p>
+      </div>
+      <div class="ap-card">
+        <div style="width:64px;height:64px;background:#0B1B33;border-radius:14px;display:flex;align-items:center;justify-content:center">
+          <svg width="44" height="44" style="color:#fff"><use href="#bot-solid"/></svg>
+        </div>
+        <p class="small">App icon · 64</p>
+      </div>
+      <div class="ap-card">
+        <div style="width:32px;height:32px;background:#0B1B33;border-radius:6px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" style="color:#fff"><use href="#bot-solid"/></svg>
+        </div>
+        <p class="small">Favicon · 32</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:24px;border-left-color:var(--ink-3);background:var(--surface-2)">
+      <p><b>What carries over from the current logo:</b> the friendly-robot personality, the square-eye motif, the antenna. <b>What's dropped:</b> the CRT scanlines, the phosphor glow, the photographic terminal frame. The new mark is a vector form that renders cleanly at any scale — including the 16px favicon, which the current PNG cannot.</p>
+    </div>
+  </section>
+
+  <!-- ───────── COMPONENTS ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">04</div>
+      <div>
+        <div class="eyebrow">Component vocabulary</div>
+        <h2>The pieces, recolored.</h2>
+      </div>
+    </div>
+
+    <h3>Buttons</h3>
+    <div class="inv-card" style="margin-top:10px">
+      <div class="grid-2" style="gap:28px 40px">
+        <div>
+          <h4>Primary · accent blue</h4>
+          <p class="small" style="margin-top:2px">One per screen. The next required step.</p>
+          <div class="btn-row"><button class="pbtn primary">Confirm &amp; next →<span class="rd-hotkey">Space</span></button> <button class="pbtn primary">Create report ↓</button></div>
+        </div>
+        <div>
+          <h4>Secondary</h4>
+          <p class="small" style="margin-top:2px">Alternates and back-paths. Hairline border.</p>
+          <div class="btn-row"><button class="pbtn secondary">Save only</button><button class="pbtn secondary">Re-draft</button><button class="pbtn secondary">Re-scan</button></div>
+        </div>
+        <div>
+          <h4>Ghost</h4>
+          <p class="small" style="margin-top:2px">Low-weight options — link-equivalent.</p>
+          <div class="btn-row"><button class="pbtn ghost">Mark N/A</button><button class="pbtn ghost">Skip</button></div>
+        </div>
+        <div>
+          <h4>Danger (text)</h4>
+          <p class="small" style="margin-top:2px">Reset / discard. Text-only.</p>
+          <div class="btn-row"><button class="pbtn danger">Reset</button><button class="pbtn danger">Discard &amp; start new</button></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Conformance chips</h3>
+    <p class="small">One per <code>ConformanceLevel</code>. Mono, all-caps, 11px.</p>
+    <div class="btn-row" style="margin-top:8px">
+      <span class="pchip s">Supports</span>
+      <span class="pchip p">Partial</span>
+      <span class="pchip d">Does not</span>
+      <span class="pchip n">N/A</span>
+      <span class="pchip e">Not eval</span>
+    </div>
+
+    <h3 style="margin-top:32px">Evidence &amp; state badges</h3>
+    <div class="btn-row" style="margin-top:8px">
+      <span class="pbadge issue"><span class="icon">!</span> 4 issues</span>
+      <span class="pbadge issue"><span class="icon">!</span> 2 source · 2 app</span>
+      <span class="pbadge accent"><span class="icon">✎</span> Interviewed</span>
+      <span class="pbadge warn"><span class="icon">~</span> AI inferred</span>
+      <span class="pbadge ok"><span class="icon">✓</span> PM confirmed</span>
+      <span class="pbadge neutral"><span class="icon">v</span> 508 · v2.5</span>
+    </div>
+
+    <h3 style="margin-top:32px">Banners</h3>
+    <div class="grid-2" style="margin-top:10px">
+      <div class="rd-banner issue">
+        <div>
+          <div class="b-head"><span class="ix">!</span> 4 accessibility issues detected</div>
+          <p>Scanner evidence suggests this criterion is likely not fully supported.</p>
+        </div>
+        <button class="pbtn secondary" style="border-color:var(--issue);color:var(--issue);background:#fff;flex:none">AI draft from findings</button>
+      </div>
+      <div class="rd-banner warn">
+        <div>
+          <div class="b-head"><span class="ix">~</span> AI-inferred level</div>
+          <p>Inferred from scanner findings only — please review and confirm.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── REDESIGNED SCREEN ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">05</div>
+      <div>
+        <div class="eyebrow">Putting it together</div>
+        <h2>Review screen — Professional Blue.</h2>
+      </div>
+    </div>
+
+    <div class="redesign" style="margin-top:24px">
+      <!-- HEADER -->
+      <div class="rd-header">
+        <div class="rd-h-row">
+          <div class="rd-brand">
+            <svg width="26" height="26" style="color:#0B1B33"><use href="#bot-accent"/></svg>
+            A11yBot
+            <span class="ver">v0.1.0-beta.6</span>
+          </div>
+          <div class="rd-sep"></div>
+          <div class="rd-meta">
+            <span><span class="k">Product</span><span class="v">Acme Platform 3.4.1</span></span>
+            <span><span class="k">Standard</span><span class="v">Section 508 · VPAT 2.5</span></span>
+          </div>
+          <div class="rd-prog">
+            <span class="count"><b>14</b> of 59 to review</span>
+            <div class="rd-bar"><i></i></div>
+            <div class="rd-nav"><button>‹</button><button>›</button></div>
+          </div>
+        </div>
+        <div class="rd-h-row-2">
+          <span class="rd-tab active">Criteria review</span>
+          <span class="rd-tab">Evidence</span>
+          <span class="rd-tab">Settings</span>
+          <span class="spacer"></span>
+          <div class="rd-h-action-wrap">
+            <button class="rd-h-action ghost">Re-scan</button>
+            <button class="rd-h-action">AI draft all <span class="pill">12</span></button>
+            <button class="rd-h-action cta">Create report ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="rd-body">
+
+        <!-- chapter pane -->
+        <div class="rd-pane">
+          <div class="rd-pane-head"><span class="eyebrow">Chapters</span><span class="mono" style="font-size:11px;color:var(--ink-4)">59 applicable</span></div>
+          <div class="rd-chapter">
+            <span class="rd-chapter-num">02</span>
+            <div style="flex:1">
+              <div class="name">Functional Performance</div>
+              <div class="sub">3 / 8 evaluated</div>
+            </div>
+          </div>
+          <div class="rd-chapter active">
+            <span class="rd-chapter-num">03</span>
+            <div style="flex:1">
+              <div class="name">WCAG 2.0 Level A &amp; AA</div>
+              <div class="sub">12 / 38 evaluated</div>
+              <div class="badges"><span class="pbadge issue"><span class="icon">!</span> 7 issues pending</span></div>
+            </div>
+          </div>
+          <div class="rd-chapter na">
+            <span class="rd-chapter-num">04</span>
+            <div style="flex:1">
+              <div class="name">Hardware</div>
+              <div class="sub">Not applicable</div>
+            </div>
+          </div>
+          <div class="rd-chapter">
+            <span class="rd-chapter-num">05</span>
+            <div style="flex:1">
+              <div class="name">Software</div>
+              <div class="sub">0 / 12 evaluated</div>
+              <div class="badges"><span class="pbadge neutral"><span class="icon">✎</span> Interview only</span></div>
+            </div>
+          </div>
+          <div class="rd-chapter">
+            <span class="rd-chapter-num">06</span>
+            <div style="flex:1">
+              <div class="name">Support Documentation</div>
+              <div class="sub">2 / 8 evaluated</div>
+            </div>
+          </div>
+          <div class="rd-chapter">
+            <span class="rd-chapter-num">07</span>
+            <div style="flex:1">
+              <div class="name">Support Services</div>
+              <div class="sub">0 / 5 evaluated</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- criterion list pane -->
+        <div class="rd-pane">
+          <div class="rd-pane-head"><span class="eyebrow">WCAG 2.0 — Level A &amp; AA</span><span class="mono" style="font-size:11px;color:var(--ink-4)">38</span></div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip s">Supports</span><span class="ref">1.1.1</span></div>
+            <div class="title">Non-text content</div>
+          </div>
+          <div class="rd-crit active">
+            <div class="row1"><span class="pchip p">Partial</span><span class="ref">1.3.1</span></div>
+            <div class="title">Info and relationships</div>
+            <div class="row3">
+              <span class="pbadge warn"><span class="icon">~</span> AI inferred</span>
+              <span class="pbadge issue"><span class="icon">!</span> 4 issues</span>
+            </div>
+          </div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip d">Does not</span><span class="ref">1.4.3</span></div>
+            <div class="title">Contrast (minimum)</div>
+            <div class="row3"><span class="pbadge issue"><span class="icon">!</span> 11 issues</span></div>
+          </div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip n">N/A</span><span class="ref">1.4.5</span></div>
+            <div class="title">Images of text</div>
+          </div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip e">Not eval</span><span class="ref">2.1.1</span></div>
+            <div class="title">Keyboard</div>
+            <div class="row3"><span class="pbadge accent"><span class="icon">✎</span> Interviewed</span></div>
+          </div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip e">Not eval</span><span class="ref">2.1.2</span></div>
+            <div class="title">No keyboard trap</div>
+          </div>
+          <div class="rd-crit">
+            <div class="row1"><span class="pchip s">Supports</span><span class="ref">2.4.3</span></div>
+            <div class="title">Focus order</div>
+          </div>
+        </div>
+
+        <!-- detail pane -->
+        <div class="rd-pane rd-detail">
+          <div class="rd-detail-head">
+            <span class="rd-ref-big">WCAG 2.0 · 1.3.1 · Level A</span>
+          </div>
+          <h2 class="crit-title">Info and Relationships</h2>
+          <p class="crit-def">Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.</p>
+
+          <div class="rd-banner warn">
+            <div>
+              <div class="b-head"><span class="ix">~</span> AI-inferred level</div>
+              <p>Inferred from scanner findings only. Review the remarks and confirm.</p>
+            </div>
+          </div>
+
+          <div class="rd-section-rule"><span class="lbl">Evidence · 4 findings · 1 rule</span><span class="ln"></span></div>
+
+          <div class="rd-banner issue">
+            <div>
+              <div class="b-head"><span class="ix">!</span> 4 accessibility issues detected</div>
+              <p>Scanner evidence suggests this criterion is likely not fully supported.</p>
+            </div>
+            <button class="pbtn secondary" style="border-color:var(--issue);color:var(--issue);background:#fff;flex:none">AI draft from findings</button>
+          </div>
+
+          <div class="rd-finding">
+            <div class="head">
+              <span class="rule-id">jsx-a11y/label-has-associated-control</span>
+            </div>
+            <div class="msg">A form label must be associated with a control.</div>
+            <div class="path">components/setup/SetupWizard.tsx :432</div>
+            <div class="path">components/setup/SetupWizard.tsx :458</div>
+            <div class="path">components/review/CriterionDetail.tsx :276</div>
+            <div class="path">components/review/CriterionDetail.tsx :298</div>
+            <div class="actions">
+              <a href="#">Copy finding</a>
+              <a href="#">Open GitHub issue ↗</a>
+            </div>
+          </div>
+
+          <div class="rd-section-rule"><span class="lbl">Conformance</span><span class="ln"></span></div>
+
+          <div class="rd-form-row">
+            <span class="label">Level</span>
+            <div class="rd-segment">
+              <span class="seg"><span class="pchip s">S</span> Supports</span>
+              <span class="seg active"><span class="pchip p">P</span> Partial</span>
+              <span class="seg"><span class="pchip d">D</span> Does not</span>
+              <span class="seg"><span class="pchip n">N</span> N/A</span>
+            </div>
+          </div>
+
+          <div class="rd-form-row">
+            <span class="label">Remarks</span>
+            <textarea class="rd-input" rows="3">Form controls in the setup wizard and remarks editor are associated with their labels, but four controls use unwrapped &lt;label&gt; siblings rather than explicit htmlFor / nesting. Resolution planned for v0.1.0-beta.7.</textarea>
+          </div>
+
+          <div class="rd-actions-row">
+            <button class="pbtn primary">Confirm &amp; next →<span class="rd-hotkey">Space</span></button>
+            <button class="pbtn secondary">Save only</button>
+            <button class="pbtn secondary">Re-draft</button>
+            <span class="spacer"></span>
+            <button class="pbtn danger">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- status -->
+      <div class="rd-status">
+        <span class="lbl">Status</span>
+        <span class="ok-dot"></span>
+        <span class="ts">14:32:08</span>
+        <span class="msg">AppScan done in 18.4s — 23 evidence items across 1 path.</span>
+        <span style="flex:1"></span>
+        <span class="tiny">4 entries</span>
+        <a href="#" style="color:var(--accent);text-decoration:none;font-size:12.5px;font-weight:500">Clear</a>
+      </div>
+    </div>
+
+    <p class="figure-cap">Fig. 1 — Review screen, Professional Blue. Same workflow, one design language.</p>
+
+    <div class="grid-3" style="margin-top:36px">
+      <div>
+        <h4>Single canvas, calibrated accents</h4>
+        <p class="small" style="margin-top:6px">Everything on one near-white surface. Selection is accent-soft (<code>#E8EFFC</code>); the active criterion is highlighted by its left rail and white card. The eye finds where it is instantly.</p>
+      </div>
+      <div>
+        <h4>Blue is reserved</h4>
+        <p class="small" style="margin-top:6px">Accent blue appears in exactly four places: the primary CTA, the progress bar, the active tab underline, and the interview badge. Every other tone is ink. This is what makes the screen feel quiet despite the density.</p>
+      </div>
+      <div>
+        <h4>Status returns to its station</h4>
+        <p class="small" style="margin-top:6px">The CRT mood is gone, so the status log becomes a slim inline strip — visible when needed, doesn't shout. The OK dot replaces the running-text status badge family.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── DARK MODE NOTE ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">06</div>
+      <div>
+        <div class="eyebrow">A note on dark mode</div>
+        <h2>You can still have one — just not by accident.</h2>
+      </div>
+    </div>
+    <p style="max-width:62ch">If a dark variant is wanted later, build it deliberately on the same token graph: brand navy becomes a deep slate (<code>#0E1626</code>), surface becomes near-black, accent stays bright blue. The mark uses the reversed (white) variant. The semantic palette flips its bg/fg pair. This is straightforward once the tokens exist — and it does not require resurrecting phosphor.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">
+      <!-- light preview -->
+      <div style="background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:24px;display:flex;align-items:center;gap:14px">
+        <svg width="36" height="36" style="color:#0B1B33"><use href="#bot-accent"/></svg>
+        <div>
+          <div style="font-weight:700;color:#0B1B33;font-size:18px">A11yBot</div>
+          <div class="small" style="margin:2px 0 0">Light · paper surface (default)</div>
+        </div>
+      </div>
+      <!-- dark preview -->
+      <div style="background:#0E1626;border:1px solid #1a2742;border-radius:10px;padding:24px;display:flex;align-items:center;gap:14px">
+        <svg width="36" height="36" style="color:#fff"><use href="#bot-solid"/></svg>
+        <div>
+          <div style="font-weight:700;color:#fff;font-size:18px">A11yBot</div>
+          <div style="font-size:13.5px;color:#8a96aa;margin:2px 0 0">Dark · same tokens, flipped</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── ORDER OF OPS ───────── -->
+  <section>
+    <div class="section-head">
+      <div class="num">07</div>
+      <div>
+        <div class="eyebrow">If you commit to this</div>
+        <h2>Order of operations.</h2>
+      </div>
+    </div>
+
+    <div>
+      <div class="step"><div class="n">1</div><div>
+        <h4>Swap <code>globals.css</code> tokens to the values in §02.</h4>
+        <p>About 20 CSS variables. Update <code>tailwind.config.ts</code> to expose them. Everything downstream gets cheaper. Half a day.</p>
+      </div></div>
+      <div class="step"><div class="n">2</div><div>
+        <h4>Redraw the logo as inline SVG.</h4>
+        <p>The mark in this doc is already vector — copy it into <code>components/Logo.tsx</code> with three exports: <code>&lt;Logo /&gt;</code>, <code>&lt;LogoReversed /&gt;</code>, <code>&lt;LogoMarkOnly /&gt;</code>. Replace <code>public/a11ybot-logo.png</code> usages. Add a <code>favicon.svg</code> using the same source. One day.</p>
+      </div></div>
+      <div class="step"><div class="n">3</div><div>
+        <h4>Build four React button variants.</h4>
+        <p><code>Button.Primary</code>, <code>Button.Secondary</code>, <code>Button.Ghost</code>, <code>Button.Danger</code>. Remove every inline button className from the three review components. Save / confirm uses Primary (blue), not green. Half a day.</p>
+      </div></div>
+      <div class="step"><div class="n">4</div><div>
+        <h4>Refactor evidence/level into three components.</h4>
+        <p><code>&lt;Chip level=&quot;...&quot; /&gt;</code>, <code>&lt;Badge variant=&quot;...&quot; /&gt;</code>, <code>&lt;Banner variant=&quot;...&quot; /&gt;</code>. Use them in <code>CriterionDetail</code>, <code>CriteriaReview</code> sidebar, and the chapter list. Half a day.</p>
+      </div></div>
+      <div class="step"><div class="n">5</div><div>
+        <h4>Rebuild the header and status bar in the new style.</h4>
+        <p>Header gets the tab spine, single primary CTA, and labeled metadata. Status bar moves to the quiet inline pattern. Discard the CRT scanline texture and all <code>text-[#39FF14]/N</code> usage. One day.</p>
+      </div></div>
+      <div class="step"><div class="n">6</div><div>
+        <h4>Quiet the modal.</h4>
+        <p>"Discard &amp; start new" moves onto surface, gets a sober ink title and a text-only danger button. Should feel grave, not styled. Two hours.</p>
+      </div></div>
+    </div>
+
+    <div class="callout" style="margin-top:36px">
+      <p><b>Approximate total:</b> three to four days of focused work. Step 1 alone delivers ~60% of the visible quality lift. Nothing here requires changing your stack, your routing, your component split, or your data model. This is paint and naming, not rebuild.</p>
+    </div>
+  </section>
+
+  <div style="text-align:center;padding-top:48px;color:var(--ink-4);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase">— Direction B · End —</div>
+
+</main>
+</body>
+</html>

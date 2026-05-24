@@ -5,6 +5,9 @@ import type { CriterionState, ConformanceLevel } from "@/src/types";
 import { LEVEL_LABELS, LEVEL_COLORS, PushStatus, ResolveStatus, getEvidenceSignal } from "./types";
 import { Tooltip } from "./Tooltip";
 import { FindingActions } from "./FindingActions";
+import { Button } from "@/components/ui/Button";
+import { Banner } from "@/components/ui/Banner";
+import { Chip } from "@/components/ui/Chip";
 
 export function CriterionDetail({
   criterionId,
@@ -190,15 +193,15 @@ export function CriterionDetail({
     <div className="max-w-2xl space-y-6">
       {/* Criterion header */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">{criterionDef.ref}</h2>
-        <p className="mt-2 text-sm text-gray-700 leading-relaxed">{criterionDef.text}</p>
+        <h2 className="text-heading font-semibold text-ink-1">{criterionDef.ref}</h2>
+        <p className="mt-2 text-body text-ink-2 leading-relaxed">{criterionDef.text}</p>
       </div>
 
       {/* AI inferred banner */}
       {cs?.confidence === "ai-inferred" && cs.level !== "notEvaluated" && (
-        <div className="rounded-lg bg-yellow-50 border border-yellow-300 px-4 py-3 text-sm text-yellow-800">
+        <Banner variant="warn">
           <strong>AI inferred</strong> — This level was inferred from scanner evidence only. Please review and confirm.
-        </div>
+        </Banner>
       )}
 
       {/* Evidence */}
@@ -209,37 +212,30 @@ export function CriterionDetail({
 
         return (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700">Evidence ({cs.evidence.length})</h3>
+            <h3 className="text-small font-medium text-ink-2">Evidence ({cs.evidence.length})</h3>
 
-            {/* Signal summary banner */}
             {sig.scannerCount > 0 && (
-              <div className="rounded-lg bg-orange-50 border border-orange-200 px-4 py-3 text-sm text-orange-800">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <strong>⚠ {sig.scannerCount} accessibility issue{sig.scannerCount !== 1 ? "s" : ""} detected</strong>
-                    {" — "}scanner evidence suggests this criterion is likely <strong>not fully supported</strong>.
-                  </div>
-                  {cs.level === "notEvaluated" && (
-                    <Tooltip text="Ask Claude to assess this criterion based on the scanner findings">
-                      <button
-                        onClick={draftOnly}
-                        disabled={drafting}
-                        className="shrink-0 py-1 px-3 rounded bg-orange-700 text-white text-xs font-medium hover:bg-orange-800 disabled:opacity-50"
-                      >
-                        {drafting ? "Drafting…" : "AI Draft"}
-                      </button>
-                    </Tooltip>
-                  )}
-                </div>
-              </div>
+              <Banner
+                variant="issue"
+                action={cs.level === "notEvaluated" ? (
+                  <Tooltip text="Ask Claude to assess this criterion based on the scanner findings">
+                    <Button variant="secondary" size="sm" onClick={draftOnly} disabled={drafting}>
+                      {drafting ? "Drafting…" : "AI Draft"}
+                    </Button>
+                  </Tooltip>
+                ) : undefined}
+              >
+                <strong>{sig.scannerCount} accessibility issue{sig.scannerCount !== 1 ? "s" : ""} detected</strong>
+                {" — "}scanner evidence suggests this criterion is likely <strong>not fully supported</strong>.
+              </Banner>
             )}
             {sig.scannerCount === 0 && sig.interviewCount > 0 && (
-              <div className="rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-800">
-                <strong>✎ Interview response provided</strong> — no scanner issues detected for this criterion.
-              </div>
+              <Banner variant="accent">
+                <strong>Interview response provided</strong> — no scanner issues detected for this criterion.
+              </Banner>
             )}
 
-            {/* Scanner violations — grouped by rule so duplicate messages collapse */}
+            {/* Scanner violations — grouped by rule */}
             {scannerEvidence.length > 0 && (() => {
               const groups = new Map<string, typeof scannerEvidence>();
               for (const e of scannerEvidence) {
@@ -248,18 +244,18 @@ export function CriterionDetail({
               }
               return (
                 <div>
-                  <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1.5">
+                  <p className="eyebrow mb-1.5">
                     Scanner findings ({groups.size} rule{groups.size !== 1 ? "s" : ""}, {scannerEvidence.length} instance{scannerEvidence.length !== 1 ? "s" : ""})
                   </p>
                   <ul className="space-y-1.5">
                     {[...groups.entries()].map(([key, items]) => (
-                      <li key={key} className="text-xs text-orange-900 bg-orange-50 border border-orange-200 rounded px-3 py-2">
-                        <span className="font-medium">{items[0].detail}</span>
+                      <li key={key} className="text-small text-issue-bg bg-issue-bg border border-issue-rule rounded-md px-3 py-2 text-ink-2">
+                        <span className="font-medium text-ink-1">{items[0].detail}</span>
                         {items.some((e) => e.ref) && (
                           <ul className="mt-1.5 space-y-0.5">
                             {items.filter((e) => e.ref).map((e, i) => (
-                              <li key={i} className="text-orange-400 font-mono text-[10px] break-all">
-                                {items.length > 1 && <span className="text-orange-300 mr-1">↳</span>}{e.ref}
+                              <li key={i} className="text-ink-4 font-mono text-caption break-all">
+                                {items.length > 1 && <span className="text-ink-5 mr-1">↳</span>}{e.ref}
                               </li>
                             ))}
                           </ul>
@@ -275,10 +271,10 @@ export function CriterionDetail({
             {/* Interview responses */}
             {interviewEvidence.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1.5">Interview responses</p>
+                <p className="eyebrow mb-1.5">Interview responses</p>
                 <ul className="space-y-1.5">
                   {interviewEvidence.map((e, i) => (
-                    <li key={i} className="text-xs text-blue-900 bg-blue-50 border border-blue-100 rounded px-3 py-2">
+                    <li key={i} className="text-small text-ink-2 bg-accent-soft border border-accent-rule rounded-md px-3 py-2">
                       {e.detail}
                     </li>
                   ))}
@@ -292,14 +288,14 @@ export function CriterionDetail({
       {/* Interview question */}
       {criterionDef.interviewQuestion && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Interview Question</h3>
-          <p className="text-sm text-gray-700 bg-blue-50 rounded-lg px-4 py-3 border border-blue-100">{criterionDef.interviewQuestion}</p>
+          <h3 className="text-small font-medium text-ink-2 mb-2">Interview Question</h3>
+          <p className="text-small text-ink-2 bg-accent-soft rounded-md px-4 py-3 border border-accent-rule">{criterionDef.interviewQuestion}</p>
           <div className="mt-3 space-y-1.5">
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <textarea
                   aria-label="Your answer to the interview question"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
+                  className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent h-20 resize-none"
                   placeholder="Your answer…"
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
@@ -307,17 +303,12 @@ export function CriterionDetail({
               </div>
               <div className="flex flex-col gap-2">
                 <Tooltip text="Save your answer as evidence, then ask Claude to draft the conformance assessment">
-                  <button
-                    onClick={submitAnswer}
-                    disabled={!answer.trim() || saving || drafting}
-                    className="py-2 px-3 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                  >
+                  <Button variant="primary" onClick={submitAnswer} disabled={!answer.trim() || saving || drafting}>
                     {drafting ? "Drafting…" : "Answer + AI draft"}
-                  </button>
+                  </Button>
                 </Tooltip>
                 <Tooltip text="Mark this criterion as Not Applicable and save immediately">
-                  <button
-                  onClick={async () => {
+                  <Button variant="secondary" onClick={async () => {
                     setSaving(true);
                     setError(null);
                     try {
@@ -338,12 +329,9 @@ export function CriterionDetail({
                     } finally {
                       setSaving(false);
                     }
-                  }}
-                  disabled={saving}
-                  className="py-2 px-3 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 disabled:opacity-50"
-                >
-                  Skip / N/A
-                </button>
+                  }} disabled={saving}>
+                    Skip / N/A
+                  </Button>
                 </Tooltip>
               </div>
             </div>
@@ -353,13 +341,13 @@ export function CriterionDetail({
 
       {/* Conformance editor */}
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-gray-700">Conformance</h3>
+        <h3 className="text-small font-medium text-ink-2">Conformance</h3>
         <div>
-          <label htmlFor="conformance-level" className="block text-xs text-gray-600">
+          <label htmlFor="conformance-level" className="block text-small text-ink-3">
             Level
             <select
               id="conformance-level"
-              className="mt-1 block rounded-lg border border-gray-300 px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block rounded border border-rule px-3 py-2 text-small w-full bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent"
               value={level}
               onChange={(e) => setLevel(e.target.value as ConformanceLevel)}
               onBlur={(e) => setLevel(e.target.value as ConformanceLevel)}
@@ -371,12 +359,12 @@ export function CriterionDetail({
           </label>
         </div>
         <div>
-          <label htmlFor="conformance-remark" className="block text-xs text-gray-600">
+          <label htmlFor="conformance-remark" className="block text-small text-ink-3">
             Remarks & Explanations
             <textarea
               id="conformance-remark"
               aria-label="Remarks and Explanations"
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-28 resize-y"
+              className="mt-1 w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent h-28 resize-y"
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
               placeholder="Vendor remarks…"
@@ -384,44 +372,44 @@ export function CriterionDetail({
           </label>
         </div>
 
-        {error && <div className="text-sm text-red-600">{error}</div>}
+        {error && <div className="text-small text-issue">{error}</div>}
 
         <div className="flex items-center gap-2 flex-wrap">
           {onConfirmAndNext ? (
             <>
               <Tooltip text="Confirm this assessment and move to the next item to review  [Space]">
-                <button onClick={saveAndNext} disabled={saving} className="py-2 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                <Button variant="primary" onClick={saveAndNext} disabled={saving}>
                   {saving ? "Saving…" : "Confirm & next →"}
-                </button>
+                </Button>
               </Tooltip>
               <Tooltip text="Save without advancing — stay on this criterion">
-                <button onClick={save} disabled={saving} className="py-2 px-3 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50 text-gray-600">
+                <Button variant="secondary" onClick={save} disabled={saving}>
                   {saving ? "…" : "Save only"}
-                </button>
+                </Button>
               </Tooltip>
             </>
           ) : (
             <Tooltip text="Save the current level and remarks, marking this criterion as PM-confirmed">
-              <button onClick={save} disabled={saving} className="py-2 px-4 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+              <Button variant="primary" onClick={save} disabled={saving}>
                 {saving ? "Saving…" : "Confirm & save"}
-              </button>
+              </Button>
             </Tooltip>
           )}
           <Tooltip text="Ask Claude to draft a conformance assessment from all available evidence">
-            <button onClick={draftOnly} disabled={drafting} className="py-2 px-4 rounded-lg bg-white border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50">
+            <Button variant="secondary" onClick={draftOnly} disabled={drafting}>
               {drafting ? "Drafting…" : "AI draft"}
-            </button>
+            </Button>
           </Tooltip>
           {cs?.level !== "notEvaluated" && (
             <Tooltip text="Clear the current assessment and return this criterion to unevaluated" className="ml-auto">
-              <button onClick={resetCriterion} disabled={saving} className="text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50">
+              <Button variant="danger" onClick={resetCriterion} disabled={saving}>
                 Reset
-              </button>
+              </Button>
             </Tooltip>
           )}
         </div>
         {cs?.confidence === "pm-confirmed" && (
-          <p className="text-xs text-green-600">✓ PM confirmed</p>
+          <Banner variant="ok">✓ PM confirmed</Banner>
         )}
       </div>
     </div>

@@ -1,0 +1,163 @@
+/* ──────────────────────────────────────────────────────────────────────
+   A11yBot — Design tokens (Professional Blue direction)
+   Drop-in replacement for the `:root` block in app/globals.css.
+
+   The previous shadcn HSL tokens are replaced with named values matching
+   the design spec. Tailwind classes that reference these variables
+   (e.g. `text-foreground`) still resolve correctly — see tailwind.config.
+   ────────────────────────────────────────────────────────────────────── */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Surface ── cool near-white paper ───────────────────────────── */
+    --surface:        #FBFCFD;   /* page background */
+    --surface-2:      #F2F4F8;   /* subtle elevation: cards on page, hover */
+    --surface-3:      #E5E9F0;   /* progress track, deeper neutrals */
+    --rule:           #D8DDE6;   /* primary hairline borders */
+    --rule-2:         #E8EBF1;   /* dividers between list items */
+
+    /* ── Ink ── slate-navy ────────────────────────────────────────── */
+    --ink-1:          #0B1B33;   /* titles, primary text, brand wordmark */
+    --ink-2:          #2F3D55;   /* body copy */
+    --ink-3:          #5A6878;   /* secondary text, helpers */
+    --ink-4:          #8A95A4;   /* tertiary, captions, disabled */
+    --ink-5:          #B5BEC9;   /* placeholder, lightest readable */
+
+    /* ── Brand & accent ──────────────────────────────────────────── */
+    --brand:          #0B1B33;   /* === ink-1; wordmark uses this */
+    --accent:         #1F6FEB;   /* primary CTA, links, focus ring */
+    --accent-hover:   #1559C4;   /* CTA hover state */
+    --accent-soft:    #E8EFFC;   /* selection background, soft fills */
+    --accent-rule:    #C7D7F1;   /* borders on accent-soft surfaces */
+
+    /* ── Semantic ────────────────────────────────────────────────── */
+    --issue:          #B23A1C;   /* scanner finding, error text */
+    --issue-bg:       #FBEAE2;   /* finding banner background */
+    --issue-rule:     #F0CDBC;   /* finding banner border */
+
+    --warn:           #8A6B14;   /* AI-inferred, caution */
+    --warn-bg:        #F6EFD8;
+    --warn-rule:      #E5D9B0;
+
+    --ok:             #1F6B3A;   /* PM confirmed, success */
+    --ok-bg:          #E4EFE5;
+    --ok-rule:        #C9DDCB;
+
+    /* ── shadcn compatibility shim ── keeps existing utility classes
+       working through the migration. Remove these once every
+       `border-border` / `bg-background` etc. has been replaced. ── */
+    --background:     var(--surface);
+    --foreground:     var(--ink-1);
+    --primary:        var(--accent);
+    --primary-foreground: #FFFFFF;
+    --secondary:      var(--surface-2);
+    --secondary-foreground: var(--ink-1);
+    --muted:          var(--surface-2);
+    --muted-foreground: var(--ink-3);
+    --accent-foreground: var(--ink-1);
+    --destructive:    var(--issue);
+    --destructive-foreground: #FFFFFF;
+    --border:         var(--rule);
+    --input:          var(--rule);
+    --ring:           var(--accent);
+    --radius:         0.5rem;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     Dark mode — applies when <html class="dark"> is set.
+     Tailwind is already configured with `darkMode: ["class"]`, so this
+     activates with class toggling. See README Step 7 for the toggle.
+
+     The accent is LIFTED in dark mode (#5B9DFF instead of #1F6FEB) — the
+     base accent is too dim on dark surfaces for buttons and links to
+     pop. Semantic colors are also lifted; their backgrounds become
+     desaturated deeps of the same hue.
+     ────────────────────────────────────────────────────────────────── */
+  .dark {
+    /* Surface — deep navy-tinted near-black */
+    --surface:        #0B1320;
+    --surface-2:      #141D2F;
+    --surface-3:      #1E2A40;
+    --rule:           #283449;
+    --rule-2:         #1C2638;
+
+    /* Ink — flips: now reads lightest → darkest */
+    --ink-1:          #F0F3F8;
+    --ink-2:          #C7CFDC;
+    --ink-3:          #8A95A8;
+    --ink-4:          #5A6578;
+    --ink-5:          #3D4659;
+
+    /* Brand & accent. Brand follows ink-1 so the wordmark stays
+       legible. Accent lifts ~25 lightness to read on dark. */
+    --brand:          #F0F3F8;
+    --accent:         #5B9DFF;
+    --accent-hover:   #7DB1FF;
+    --accent-soft:    #1A2842;
+    --accent-rule:    #2D4773;
+
+    /* Semantic — lifted foregrounds, deep desaturated backgrounds */
+    --issue:          #FF8866;
+    --issue-bg:       #3B1C12;
+    --issue-rule:     #5A2A1C;
+
+    --warn:           #DBC07F;
+    --warn-bg:        #2D2410;
+    --warn-rule:      #4A3D1C;
+
+    --ok:             #6DCB87;
+    --ok-bg:          #0F2618;
+    --ok-rule:        #1F4A2D;
+
+    /* shadcn shim mirrors the light-mode mapping */
+    --background:     var(--surface);
+    --foreground:     var(--ink-1);
+    --primary:        var(--accent);
+    --primary-foreground: #0B1320;
+    --secondary:      var(--surface-2);
+    --secondary-foreground: var(--ink-1);
+    --muted:          var(--surface-2);
+    --muted-foreground: var(--ink-3);
+    --accent-foreground: var(--ink-1);
+    --destructive:    var(--issue);
+    --destructive-foreground: #0B1320;
+    --border:         var(--rule);
+    --input:          var(--rule);
+    --ring:           var(--accent);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    background: var(--surface);
+    color: var(--ink-2);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Type scale — commit to these six sizes. No more 10px or 13px ad-hoc. */
+  .text-display { font-size: 40px; line-height: 1.10; letter-spacing: -0.020em; }
+  .text-title   { font-size: 28px; line-height: 1.20; letter-spacing: -0.015em; }
+  .text-heading { font-size: 20px; line-height: 1.30; }
+  .text-body    { font-size: 15px; line-height: 1.60; }
+  .text-small   { font-size: 13px; line-height: 1.55; }
+  .text-caption { font-size: 11.5px; line-height: 1.40; }
+
+  /* Mono usage — reserved for identifiers and eyebrows ONLY.
+     Never use mono inside running prose. */
+  .font-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .eyebrow  {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+}
