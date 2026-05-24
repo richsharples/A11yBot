@@ -218,7 +218,7 @@ export function CriterionDetail({
               <Banner
                 variant="issue"
                 action={cs.level === "notEvaluated" ? (
-                  <Tooltip text="Ask Claude to assess this criterion based on the scanner findings">
+                  <Tooltip text="Ask A11yBot to assess this criterion using the scanner findings">
                     <Button variant="secondary" size="sm" onClick={draftOnly} disabled={drafting}>
                       {drafting ? "Drafting…" : "AI Draft"}
                     </Button>
@@ -302,7 +302,7 @@ export function CriterionDetail({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Tooltip text="Save your answer as evidence, then ask Claude to draft the conformance assessment">
+                <Tooltip text="Save your answer as evidence, then ask A11yBot to draft a conformance assessment">
                   <Button variant="primary" onClick={submitAnswer} disabled={!answer.trim() || saving || drafting}>
                     {drafting ? "Drafting…" : "Answer + AI draft"}
                   </Button>
@@ -395,7 +395,7 @@ export function CriterionDetail({
               </Button>
             </Tooltip>
           )}
-          <Tooltip text="Ask Claude to draft a conformance assessment from all available evidence">
+          <Tooltip text="Ask A11yBot to draft a conformance assessment from all available evidence">
             <Button variant="secondary" onClick={draftOnly} disabled={drafting}>
               {drafting ? "Drafting…" : "AI draft"}
             </Button>

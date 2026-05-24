@@ -62,7 +62,7 @@ export default function Home() {
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} project={project} onProjectUpdate={handleProjectUpdate} />
     </>
   );
 }
