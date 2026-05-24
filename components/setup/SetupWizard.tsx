@@ -115,6 +115,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
   const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
+  const [marketRegion, setMarketRegion] = useState<"us" | "global" | "">("");
 
   useEffect(() => {
     fetch("/api/criteria-status")
@@ -476,7 +477,32 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                 <div className="space-y-5">
                   <h2 className="text-heading font-semibold text-ink-1">Edition & Input Mode</h2>
 
-                  <Field label="VPAT Edition">
+                  <Field label="Where will this product be used or sold?">
+                    <div className="grid grid-cols-2 gap-3 mt-1">
+                      <RadioCard
+                        selected={marketRegion === "us"}
+                        onClick={() => {
+                          setMarketRegion("us");
+                          setForm((p) => ({ ...p, edition: "508" }));
+                        }}
+                      >
+                        <div className="font-medium text-sm">United States only</div>
+                        <div className="text-caption text-ink-3 mt-0.5">Section 508 applies</div>
+                      </RadioCard>
+                      <RadioCard
+                        selected={marketRegion === "global"}
+                        onClick={() => {
+                          setMarketRegion("global");
+                          setForm((p) => ({ ...p, edition: "INT" }));
+                        }}
+                      >
+                        <div className="font-medium text-sm">Outside the US / Global</div>
+                        <div className="text-caption text-ink-3 mt-0.5">EU, UK, Canada, or international markets</div>
+                      </RadioCard>
+                    </div>
+                  </Field>
+
+                  <Field label="VPAT Edition" hint={marketRegion ? undefined : "Select a market above or choose an edition directly."}>
                     <div className="grid grid-cols-2 gap-3">
                       {EDITIONS.map((e) => (
                         <RadioCard key={e.value} selected={form.edition === e.value} onClick={() => setForm((p) => ({ ...p, edition: e.value }))}>
