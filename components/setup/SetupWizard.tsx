@@ -270,7 +270,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
         };
       }
 
-      const res = await fetch("/api/project", {
+      const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

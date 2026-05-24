@@ -127,7 +127,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       const data = await res.json();
       const filesScanned = Object.values(data.scanned as Record<string, number>).reduce((a, b) => a + b, 0);
       resolveStatus(sid, "info", `Source scan done — ${filesScanned} files scanned, ${data.evidenceAdded} evidence items across ${data.criteriaWithEvidence} criteria.`);
-      const p = await fetch("/api/project").then((r) => r.json());
+      const p = await fetch("/api/projects/active").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {
       resolveStatus(sid, "error", `Source scan failed: ${err}`);
@@ -154,7 +154,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       const data = await res.json();
       const elapsed = ((Date.now() - started) / 1000).toFixed(1);
       resolveStatus(sid, "info", `AppScan done in ${elapsed}s — ${data.evidenceAdded} evidence items across ${data.pathsScanned} path(s).`);
-      const p = await fetch("/api/project").then((r) => r.json());
+      const p = await fetch("/api/projects/active").then((r) => r.json());
       onProjectUpdate({ criteria: p.criteria });
     } catch (err) {
       resolveStatus(sid, "error", `AppScan failed: ${err}`);
@@ -599,7 +599,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               </Button>
               <Button variant="danger" onClick={() => {
                 setConfirmNewProject(false);
-                fetch("/api/project", { method: "DELETE" }).finally(() => onNewProject());
+                fetch("/api/projects/active", { method: "DELETE" }).finally(() => onNewProject());
               }}>
                 Discard &amp; start new
               </Button>

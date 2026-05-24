@@ -12,6 +12,7 @@ import { readFileSync } from "fs";
 import { CriteriaFileSchema } from "../types";
 import { getCriteriaFilePath } from "./criteria-store";
 import { log, writeRunLog } from "./log";
+import { saveProject, scheduleSave } from "./project-store";
 
 // Store on globalThis so it survives Next.js App Router module re-evaluation
 declare global {
@@ -81,6 +82,7 @@ export function createProject(params: {
   globalThis.__vpatProject = project;
   log.info({ event: "project.created", projectId: project.id, edition: project.edition }, "Project created");
   writeRunLog({ event: "project.created", projectId: project.id, project });
+  saveProject(project);
   return project;
 }
 
@@ -97,6 +99,7 @@ export function clearScanEvidence(source: "source-scan" | "runtime-scan"): void 
   }
   log.info({ event: "evidence.cleared", source });
   writeRunLog({ event: "evidence.cleared", source });
+  scheduleSave();
 }
 
 export function addEvidence(criterionId: string, evidence: Evidence): boolean {
@@ -105,6 +108,7 @@ export function addEvidence(criterionId: string, evidence: Evidence): boolean {
   if (!cs) return false; // criterion not in this edition — skip silently
   cs.evidence.push(evidence);
   writeRunLog({ event: "evidence.added", criterionId, evidence });
+  scheduleSave();
   return true;
 }
 
@@ -123,7 +127,16 @@ export function updateCriterion(
 
   log.info({ event: "criterion.updated", criterionId, level: updates.level, confidence: updates.confidence });
   writeRunLog({ event: "criterion.updated", criterionId, state: cs });
+  scheduleSave();
   return cs;
+}
+
+export function updateProjectPaths(sourcePath: string | undefined, runtimeUrl: string | undefined): Project {
+  const project = requireProject();
+  if (sourcePath !== undefined) project.sourcePath = sourcePath || undefined;
+  if (runtimeUrl !== undefined) project.runtimeUrl = runtimeUrl || undefined;
+  scheduleSave();
+  return project;
 }
 
 export function getCriteriaFile(edition: Edition) {

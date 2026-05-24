@@ -259,7 +259,7 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
                   variant="secondary"
                   disabled={pathsSaved}
                   onClick={async () => {
-                    const res = await fetch("/api/project", {
+                    const res = await fetch(`/api/projects/${project!.id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ sourcePath: sourcePath || null, runtimeUrl: runtimeUrl || null }),
