@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/a11ybot-logo.png" alt="A11yBot logo" width="320" />
+  <img src="public/a11ybot-logo.svg" alt="A11yBot logo" width="320" />
 </p>
 
 # A11yBot
