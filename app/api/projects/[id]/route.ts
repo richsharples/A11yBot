@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProject, resetProject, updateProjectPaths } from "@/src/state/project";
-import { loadProjectFile } from "@/src/state/project-store";
+import { loadProjectFile, deleteProject } from "@/src/state/project-store";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -39,9 +39,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params;
-  if (id !== "active") {
-    return NextResponse.json({ error: "Only the active project can be cleared via DELETE" }, { status: 400 });
+  if (id === "active") {
+    resetProject();
+    return new NextResponse(null, { status: 204 });
   }
-  resetProject();
-  return new NextResponse(null, { status: 204 });
+  try {
+    deleteProject(id);
+    return new NextResponse(null, { status: 204 });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 404 });
+  }
 }

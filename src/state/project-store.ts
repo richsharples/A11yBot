@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import { ProjectSchema, type Project } from "../types";
@@ -88,4 +88,12 @@ export function loadProjectFile(id: string): Project {
 
 export function listProjects(): ProjectIndexEntry[] {
   return readIndex().sort((a, b) => b.lastModified.localeCompare(a.lastModified));
+}
+
+export function deleteProject(id: string): void {
+  const filePath = join(PROJECTS_DIR, `${id}.json`);
+  if (existsSync(filePath)) unlinkSync(filePath);
+  writeIndex(readIndex().filter((e) => e.id !== id));
+  if (globalThis.__vpatProject?.id === id) globalThis.__vpatProject = null;
+  log.info({ event: "project.deleted", projectId: id });
 }
