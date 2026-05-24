@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import type { Evidence } from "@/src/types";
 import { Tooltip } from "./Tooltip";
+import { Button } from "@/components/ui/Button";
 
 export function FindingActions({
   evidence,
@@ -78,29 +79,20 @@ export function FindingActions({
     <div className="mt-2 space-y-1.5">
       <div className="flex items-center gap-1.5">
         <Tooltip text="Copy this finding as plain text for pasting into an email">
-          <button
-            onClick={handleCopy}
-            className="text-[10px] px-2 py-0.5 rounded border border-orange-300 text-orange-700 hover:bg-orange-100 transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={handleCopy}>
             {flash === "copy" ? "Copied!" : "Copy"}
-          </button>
+          </Button>
         </Tooltip>
         <Tooltip text="Open a pre-filled GitHub issue with this finding's details">
-          <button
-            onClick={handleGitHub}
-            className="text-[10px] px-2 py-0.5 rounded border border-orange-300 text-orange-700 hover:bg-orange-100 transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={handleGitHub}>
             {flash === "github" ? "Opened!" : "GitHub issue ↗"}
-          </button>
+          </Button>
         </Tooltip>
         {localStorage.getItem("vpat-github-repo") && (
           <Tooltip text="Change the saved GitHub repository URL">
-            <button
-              onClick={() => { localStorage.removeItem("vpat-github-repo"); setShowRepo(false); }}
-              className="text-[10px] text-orange-400 hover:text-orange-600 transition-colors"
-            >
+            <Button variant="ghost" size="sm" onClick={() => { localStorage.removeItem("vpat-github-repo"); setShowRepo(false); }}>
               change repo
-            </button>
+            </Button>
           </Tooltip>
         )}
       </div>
@@ -108,22 +100,18 @@ export function FindingActions({
         <div className="flex items-center gap-1.5">
           <input
             aria-label="GitHub repository URL"
-            className="flex-1 text-[10px] rounded border border-orange-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-orange-500 bg-white"
+            className="flex-1 text-[12px] rounded border border-rule px-2 py-1 focus:outline-none focus:ring-2 focus:ring-accent bg-surface text-ink-1"
             placeholder="https://github.com/org/repo"
             value={repoInput}
             onChange={(e) => setRepoInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleRepoSubmit(); if (e.key === "Escape") setShowRepo(false); }}
           />
-          <button
-            onClick={handleRepoSubmit}
-            disabled={!repoInput.trim()}
-            className="text-[10px] px-2 py-1 rounded bg-orange-700 text-white hover:bg-orange-800 disabled:opacity-50"
-          >
+          <Button variant="primary" size="sm" onClick={handleRepoSubmit} disabled={!repoInput.trim()}>
             Open
-          </button>
-          <button onClick={() => setShowRepo(false)} className="text-[10px] text-orange-500 hover:text-orange-700">
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setShowRepo(false)}>
             Cancel
-          </button>
+          </Button>
         </div>
       )}
     </div>

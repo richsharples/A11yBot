@@ -8,37 +8,91 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans:  ['"IBM Plex Sans"',  "system-ui",    "sans-serif"],
+        mono:  ['"IBM Plex Mono"',  "ui-monospace",  "monospace"],
+        serif: ['"IBM Plex Serif"', "Georgia",       "serif"],
+      },
+
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // surface
+        surface: {
+          DEFAULT: "var(--surface)",
+          2: "var(--surface-2)",
+          3: "var(--surface-3)",
+        },
+        rule: {
+          DEFAULT: "var(--rule)",
+          2: "var(--rule-2)",
+        },
+
+        // ink
+        ink: {
+          1: "var(--ink-1)",
+          2: "var(--ink-2)",
+          3: "var(--ink-3)",
+          4: "var(--ink-4)",
+          5: "var(--ink-5)",
+        },
+
+        // brand & accent
+        brand:  "var(--brand)",
+        accent: {
+          DEFAULT: "var(--accent)",
+          hover:   "var(--accent-hover)",
+          soft:    "var(--accent-soft)",
+          rule:    "var(--accent-rule)",
+        },
+
+        // semantic
+        issue: {
+          DEFAULT: "var(--issue)",
+          bg:      "var(--issue-bg)",
+          rule:    "var(--issue-rule)",
+        },
+        warn: {
+          DEFAULT: "var(--warn)",
+          bg:      "var(--warn-bg)",
+          rule:    "var(--warn-rule)",
+        },
+        ok: {
+          DEFAULT: "var(--ok)",
+          bg:      "var(--ok-bg)",
+          rule:    "var(--ok-rule)",
+        },
+
+        // shadcn shim — kept so existing utility classes don't break mid-migration
+        background:  "var(--surface)",
+        foreground:  "var(--ink-1)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT:    "var(--accent)",
+          foreground: "var(--primary-foreground)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT:    "var(--surface-2)",
+          foreground: "var(--ink-1)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT:    "var(--issue)",
+          foreground: "var(--destructive-foreground)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT:    "var(--surface-2)",
+          foreground: "var(--ink-3)",
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
+        border: "var(--rule)",
+        input:  "var(--rule)",
+        ring:   "var(--accent)",
       },
+
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        none: "0",
+        sm:   "4px",      // chips, level pills
+        DEFAULT: "6px",   // buttons, inputs
+        md:   "8px",      // banners, cards
+        lg:   "12px",     // large panels
+        xl:   "16px",
+        full: "9999px",   // badges, progress
       },
     },
   },

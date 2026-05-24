@@ -7,6 +7,10 @@ import { Tooltip } from "./Tooltip";
 import { StatusBar } from "./StatusBar";
 import { CriterionDetail } from "./CriterionDetail";
 import pkg from "../../package.json";
+import { LogoLockup } from "@/components/Logo";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Badge } from "@/components/ui/Badge";
 
 // Inlined to avoid importing from server-only module
 interface CriteriaManifest {
@@ -289,25 +293,28 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   }, [reviewList, reviewIdx]);
 
   if (!criteriaData) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading criteria…</div>;
+    return <div className="min-h-screen flex items-center justify-center text-ink-3">Loading criteria…</div>;
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-[#0b1a0d] border-b border-[#39FF14]/10 px-6 pt-3 pb-2 sticky top-0 z-10 font-mono">
-        {/* Row 1: identity + actions */}
-        <div className="flex items-center justify-between">
+      <header className="bg-surface border-b border-rule px-6 pt-3.5 pb-0 sticky top-0 z-10">
+        {/* Row 1: identity + progress + actions */}
+        <div className="flex items-center justify-between pb-3">
           <div className="flex items-center gap-3">
             <Tooltip text={`v${pkg.version}`} side="bottom">
-              <span className="text-sm font-bold text-[#39FF14] tracking-wide cursor-default" style={{ textShadow: "0 0 8px #39FF14aa" }}>A11yBot</span>
+              <span className="cursor-default"><LogoLockup size={20} /></span>
             </Tooltip>
-            <span className="text-[#39FF14]/20">|</span>
-            <span className="text-sm text-[#39FF14]/50"><span className="font-medium text-[#39FF14]/70">Product Name:</span> {project.productName} {project.productVersion}</span>
-            <span className="text-[#39FF14]/20">|</span>
+            <span className="text-rule">|</span>
+            <div>
+              <span className="eyebrow">Product</span>
+              <span className="ml-1.5 text-small font-medium text-ink-1">{project.productName} {project.productVersion}</span>
+            </div>
+            <span className="text-rule">|</span>
             <Tooltip text={showSources ? "Hide compliance sources" : `View compliance sources${criteriaStatus ? ` · v${criteriaStatus.manifest.criteriaVersion}` : ""}`} side="bottom">
-              <button onClick={() => setShowSources((s) => !s)} className={`text-sm transition-colors ${showSources ? "text-[#39FF14]" : "text-[#39FF14]/50 hover:text-[#39FF14]/80"}`}>
-                <span className="font-medium text-[#39FF14]/70">Standard:</span> {project.edition}
+              <button onClick={() => setShowSources((s) => !s)} className={`text-small transition-colors ${showSources ? "text-accent font-medium" : "text-ink-3 hover:text-ink-1"}`}>
+                <span className="eyebrow mr-1">Standard</span>{project.edition}
               </button>
             </Tooltip>
           </div>
@@ -318,81 +325,82 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               const pct = reviewTotal > 0 ? Math.round((confirmed / reviewTotal) * 100) : 0;
               return (
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-1.5 bg-[#39FF14]/10 rounded-full overflow-hidden border border-[#39FF14]/20">
-                    <div className="h-full bg-[#39FF14] rounded-full transition-all" style={{ width: `${pct}%`, boxShadow: "0 0 6px #39FF14aa" }} />
+                  <div className="w-24 h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
                   </div>
                   {reviewList.length > 0 ? (
                     <>
-                      <span className="text-sm text-[#39FF14]/50">
-                        <span className="text-[#39FF14]/70">{reviewList.length} of {reviewTotal}</span> to review
+                      <span className="text-small text-ink-3">
+                        <span className="font-medium text-ink-1">{reviewList.length} of {reviewTotal}</span> to review
                       </span>
                       <Tooltip text="Previous item to review" side="bottom">
-                        <button onClick={() => navigateReview(-1)} disabled={reviewIdx === 0} className="py-1 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-30 disabled:cursor-default transition-colors" aria-label="Previous item to review">&lt;</button>
+                        <Button variant="secondary" onClick={() => navigateReview(-1)} disabled={reviewIdx === 0} aria-label="Previous item to review">&lt;</Button>
                       </Tooltip>
                       <Tooltip text="Next item to review" side="bottom">
-                        <button onClick={() => navigateReview(1)} disabled={reviewIdx === reviewList.length - 1} className="py-1 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-30 disabled:cursor-default transition-colors" aria-label="Next item to review">&gt;</button>
+                        <Button variant="secondary" onClick={() => navigateReview(1)} disabled={reviewIdx === reviewList.length - 1} aria-label="Next item to review">&gt;</Button>
                       </Tooltip>
                     </>
                   ) : confirmed > 0 ? (
-                    <span className="text-sm text-[#39FF14]/50">✓ <span className="text-[#39FF14]/70">{confirmed}</span> reviewed</span>
+                    <span className="text-small text-ok font-medium">✓ {confirmed} reviewed</span>
                   ) : (
-                    <span className="text-sm text-[#39FF14]/50"><span className="text-[#39FF14]/70">{evaluated}/{totalCriteria}</span> evaluated</span>
+                    <span className="text-small text-ink-3"><span className="font-medium text-ink-2">{evaluated}/{totalCriteria}</span> evaluated</span>
                   )}
                 </div>
               );
             })()}
             <Tooltip text="Generate and download the VPAT as a .docx file" side="bottom">
-              <button onClick={handleExport} disabled={exporting} className="py-1.5 px-4 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
+              <Button variant="primary" onClick={handleExport} disabled={exporting}>
                 {exporting ? "Generating…" : "Create report"}
-              </button>
+              </Button>
             </Tooltip>
             <Tooltip text="Settings" side="bottom">
-              <button onClick={onOpenSettings} className="py-1.5 px-2 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 hover:bg-[#39FF14]/20 transition-colors" aria-label="Open settings">
+              <Button variant="secondary" onClick={onOpenSettings} aria-label="Open settings">
                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
-              </button>
+              </Button>
             </Tooltip>
           </div>
         </div>
 
-        {/* Row 2: action buttons */}
-        <div className="flex items-center gap-2 mt-2 pb-1 border-t border-[#39FF14]/10 pt-2">
+        {/* Row 2: action buttons as tab spine */}
+        <div className="flex items-center gap-1 border-t border-rule pt-1">
           {((project.mode === "source" || project.mode === "hybrid") && project.sourcePath) ||
            ((project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl) ? (
             <Tooltip text="Re-run all applicable scans to pick up code changes" side="bottom">
-              <button
+              <Button variant="ghost"
                 onClick={() => {
                   if ((project.mode === "source" || project.mode === "hybrid") && project.sourcePath) runSourceScan();
                   if ((project.mode === "runtime" || project.mode === "hybrid") && project.runtimeUrl) runRuntimeScan();
                 }}
                 disabled={scanningSource || scanningRuntime}
-                className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors"
               >
                 {(scanningSource || scanningRuntime) ? "Scanning…" : "Re-scan"}
-              </button>
+              </Button>
             </Tooltip>
           ) : null}
           <Tooltip text="Send all unevaluated criteria to Claude for automated assessment in parallel" side="bottom">
-            <button onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime} className="py-1 px-3 rounded bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14]/70 text-sm hover:bg-[#39FF14]/20 disabled:opacity-40 transition-colors">
+            <Button variant="ghost" onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime}>
               {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${Object.values(project.criteria).filter((c) => c.level === "notEvaluated" && c.confidence !== "ai-attempted").length} remaining)`}
-            </button>
+            </Button>
           </Tooltip>
-          <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
-            <button onClick={() => setConfirmNewProject(true)} className="py-1 px-3 rounded bg-[#39FF14]/5 border border-[#39FF14]/20 text-[#39FF14]/40 text-sm hover:bg-[#39FF14]/10 hover:text-[#39FF14]/60 transition-colors">
-              New project
-            </button>
-          </Tooltip>
+          <div className="ml-auto">
+            <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
+              <Button variant="ghost" onClick={() => setConfirmNewProject(true)} className="text-ink-4 hover:text-issue">
+                New project
+              </Button>
+            </Tooltip>
+          </div>
         </div>
       </header>
 
       {/* Criteria sources panel */}
       {showSources && criteriaStatus && (
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-surface-2 border-b border-rule px-6 py-4">
           <div className="flex items-start justify-between gap-4 mb-3">
             <div>
-              <span className="text-sm font-semibold text-gray-800">Compliance Standards</span>
-              <span className="ml-2 text-xs text-gray-500">
+              <span className="eyebrow">Compliance Standards</span>
+              <span className="ml-2 text-caption text-ink-4">
                 Criteria v{criteriaStatus.manifest.criteriaVersion} · Released {criteriaStatus.manifest.releasedAt}
                 {criteriaStatus.lastChecked && ` · Checked ${new Date(criteriaStatus.lastChecked).toLocaleDateString()}`}
               </span>
@@ -400,52 +408,39 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             <div className="flex items-center gap-2">
               {criteriaStatus.manifest.checkUrl && (
                 <Tooltip text="Check for updated criteria files now">
-                  <button
-                    onClick={handleCheckUpdate}
-                    disabled={checkingUpdate}
-                    className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-                  >
+                  <Button variant="secondary" size="sm" onClick={handleCheckUpdate} disabled={checkingUpdate}>
                     {checkingUpdate ? "Checking…" : "Check for updates"}
-                  </button>
+                  </Button>
                 </Tooltip>
               )}
-              <button onClick={() => setShowSources(false)} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
+              <Button variant="ghost" onClick={() => setShowSources(false)} aria-label="Close">✕</Button>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {criteriaStatus.manifest.sources
               .filter((s) => s.editions.includes(project.edition))
               .map((source) => (
-                <a
-                  key={source.abbr}
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block rounded-lg border border-gray-200 px-3 py-2.5 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
-                >
+                <a key={source.abbr} href={source.url} target="_blank" rel="noopener noreferrer"
+                  className="block rounded-md border border-rule bg-surface px-3 py-2.5 hover:border-accent-rule hover:bg-accent-soft transition-colors group">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-blue-700 group-hover:underline">{source.abbr}</span>
-                    <span className="text-[10px] text-gray-400">↗</span>
+                    <span className="text-caption font-semibold text-accent group-hover:underline">{source.abbr}</span>
+                    <span className="text-caption text-ink-4">↗</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5 leading-snug">{source.description}</p>
+                  <p className="text-caption text-ink-3 mt-0.5 leading-snug">{source.description}</p>
                 </a>
               ))}
           </div>
           {criteriaStatus.manifest.notes && (
-            <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-              ⚠ {criteriaStatus.manifest.notes}
-            </p>
+            <p className="mt-3 text-small text-warn bg-warn-bg border border-warn-rule rounded-md px-3 py-2">⚠ {criteriaStatus.manifest.notes}</p>
           )}
-          <p className="mt-2 text-[11px] text-gray-400">
-            Stored at: <code className="font-mono">{criteriaStatus.storeDir}</code>
-          </p>
+          <p className="mt-2 text-caption text-ink-4">Stored at: <code className="font-mono">{criteriaStatus.storeDir}</code></p>
         </div>
       )}
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Chapter sidebar */}
-        <nav className="w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <nav className="w-64 bg-surface border-r border-rule overflow-y-auto flex-shrink-0">
           {criteriaData.chapters.map((chapter) => {
             const chapterCriteria = chapter.criteria.map((c) => project.criteria[c.id]).filter(Boolean);
             const chapterApplicable = chapterCriteria.filter((c) => c.level !== "notApplicable");
@@ -467,46 +462,36 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             const unconfirmedNA = chapterCriteria.filter((c) => c.level === "notApplicable" && c.confidence !== "pm-confirmed");
 
             return (
-              <div key={chapter.id} className="border-b border-gray-100">
+              <div key={chapter.id} className="border-b border-rule-2">
               <button
                 onClick={() => { setSelectedChapter(chapter.id); setSelectedCriterion(null); }}
                 className={`w-full text-left px-4 py-3 transition-colors ${
                   allNA
                     ? "opacity-40 cursor-default hover:bg-transparent"
-                    : `hover:bg-gray-50 ${selectedChapter === chapter.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`
+                    : `hover:bg-surface-2 ${selectedChapter === chapter.id ? "bg-accent-soft border-l-2 border-l-accent" : ""}`
                 }`}
               >
-                <div className={`text-sm font-medium leading-tight ${allNA ? "text-gray-400" : "text-gray-900"}`}>
+                <div className={`text-small font-medium leading-tight ${allNA ? "text-ink-4" : "text-ink-1"}`}>
                   {chapter.title}
                 </div>
                 {allNA ? (
-                  <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded border border-gray-200 text-gray-400">
-                    Not applicable
-                  </span>
+                  <Badge variant="neutral" className="mt-0.5">Not applicable</Badge>
                 ) : (
                   <>
-                    <div className="text-xs text-gray-500 mt-0.5">{chapterEval}/{chapterApplicable.length} evaluated</div>
+                    <div className="text-caption text-ink-3 mt-0.5">{chapterEval}/{chapterApplicable.length} evaluated</div>
                     {totalScannerEvidence > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium leading-none">
-                          ⚠ {totalScannerEvidence} issue{totalScannerEvidence !== 1 ? "s" : ""} pending
-                        </span>
-                        {sourceCount > 0 && (
-                          <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
-                            {sourceCount} source
-                          </span>
-                        )}
-                        {appScanCount > 0 && (
-                          <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 leading-none border border-orange-200">
-                            {appScanCount} app
-                          </span>
-                        )}
+                        <Badge variant="issue" icon="!">
+                          {totalScannerEvidence} issue{totalScannerEvidence !== 1 ? "s" : ""} pending
+                        </Badge>
+                        {sourceCount > 0 && <Badge variant="issue">{sourceCount} source</Badge>}
+                        {appScanCount > 0 && <Badge variant="issue">{appScanCount} app</Badge>}
                       </div>
                     )}
                   </>
                 )}
               </button>
-              {/* Bulk confirm N/A — only for chapters with unconfirmed notApplicable criteria */}
+              {/* Bulk confirm N/A */}
               {!allNA && unconfirmedNA.length > 0 && unconfirmedNA.length === chapterCriteria.length && (
                 <button
                   onClick={async (e) => {
@@ -524,7 +509,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                     }
                     pushStatus("info", `${chapter.title} — ${unconfirmedNA.length} N/A criteria confirmed.`);
                   }}
-                  className="w-full px-4 py-1.5 text-left text-[11px] text-blue-600 hover:bg-blue-50 border-b border-gray-100 transition-colors"
+                  className="w-full px-4 py-1.5 text-left text-caption text-accent hover:bg-accent-soft border-b border-rule-2 transition-colors"
                 >
                   ✓ Confirm all N/A ({unconfirmedNA.length})
                 </button>
@@ -538,7 +523,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
         <div className="flex flex-1 overflow-hidden">
           {/* Criteria list */}
           {selectedChapter && (
-            <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+            <div className="w-80 bg-surface border-r border-rule overflow-y-auto flex-shrink-0">
               {criteriaData.chapters.find((c) => c.id === selectedChapter)?.criteria.map((criterion) => {
                 const cs = project.criteria[criterion.id];
                 return (
@@ -546,30 +531,26 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                     key={criterion.id}
                     aria-label={criterion.ref}
                     onClick={() => setSelectedCriterion(criterion.id)}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedCriterion === criterion.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`}
+                    className={`w-full text-left px-4 py-3 border-b border-rule-2 hover:bg-surface-2 transition-colors ${selectedCriterion === criterion.id ? "bg-accent-soft border-l-2 border-l-accent" : ""}`}
                   >
                     <div className="flex items-start gap-2">
-                      <span className={`mt-0.5 shrink-0 text-xs px-1.5 py-0.5 rounded border font-medium ${cs ? LEVEL_COLORS[cs.level] : LEVEL_COLORS.notEvaluated}`}>
-                        {cs ? LEVEL_LABELS[cs.level].split(" ")[0] : "—"}
-                      </span>
+                      <Chip level={cs?.level ?? "notEvaluated"} className="mt-0.5 shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs font-medium text-gray-900 leading-tight">{criterion.ref}</div>
+                        <div className="text-small font-medium text-ink-1 leading-tight">{criterion.ref}</div>
                         {cs?.confidence === "ai-inferred" && cs.level !== "notEvaluated" && (
-                          <span className="text-[10px] text-yellow-600">AI inferred</span>
+                          <Badge variant="warn" icon="~" className="mt-0.5">AI inferred</Badge>
                         )}
                         {cs?.evidence && cs.evidence.length > 0 && (() => {
                           const sig = getEvidenceSignal(cs.evidence);
                           return (
                             <div className="flex gap-1 mt-1 flex-wrap">
                               {sig.scannerCount > 0 && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium leading-none">
-                                  <span>⚠</span> {sig.scannerCount} issue{sig.scannerCount !== 1 ? "s" : ""}
-                                </span>
+                                <Badge variant="issue" icon="!">
+                                  {sig.scannerCount} issue{sig.scannerCount !== 1 ? "s" : ""}
+                                </Badge>
                               )}
                               {sig.interviewCount > 0 && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium leading-none">
-                                  <span>✎</span> interviewed
-                                </span>
+                                <Badge variant="accent" icon="✎">interviewed</Badge>
                               )}
                             </div>
                           );
@@ -595,9 +576,9 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                 onConfirmAndNext={reviewList.length > 0 ? () => navigateReview(1) : undefined}
               />
             ) : selectedChapter ? (
-              <div className="text-gray-500 text-sm">Select a criterion from the list.</div>
+              <div className="text-small text-ink-3">Select a criterion from the list.</div>
             ) : (
-              <div className="text-gray-500 text-sm">Select a chapter from the sidebar to begin.</div>
+              <div className="text-small text-ink-3">Select a chapter from the sidebar to begin.</div>
             )}
           </div>
         </div>
@@ -606,28 +587,22 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       <StatusBar entries={statusLog} onClear={() => setStatusLog([])} forceExpanded={draftingAll} />
 
       {confirmNewProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0b1a0d] border border-[#39FF14]/20 rounded-xl shadow-2xl p-6 w-full max-w-sm font-mono" style={{ boxShadow: "0 0 40px #39FF1418" }}>
-            <h2 className="text-[#39FF14] font-bold text-base mb-2" style={{ textShadow: "0 0 8px #39FF14aa" }}>Start a new project?</h2>
-            <p className="text-[#39FF14]/60 text-sm leading-relaxed mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-surface border border-rule rounded-xl shadow-xl p-6 w-full max-w-sm">
+            <h2 className="text-title text-ink-1 font-semibold mb-2">Start a new project?</h2>
+            <p className="text-body text-ink-2 leading-relaxed mb-6">
               All current compliance information will be lost. This cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setConfirmNewProject(false)}
-                className="py-2 px-4 rounded-lg bg-[#39FF14]/5 border border-[#39FF14]/20 text-[#39FF14]/60 text-sm hover:bg-[#39FF14]/10 hover:text-[#39FF14]/80 transition-colors"
-              >
+              <Button variant="secondary" onClick={() => setConfirmNewProject(false)}>
                 Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setConfirmNewProject(false);
-                  fetch("/api/project", { method: "DELETE" }).finally(() => onNewProject());
-                }}
-                className="py-2 px-4 rounded-lg bg-red-900/40 border border-red-500/40 text-red-300 text-sm hover:bg-red-900/60 hover:text-red-200 transition-colors"
-              >
+              </Button>
+              <Button variant="danger" onClick={() => {
+                setConfirmNewProject(false);
+                fetch("/api/project", { method: "DELETE" }).finally(() => onNewProject());
+              }}>
                 Discard &amp; start new
-              </button>
+              </Button>
             </div>
           </div>
         </div>

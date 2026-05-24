@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
+import { Button } from "@/components/ui/Button";
+import { useTheme } from "@/components/useTheme";
 
 type AiProvider = "openrouter" | "ollama" | "none";
 
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function SettingsPanel({ open, onClose }: Props) {
+  const { theme, setTheme } = useTheme();
   const [provider, setProvider] = useState<AiProvider>("openrouter");
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_OPENROUTER_MODEL);
@@ -92,54 +95,49 @@ export function SettingsPanel({ open, onClose }: Props) {
       <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} aria-hidden="true" />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl z-50 flex flex-col" role="dialog" aria-label="Settings">
-        <div className="flex items-center justify-between p-5 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">Settings</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close settings">
+      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-surface shadow-xl z-50 flex flex-col" role="dialog" aria-label="Settings">
+        <div className="flex items-center justify-between p-5 border-b border-rule">
+          <h2 className="text-heading font-semibold text-ink-1">Settings</h2>
+          <Button variant="ghost" onClick={onClose} aria-label="Close settings">
             <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" /></svg>
-          </button>
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Provider</h3>
+            <h3 className="text-small font-semibold text-ink-2 mb-3">AI Provider</h3>
             <div className="space-y-2">
               {/* OpenRouter */}
               <SettingsProviderCard selected={provider === "openrouter"} onClick={() => { setProvider("openrouter"); setModel((m) => OPENROUTER_MODELS.some((r) => r.id === m) ? m : DEFAULT_OPENROUTER_MODEL); }}>
-                <span className="text-sm font-medium text-gray-900">OpenRouter</span>
-                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Recommended</span>
+                <span className="text-small font-medium text-ink-1">OpenRouter</span>
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent-soft text-accent">Recommended</span>
               </SettingsProviderCard>
 
               {provider === "openrouter" && (
                 <div className="ml-6 space-y-3 pt-1">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">API Key</label>
+                    <label className="block text-caption font-medium text-ink-2 mb-1">API Key</label>
                     <div className="flex gap-2">
                       <input
                         type="password"
                         aria-label="OpenRouter API Key"
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="sk-or-v1-… (leave blank to keep existing)"
                       />
-                      <button
-                        type="button"
-                        onClick={handleTest}
-                        disabled={!model || testResult.status === "testing"}
-                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors whitespace-nowrap"
-                      >
+                      <Button variant="secondary" type="button" onClick={handleTest} disabled={!model || testResult.status === "testing"}>
                         {testResult.status === "testing" ? "…" : "Test"}
-                      </button>
+                      </Button>
                     </div>
-                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-caption text-accent hover:underline mt-1 inline-block">
                       Get a key →
                     </a>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Model</label>
-                    <select aria-label="AI Model" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    <label className="block text-caption font-medium text-ink-2 mb-1">Model</label>
+                    <select aria-label="AI Model" className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent"
                       value={model} onChange={(e) => setModel(e.target.value)}>
                       <optgroup label="★ Recommended">
                         {OPENROUTER_MODELS.filter((m) => m.tier === "recommended").map((m) => (
@@ -162,21 +160,21 @@ export function SettingsPanel({ open, onClose }: Props) {
                 disabled={ollamaStatus !== null && !ollamaStatus.available}
                 onClick={() => { if (ollamaStatus?.available) { setProvider("ollama"); setModel(ollamaStatus.models[0] ?? ""); } }}
               >
-                <span className="text-sm font-medium text-gray-900">Ollama</span>
-                <span className="ml-2 text-xs text-gray-400">local · free</span>
-                {ollamaStatus === null && <span className="ml-2 text-xs text-gray-400">Detecting…</span>}
+                <span className="text-small font-medium text-ink-1">Ollama</span>
+                <span className="ml-2 text-caption text-ink-4">local · free</span>
+                {ollamaStatus === null && <span className="ml-2 text-caption text-ink-4">Detecting…</span>}
                 {ollamaStatus?.available && (
-                  <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
+                  <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-ok-bg text-ok">
                     {ollamaStatus.models.length} model{ollamaStatus.models.length !== 1 ? "s" : ""}
                   </span>
                 )}
-                {ollamaStatus && !ollamaStatus.available && <span className="ml-2 text-xs text-red-400">Not detected</span>}
+                {ollamaStatus && !ollamaStatus.available && <span className="ml-2 text-caption text-issue">Not detected</span>}
               </SettingsProviderCard>
 
               {provider === "ollama" && ollamaStatus?.available && (
                 <div className="ml-6 pt-1">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Model</label>
-                  <select aria-label="Ollama Model" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <label className="block text-caption font-medium text-ink-2 mb-1">Model</label>
+                  <select aria-label="Ollama Model" className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent"
                     value={model} onChange={(e) => setModel(e.target.value)}>
                     {ollamaStatus.models.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -186,28 +184,44 @@ export function SettingsPanel({ open, onClose }: Props) {
 
               {/* None */}
               <SettingsProviderCard selected={provider === "none"} onClick={() => setProvider("none")}>
-                <span className="text-sm font-medium text-gray-900">None</span>
-                <span className="ml-2 text-xs text-gray-400">interview-only</span>
+                <span className="text-small font-medium text-ink-1">None</span>
+                <span className="ml-2 text-caption text-ink-4">interview-only</span>
               </SettingsProviderCard>
             </div>
 
             {testResult.status === "ok" && (
-              <div className="mt-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs p-2">✓ Connection successful</div>
+              <div className="mt-3 rounded-md bg-ok-bg border border-ok-rule text-ok text-caption p-2">✓ Connection successful</div>
             )}
             {testResult.status === "error" && (
-              <div className="mt-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs p-2">{testResult.message}</div>
+              <div className="mt-3 rounded-md bg-issue-bg border border-issue-rule text-issue text-caption p-2">{testResult.message}</div>
             )}
+          </section>
+
+          <section>
+            <h3 className="text-small font-semibold text-ink-2 mb-3">Appearance</h3>
+            <div className="flex rounded-md border border-rule overflow-hidden">
+              {(["light", "system", "dark"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTheme(t)}
+                  className={`flex-1 py-2 text-small capitalize transition-colors ${
+                    theme === t
+                      ? "bg-accent text-white font-medium"
+                      : "text-ink-3 hover:bg-surface-2"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </section>
         </div>
 
-        <div className="p-5 border-t border-gray-200">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
+        <div className="p-5 border-t border-rule">
+          <Button variant="primary" onClick={handleSave} disabled={saving} className="w-full justify-center">
             {saveOk ? "✓ Saved" : saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </>
@@ -221,12 +235,12 @@ function SettingsProviderCard({ selected, disabled, onClick, children }: { selec
       onClick={onClick}
       disabled={disabled}
       className={`w-full text-left px-3 py-2.5 rounded-lg border-2 transition-colors flex items-center gap-2 ${
-        selected ? "border-blue-500 bg-blue-50" :
-        disabled ? "border-gray-100 opacity-50 cursor-not-allowed" :
-        "border-gray-200 hover:border-gray-300"
+        selected ? "border-accent bg-accent-soft" :
+        disabled ? "border-rule opacity-50 cursor-not-allowed" :
+        "border-rule hover:border-accent-rule"
       }`}
     >
-      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-blue-500" : "border-gray-400"}`}>
+      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-blue-500" : "border-ink-4"}`}>
         {selected && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
       </div>
       <div className="flex items-center flex-wrap">{children}</div>
