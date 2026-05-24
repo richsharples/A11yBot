@@ -130,13 +130,12 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
               const isActive = entry.id === activeId;
               const isLoading = loadingId === entry.id;
               return (
-                <li key={entry.id}>
-                  <div className="relative group">
+                <li key={entry.id} className="flex items-center gap-2 group">
                   <button
                     type="button"
                     onClick={() => handleSelect(entry)}
                     disabled={!!loadingId}
-                    className={`w-full text-left rounded-xl border-2 px-5 py-4 transition-colors ${
+                    className={`flex-1 min-w-0 text-left rounded-xl border-2 px-5 py-4 transition-colors ${
                       isActive
                         ? "border-accent bg-accent-soft"
                         : "border-rule hover:border-accent-rule bg-surface"
@@ -178,14 +177,13 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                   <button
                     type="button"
                     aria-label={`Delete ${entry.productName}`}
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ entry }); }}
-                    className="absolute top-3 right-3 p-1.5 rounded-md text-ink-4 hover:text-issue hover:bg-issue-bg opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setConfirmDelete({ entry })}
+                    className="shrink-0 p-2 rounded-lg text-ink-4 hover:text-issue hover:bg-issue-bg opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   </button>
-                  </div>
                 </li>
               );
             })}
