@@ -1,10 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
+import { DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
+import type { OpenRouterModelInfo } from "@/app/api/ai/models/route";
 import { Button } from "@/components/ui/Button";
 import { useTheme } from "@/components/useTheme";
 import type { Project } from "@/src/types";
+
+function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterModelInfo[]][] {
+  const groups = new Map<string, OpenRouterModelInfo[]>();
+  for (const m of models) {
+    const provider = m.id.split("/")[0];
+    const group = groups.get(provider) ?? [];
+    group.push(m);
+    groups.set(provider, group);
+  }
+  return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+}
 
 type AiProvider = "openrouter" | "ollama" | "none";
 
@@ -30,6 +42,8 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
   const [saving, setSaving] = useState(false);
   const [saveOk, setSaveOk] = useState(false);
+  const [openrouterModels, setOpenrouterModels] = useState<OpenRouterModelInfo[]>([]);
+  const [modelsSource, setModelsSource] = useState<"live" | "fallback">("fallback");
 
   useEffect(() => {
     if (!open) return;
@@ -42,7 +56,8 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
     Promise.all([
       fetch("/api/ai/provider").then((r) => r.ok ? r.json() : null),
       fetch("/api/user-config").then((r) => r.ok ? r.json() : null),
-    ]).then(([providerData, configData]) => {
+      fetch("/api/ai/models").then((r) => r.ok ? r.json() : null),
+    ]).then(([providerData, configData, modelsData]) => {
       if (providerData) {
         setOllamaStatus(providerData.ollama);
         // In-memory provider takes precedence; fall back to persisted config
@@ -52,6 +67,10 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
         const m = providerData.current.model || configData?.aiDefaults?.model || DEFAULT_OPENROUTER_MODEL;
         setProvider(p);
         setModel(m);
+      }
+      if (modelsData) {
+        setOpenrouterModels(modelsData.models);
+        setModelsSource(modelsData.source);
       }
     }).catch(() => setOllamaStatus({ available: false, models: [] }));
   }, [open]);
@@ -117,7 +136,7 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
             <h3 className="text-small font-semibold text-ink-2 mb-3">AI Provider</h3>
             <div className="space-y-2">
               {/* OpenRouter */}
-              <SettingsProviderCard selected={provider === "openrouter"} onClick={() => { setProvider("openrouter"); setModel((m) => OPENROUTER_MODELS.some((r) => r.id === m) ? m : DEFAULT_OPENROUTER_MODEL); }}>
+              <SettingsProviderCard selected={provider === "openrouter"} onClick={() => { setProvider("openrouter"); setModel((m) => openrouterModels.some((r) => r.id === m) ? m : DEFAULT_OPENROUTER_MODEL); }}>
                 <span className="text-small font-medium text-ink-1">OpenRouter</span>
                 <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent-soft text-accent">Recommended</span>
               </SettingsProviderCard>
@@ -145,19 +164,23 @@ export function SettingsPanel({ open, onClose, project, onProjectUpdate }: Props
                   </div>
 
                   <div>
-                    <label className="block text-caption font-medium text-ink-2 mb-1">Model</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-caption font-medium text-ink-2">Model</label>
+                      {modelsSource === "fallback" && (
+                        <span className="text-[10px] text-ink-4">default list — save a key to load your models</span>
+                      )}
+                    </div>
                     <select aria-label="AI Model" className="w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent"
                       value={model} onChange={(e) => setModel(e.target.value)}>
-                      <optgroup label="★ Recommended">
-                        {OPENROUTER_MODELS.filter((m) => m.tier === "recommended").map((m) => (
-                          <option key={m.id} value={m.id}>{m.label}</option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="Other capable models">
-                        {OPENROUTER_MODELS.filter((m) => m.tier === "capable").map((m) => (
-                          <option key={m.id} value={m.id}>{m.label}</option>
-                        ))}
-                      </optgroup>
+                      {openrouterModels.length === 0 ? (
+                        <option value={DEFAULT_OPENROUTER_MODEL}>{DEFAULT_OPENROUTER_MODEL}</option>
+                      ) : groupByProvider(openrouterModels).map(([provider, models]) => (
+                        <optgroup key={provider} label={provider}>
+                          {models.map((m) => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                 </div>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProviderConfig, setProviderConfig } from "@/src/state/provider";
 import type { ProviderConfig } from "@/src/state/provider";
-import { OPENROUTER_MODELS } from "@/src/ai/models";
 
 async function detectOllama(): Promise<{ available: boolean; models: string[] }> {
   try {
@@ -24,7 +23,6 @@ export async function GET() {
   return NextResponse.json({
     current: { ...current, apiKey: current.apiKey ? "***" : undefined },
     ollama,
-    openrouterModels: OPENROUTER_MODELS,
   });
 }
 
