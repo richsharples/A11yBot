@@ -36,6 +36,18 @@ function buildAxeMapping(edition: "508" | "INT"): Record<string, string[]> {
   return mapping;
 }
 
+// Belt-and-suspenders: if a scanner hangs (e.g. Chrome fails to exit),
+// reject after this many milliseconds so the route always returns.
+const SCANNER_TIMEOUT_MS = 120_000;
+function withTimeout<T>(p: Promise<T>, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${SCANNER_TIMEOUT_MS / 1000}s`)), SCANNER_TIMEOUT_MS)
+    ),
+  ]);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const project = requireProject();
@@ -54,10 +66,11 @@ export async function POST(req: NextRequest) {
     for (const path of paths) {
       const fullUrl = path.startsWith("http") ? path : `${payload.url.replace(/\/$/, "")}${path}`;
 
-      // Run Lighthouse and axe in parallel — each launches its own headless Chrome instance
+      // Run Lighthouse and axe in parallel — each launches its own headless Chrome instance.
+      // withTimeout guards against either hanging indefinitely if Chrome fails to exit.
       const [lighthouseResult, axeResult] = await Promise.allSettled([
-        runLighthouse(fullUrl, payload.headers),
-        runAxe(fullUrl, payload.headers),
+        withTimeout(runLighthouse(fullUrl, payload.headers), "Lighthouse"),
+        withTimeout(runAxe(fullUrl, payload.headers), "axe"),
       ]);
 
       if (lighthouseResult.status === "fulfilled") {
