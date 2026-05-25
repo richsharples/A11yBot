@@ -126,7 +126,6 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
-  const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
   const [openrouterModels, setOpenrouterModels] = useState<OpenRouterModelInfo[]>([]);
   const [modelsSource, setModelsSource] = useState<"live" | "fallback">("fallback");
 
@@ -139,7 +138,6 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
       .then((r) => r.ok ? r.json() : null)
       .then((cfg: UserConfig | null) => {
         if (!cfg) return;
-        setUserConfig(cfg);
         // Pre-fill contact and AI defaults
         setForm((prev) => ({
           ...prev,
@@ -391,35 +389,6 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
               {step === 1 && (
                 <div className="space-y-5">
                   <h2 className="text-heading font-semibold text-ink-1">Product & Contact</h2>
-
-                  {/* Saved product quick-select */}
-                  {userConfig && userConfig.products.length > 0 && (
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                      <p className="text-xs font-medium text-blue-700 mb-2">Load saved product</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {userConfig.products.map((p, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => setForm((prev) => ({
-                              ...prev,
-                              productName: p.name,
-                              productVersion: p.version || "",
-                              productDescription: p.description || "",
-                              productComponents: p.components.length ? p.components : prev.productComponents,
-                              edition: p.edition || prev.edition,
-                              mode: p.mode || prev.mode,
-                              sourcePath: p.sourcePath || "",
-                              runtimeUrl: p.runtimeUrl || "",
-                            }))}
-                            className="px-3 py-1.5 rounded-md bg-white border border-blue-300 text-sm text-blue-700 hover:bg-blue-100 transition-colors font-medium"
-                          >
-                            {p.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   <Field label="Product Name" required error={fieldError("productName")}>
                     <input aria-label="Product Name" className={inputCls(!!fieldError("productName"))}
