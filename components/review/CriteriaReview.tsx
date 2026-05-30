@@ -36,11 +36,12 @@ interface Props {
   onProjectUpdate: (updates: Partial<Project>) => void;
   onNewProject: () => void;
   onGoToHub: () => void;
+  onOpenMenu: () => void;
   onOpenSettings: () => void;
   onOpenProjectSettings: () => void;
 }
 
-export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onGoToHub, onOpenSettings, onOpenProjectSettings }: Props) {
+export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onGoToHub, onOpenMenu, onOpenSettings, onOpenProjectSettings }: Props) {
   const [criteriaData, setCriteriaData] = useState<CriteriaData | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedCriterion, setSelectedCriterion] = useState<string | null>(null);
@@ -318,7 +319,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   return (
     <div className="min-h-screen flex flex-col">
       {/* Global top banner */}
-      <TopBanner onOpenSettings={onOpenSettings} onLogoClick={onGoToHub} />
+      <TopBanner onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} onLogoClick={onGoToHub} />
 
       {/* Secondary project banner */}
       <header className="bg-surface border-b border-rule px-6 pt-3.5 pb-0 sticky top-0 z-10">

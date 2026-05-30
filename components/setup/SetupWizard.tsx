@@ -22,6 +22,7 @@ function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterMode
 interface Props {
   onCreated: (project: Project) => void;
   onCancel: () => void;
+  onOpenMenu: () => void;
   onOpenSettings: () => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
@@ -110,7 +111,7 @@ const STEP4_FIELDS: FieldKey[] = ["aiApiKey"];
 interface OllamaStatus { available: boolean; models: string[] }
 interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: string }
 
-export function SetupWizard({ onCreated, onCancel, onOpenSettings, loading, setLoading, error, setError }: Props) {
+export function SetupWizard({ onCreated, onCancel, onOpenMenu, onOpenSettings, loading, setLoading, error, setError }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
@@ -297,7 +298,7 @@ export function SetupWizard({ onCreated, onCancel, onOpenSettings, loading, setL
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Global top banner */}
-      <TopBanner onOpenSettings={onOpenSettings} onLogoClick={onCancel} />
+      <TopBanner onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} onLogoClick={onCancel} />
 
       {/* Secondary banner — project context */}
       <div className="bg-surface-2 border-b border-rule px-8 py-3.5 flex items-center justify-between">

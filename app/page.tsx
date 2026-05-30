@@ -5,17 +5,20 @@ import type { Project, CriterionState } from "@/src/types";
 import { SetupWizard } from "@/components/setup";
 import { CriteriaReview } from "@/components/review";
 import { SettingsPanel, GlobalSettings } from "@/components/settings";
-import { ProjectHub } from "@/components/hub";
+import { ProjectHub, GettingStarted, About } from "@/components/hub";
+import { NavDrawer } from "@/components/NavDrawer";
 
 type AppView = "hub" | "setup" | "review";
+type Overlay = "settings" | "gettingStarted" | "about" | null;
 
 export default function Home() {
   const [view, setView] = useState<AppView>("hub");
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [overlay, setOverlay] = useState<Overlay>(null);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
-  const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/projects/active")
@@ -61,14 +64,15 @@ export default function Home() {
     setView("hub");
   }, []);
 
-  const openGlobalSettings = useCallback(() => setGlobalSettingsOpen(true), []);
+  const openMenu = useCallback(() => setDrawerOpen(true), []);
+  const openGlobalSettings = useCallback(() => setOverlay("settings"), []);
 
   return (
     <>
       {view === "hub" && (
         <ProjectHub
           onNewProject={handleNewProject}
-          onProjectLoaded={handleProjectLoaded}
+          onOpenMenu={openMenu}
           onOpenSettings={openGlobalSettings}
         />
       )}
@@ -77,6 +81,7 @@ export default function Home() {
         <SetupWizard
           onCreated={handleProjectCreated}
           onCancel={handleGoToHub}
+          onOpenMenu={openMenu}
           onOpenSettings={openGlobalSettings}
           loading={loading}
           setLoading={setLoading}
@@ -93,6 +98,7 @@ export default function Home() {
             onProjectUpdate={handleProjectUpdate}
             onNewProject={handleGoToHub}
             onGoToHub={() => setView("hub")}
+            onOpenMenu={openMenu}
             onOpenSettings={openGlobalSettings}
             onOpenProjectSettings={() => setProjectSettingsOpen(true)}
           />
@@ -105,10 +111,30 @@ export default function Home() {
         </>
       )}
 
-      {/* Global settings — overlays any screen, reachable from every TopBanner */}
-      {globalSettingsOpen && (
+      {/* Global navigation drawer — opened from any TopBanner hamburger */}
+      <NavDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onNewProject={handleNewProject}
+        onProjectLoaded={handleProjectLoaded}
+        onGettingStarted={() => setOverlay("gettingStarted")}
+        onAbout={() => setOverlay("about")}
+      />
+
+      {/* Global overlays */}
+      {overlay === "settings" && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
-          <GlobalSettings onClose={() => setGlobalSettingsOpen(false)} />
+          <GlobalSettings onClose={() => setOverlay(null)} />
+        </div>
+      )}
+      {overlay === "gettingStarted" && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
+          <GettingStarted onClose={() => setOverlay(null)} />
+        </div>
+      )}
+      {overlay === "about" && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
+          <About onClose={() => setOverlay(null)} />
         </div>
       )}
     </>
