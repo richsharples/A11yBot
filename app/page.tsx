@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Project, CriterionState } from "@/src/types";
 import { SetupWizard } from "@/components/setup";
 import { CriteriaReview } from "@/components/review";
-import { SettingsPanel } from "@/components/settings";
+import { SettingsPanel, GlobalSettings } from "@/components/settings";
 import { ProjectHub } from "@/components/hub";
 
 type AppView = "hub" | "setup" | "review";
@@ -14,7 +14,8 @@ export default function Home() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
+  const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/projects/active")
@@ -60,42 +61,56 @@ export default function Home() {
     setView("hub");
   }, []);
 
-  if (view === "hub") {
-    return (
-      <ProjectHub
-        onNewProject={handleNewProject}
-        onProjectLoaded={handleProjectLoaded}
-      />
-    );
-  }
-
-  if (view === "setup") {
-    return (
-      <SetupWizard
-        onCreated={handleProjectCreated}
-        onCancel={handleGoToHub}
-        loading={loading}
-        setLoading={setLoading}
-        error={error}
-        setError={setError}
-      />
-    );
-  }
-
-  if (!project) return null;
+  const openGlobalSettings = useCallback(() => setGlobalSettingsOpen(true), []);
 
   return (
     <>
-      <CriteriaReview
-        project={project}
-        onCriterionUpdate={handleCriterionUpdate}
-        onProjectUpdate={handleProjectUpdate}
-        onNewProject={handleGoToHub}
-        onGoToHub={() => setView("hub")}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      {view === "hub" && (
+        <ProjectHub
+          onNewProject={handleNewProject}
+          onProjectLoaded={handleProjectLoaded}
+          onOpenSettings={openGlobalSettings}
+        />
+      )}
 
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} project={project} onProjectUpdate={handleProjectUpdate} />
+      {view === "setup" && (
+        <SetupWizard
+          onCreated={handleProjectCreated}
+          onCancel={handleGoToHub}
+          onOpenSettings={openGlobalSettings}
+          loading={loading}
+          setLoading={setLoading}
+          error={error}
+          setError={setError}
+        />
+      )}
+
+      {view === "review" && project && (
+        <>
+          <CriteriaReview
+            project={project}
+            onCriterionUpdate={handleCriterionUpdate}
+            onProjectUpdate={handleProjectUpdate}
+            onNewProject={handleGoToHub}
+            onGoToHub={() => setView("hub")}
+            onOpenSettings={openGlobalSettings}
+            onOpenProjectSettings={() => setProjectSettingsOpen(true)}
+          />
+          <SettingsPanel
+            open={projectSettingsOpen}
+            onClose={() => setProjectSettingsOpen(false)}
+            project={project}
+            onProjectUpdate={handleProjectUpdate}
+          />
+        </>
+      )}
+
+      {/* Global settings — overlays any screen, reachable from every TopBanner */}
+      {globalSettingsOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
+          <GlobalSettings onClose={() => setGlobalSettingsOpen(false)} />
+        </div>
+      )}
     </>
   );
 }

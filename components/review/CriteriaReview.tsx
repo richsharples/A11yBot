@@ -6,8 +6,7 @@ import { StatusEntry, StatusLevel, PushStatus, ResolveStatus, CriteriaData, LEVE
 import { Tooltip } from "./Tooltip";
 import { StatusBar } from "./StatusBar";
 import { CriterionDetail } from "./CriterionDetail";
-import pkg from "../../package.json";
-import { LogoLockup } from "@/components/Logo";
+import { TopBanner } from "@/components/TopBanner";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Badge } from "@/components/ui/Badge";
@@ -38,9 +37,10 @@ interface Props {
   onNewProject: () => void;
   onGoToHub: () => void;
   onOpenSettings: () => void;
+  onOpenProjectSettings: () => void;
 }
 
-export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onGoToHub, onOpenSettings }: Props) {
+export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, onNewProject, onGoToHub, onOpenSettings, onOpenProjectSettings }: Props) {
   const [criteriaData, setCriteriaData] = useState<CriteriaData | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedCriterion, setSelectedCriterion] = useState<string | null>(null);
@@ -317,7 +317,10 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
+      {/* Global top banner */}
+      <TopBanner onOpenSettings={onOpenSettings} onLogoClick={onGoToHub} />
+
+      {/* Secondary project banner */}
       <header className="bg-surface border-b border-rule px-6 pt-3.5 pb-0 sticky top-0 z-10">
         {/* Row 1: identity + progress + actions */}
         <div className="flex items-center justify-between pb-3">
@@ -327,10 +330,6 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                 ← Projects
               </Button>
             </Tooltip>
-            <Tooltip text={`v${pkg.version}`} side="bottom">
-              <span className="cursor-default"><LogoLockup size={48} /></span>
-            </Tooltip>
-            <span className="text-rule">|</span>
             <div>
               <span className="eyebrow">Product</span>
               <span className="ml-1.5 text-small font-medium text-ink-1">{project.productName} {project.productVersion}</span>
@@ -377,10 +376,10 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
                 {exporting ? "Generating…" : "Create report"}
               </Button>
             </Tooltip>
-            <Tooltip text="Settings" side="bottom">
-              <Button variant="secondary" onClick={onOpenSettings} aria-label="Open settings">
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+            <Tooltip text="Project settings — scan paths" side="bottom">
+              <Button variant="secondary" onClick={onOpenProjectSettings} aria-label="Open project settings">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
                 </svg>
               </Button>
             </Tooltip>
