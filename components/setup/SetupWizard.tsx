@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent, UserConfig } from "@/src/types";
-import { LogoLockup } from "@/components/Logo";
+import { TopBanner } from "@/components/TopBanner";
 import { Button } from "@/components/ui/Button";
 import { DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 import type { OpenRouterModelInfo } from "@/app/api/ai/models/route";
@@ -18,11 +18,12 @@ function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterMode
   return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
 }
 
-const APP_VERSION = "0.1.0-beta.8";
 
 interface Props {
   onCreated: (project: Project) => void;
   onCancel: () => void;
+  onOpenMenu: () => void;
+  onOpenSettings: () => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
   error: string | null;
@@ -110,7 +111,7 @@ const STEP4_FIELDS: FieldKey[] = ["aiApiKey"];
 interface OllamaStatus { available: boolean; models: string[] }
 interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: string }
 
-export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, setError }: Props) {
+export function SetupWizard({ onCreated, onCancel, onOpenMenu, onOpenSettings, loading, setLoading, error, setError }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
@@ -296,22 +297,21 @@ export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, s
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      {/* Header — consistent with hub */}
-      <header className="border-b border-rule px-8 py-5 flex items-center justify-between">
-        <LogoLockup size={36} />
-        <span className="px-1.5 py-0.5 rounded-sm bg-surface-3 text-ink-3 font-mono text-caption">
-          v{APP_VERSION}
-        </span>
-      </header>
+      {/* Global top banner */}
+      <TopBanner onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} onLogoClick={onCancel} />
+
+      {/* Secondary banner — project context */}
+      <div className="bg-surface-2 border-b border-rule px-8 py-3.5 flex items-center justify-between">
+        <div>
+          <h1 className="text-heading font-semibold text-ink-1">New Project</h1>
+          <p className="text-caption text-ink-3">Generate a VPAT 2.5 Accessibility Conformance Report</p>
+        </div>
+        <span className="text-small text-ink-3">Step <span className="font-medium text-ink-1">{step}</span> of 4</span>
+      </div>
 
       {/* Form */}
       <main className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-xl">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-semibold text-ink-1">New Project</h1>
-            <p className="mt-1 text-small text-ink-3">Generate a VPAT 2.5 Accessibility Conformance Report</p>
-          </div>
-
           <div className="bg-surface rounded-xl shadow-sm border border-rule p-8">
             {/* Step indicator */}
             <div className="flex items-center gap-3 mb-6">

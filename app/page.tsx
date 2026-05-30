@@ -4,17 +4,22 @@ import { useState, useEffect, useCallback } from "react";
 import type { Project, CriterionState } from "@/src/types";
 import { SetupWizard } from "@/components/setup";
 import { CriteriaReview } from "@/components/review";
-import { SettingsPanel } from "@/components/settings";
-import { ProjectHub } from "@/components/hub";
+import { SettingsPanel, GlobalSettings } from "@/components/settings";
+import { ProjectHub, GettingStarted, About } from "@/components/hub";
+import { NavDrawer } from "@/components/NavDrawer";
 
 type AppView = "hub" | "setup" | "review";
+type Overlay = "gettingStarted" | "about" | null;
 
 export default function Home() {
   const [view, setView] = useState<AppView>("hub");
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [overlay, setOverlay] = useState<Overlay>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/projects/active")
@@ -60,42 +65,76 @@ export default function Home() {
     setView("hub");
   }, []);
 
-  if (view === "hub") {
-    return (
-      <ProjectHub
-        onNewProject={handleNewProject}
-        onProjectLoaded={handleProjectLoaded}
-      />
-    );
-  }
-
-  if (view === "setup") {
-    return (
-      <SetupWizard
-        onCreated={handleProjectCreated}
-        onCancel={handleGoToHub}
-        loading={loading}
-        setLoading={setLoading}
-        error={error}
-        setError={setError}
-      />
-    );
-  }
-
-  if (!project) return null;
+  const openMenu = useCallback(() => setDrawerOpen(true), []);
+  const openGlobalSettings = useCallback(() => setSettingsOpen(true), []);
 
   return (
     <>
-      <CriteriaReview
-        project={project}
-        onCriterionUpdate={handleCriterionUpdate}
-        onProjectUpdate={handleProjectUpdate}
-        onNewProject={handleGoToHub}
-        onGoToHub={() => setView("hub")}
-        onOpenSettings={() => setSettingsOpen(true)}
+      {view === "hub" && (
+        <ProjectHub
+          onOpenMenu={openMenu}
+          onOpenSettings={openGlobalSettings}
+        />
+      )}
+
+      {view === "setup" && (
+        <SetupWizard
+          onCreated={handleProjectCreated}
+          onCancel={handleGoToHub}
+          onOpenMenu={openMenu}
+          onOpenSettings={openGlobalSettings}
+          loading={loading}
+          setLoading={setLoading}
+          error={error}
+          setError={setError}
+        />
+      )}
+
+      {view === "review" && project && (
+        <>
+          <CriteriaReview
+            project={project}
+            onCriterionUpdate={handleCriterionUpdate}
+            onProjectUpdate={handleProjectUpdate}
+            onNewProject={handleGoToHub}
+            onGoToHub={() => setView("hub")}
+            onOpenMenu={openMenu}
+            onOpenSettings={openGlobalSettings}
+            onOpenProjectSettings={() => setProjectSettingsOpen(true)}
+          />
+          <SettingsPanel
+            open={projectSettingsOpen}
+            onClose={() => setProjectSettingsOpen(false)}
+            project={project}
+            onProjectUpdate={handleProjectUpdate}
+          />
+        </>
+      )}
+
+      {/* Global navigation drawer — opened from any TopBanner hamburger */}
+      <NavDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onNewProject={handleNewProject}
+        onProjectLoaded={handleProjectLoaded}
+        onGettingStarted={() => setOverlay("gettingStarted")}
+        onAbout={() => setOverlay("about")}
       />
 
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} project={project} onProjectUpdate={handleProjectUpdate} />
+      {/* Global settings — right slide-in drawer (manages its own overlay) */}
+      {settingsOpen && <GlobalSettings onClose={() => setSettingsOpen(false)} />}
+
+      {/* Full-screen content overlays */}
+      {overlay === "gettingStarted" && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
+          <GettingStarted onClose={() => setOverlay(null)} onOpenMenu={openMenu} onOpenSettings={openGlobalSettings} />
+        </div>
+      )}
+      {overlay === "about" && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
+          <About onClose={() => setOverlay(null)} onOpenMenu={openMenu} onOpenSettings={openGlobalSettings} />
+        </div>
+      )}
     </>
   );
 }
