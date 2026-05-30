@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { CriterionState, ConformanceLevel } from "@/src/types";
 import { LEVEL_LABELS, LEVEL_COLORS, PushStatus, ResolveStatus, getEvidenceSignal } from "./types";
 import { Tooltip } from "./Tooltip";
@@ -32,6 +32,7 @@ export function CriterionDetail({
   const [saving, setSaving] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const draftAbortRef = useRef<AbortController | null>(null);
 
   // Sync when criterion changes
   useEffect(() => {
@@ -112,28 +113,40 @@ export function CriterionDetail({
         body: JSON.stringify({ criterionId, answer }),
       });
       setDrafting(true);
+      const controller = new AbortController();
+      draftAbortRef.current = controller;
       const sid = onStatus("running", `AI drafting ${criterionDef.ref}…`);
-      const draftRes = await fetch("/api/ai/draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ criterionId }),
-      });
-      if (draftRes.ok) {
-        const updated = await draftRes.json() as CriterionState & { reasoning?: string };
-        setLevel(updated.level);
-        setRemark(updated.remark);
-        onUpdate(criterionId, updated);
-        onResolveStatus(sid, "info", `AI draft complete for ${criterionDef.ref}.`);
-      } else {
-        const body = await draftRes.json().catch(() => ({}));
-        const msg = body.error ?? "AI draft failed";
-        onResolveStatus(sid, "error", `${criterionDef.ref}: ${msg}`);
+      try {
+        const draftRes = await fetch("/api/ai/draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ criterionId }),
+          signal: controller.signal,
+        });
+        if (draftRes.ok) {
+          const updated = await draftRes.json() as CriterionState & { reasoning?: string };
+          setLevel(updated.level);
+          setRemark(updated.remark);
+          onUpdate(criterionId, updated);
+          onResolveStatus(sid, "info", `AI draft complete for ${criterionDef.ref}.`);
+        } else {
+          const body = await draftRes.json().catch(() => ({}));
+          const msg = body.error ?? "AI draft failed";
+          onResolveStatus(sid, "error", `${criterionDef.ref}: ${msg}`);
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          onResolveStatus(sid, "warn", `AI drafting stopped for ${criterionDef.ref}.`);
+        } else {
+          throw err;
+        }
       }
       setAnswer("");
     } catch (err) {
       setError(String(err));
       onStatus("error", `${criterionDef.ref}: ${err}`);
     } finally {
+      draftAbortRef.current = null;
       setSaving(false);
       setDrafting(false);
     }
@@ -165,12 +178,15 @@ export function CriterionDetail({
   const draftOnly = async () => {
     setDrafting(true);
     setError(null);
+    const controller = new AbortController();
+    draftAbortRef.current = controller;
     const sid = onStatus("running", `AI drafting ${criterionDef.ref}…`);
     try {
       const res = await fetch("/api/ai/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ criterionId }),
+        signal: controller.signal,
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -182,11 +198,20 @@ export function CriterionDetail({
       onUpdate(criterionId, updated);
       onResolveStatus(sid, "info", `AI draft complete for ${criterionDef.ref}.`);
     } catch (err) {
-      setError(String(err));
-      onResolveStatus(sid, "error", `${criterionDef.ref}: ${err}`);
+      if (err instanceof DOMException && err.name === "AbortError") {
+        onResolveStatus(sid, "warn", `AI drafting stopped for ${criterionDef.ref}.`);
+      } else {
+        setError(String(err));
+        onResolveStatus(sid, "error", `${criterionDef.ref}: ${err}`);
+      }
     } finally {
+      draftAbortRef.current = null;
       setDrafting(false);
     }
+  };
+
+  const stopDraft = () => {
+    draftAbortRef.current?.abort();
   };
 
   return (
@@ -218,11 +243,15 @@ export function CriterionDetail({
               <Banner
                 variant="issue"
                 action={cs.level === "notEvaluated" ? (
-                  <Tooltip text="Ask A11yBot to assess this criterion using the scanner findings">
-                    <Button variant="secondary" size="sm" onClick={draftOnly} disabled={drafting}>
-                      {drafting ? "Drafting…" : "AI Draft"}
-                    </Button>
-                  </Tooltip>
+                  drafting ? (
+                    <Tooltip text="Stop AI drafting">
+                      <Button variant="danger" size="sm" onClick={stopDraft}>Stop</Button>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip text="Ask A11yBot to assess this criterion using the scanner findings">
+                      <Button variant="secondary" size="sm" onClick={draftOnly}>AI Draft</Button>
+                    </Tooltip>
+                  )
                 ) : undefined}
               >
                 <strong>{sig.scannerCount} accessibility issue{sig.scannerCount !== 1 ? "s" : ""} detected</strong>
@@ -302,11 +331,17 @@ export function CriterionDetail({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Tooltip text="Save your answer as evidence, then ask A11yBot to draft a conformance assessment">
-                  <Button variant="primary" onClick={submitAnswer} disabled={!answer.trim() || saving || drafting}>
-                    {drafting ? "Drafting…" : "Answer + AI draft"}
-                  </Button>
-                </Tooltip>
+                {drafting ? (
+                  <Tooltip text="Stop AI drafting">
+                    <Button variant="danger" onClick={stopDraft}>Stop drafting</Button>
+                  </Tooltip>
+                ) : (
+                  <Tooltip text="Save your answer as evidence, then ask A11yBot to draft a conformance assessment">
+                    <Button variant="primary" onClick={submitAnswer} disabled={!answer.trim() || saving}>
+                      {saving ? "Saving…" : "Answer + AI draft"}
+                    </Button>
+                  </Tooltip>
+                )}
                 <Tooltip text="Mark this criterion as Not Applicable and save immediately">
                   <Button variant="secondary" onClick={async () => {
                     setSaving(true);
@@ -395,11 +430,15 @@ export function CriterionDetail({
               </Button>
             </Tooltip>
           )}
-          <Tooltip text="Ask A11yBot to draft a conformance assessment from all available evidence">
-            <Button variant="secondary" onClick={draftOnly} disabled={drafting}>
-              {drafting ? "Drafting…" : "AI draft"}
-            </Button>
-          </Tooltip>
+          {drafting ? (
+            <Tooltip text="Stop AI drafting">
+              <Button variant="danger" onClick={stopDraft}>Stop drafting</Button>
+            </Tooltip>
+          ) : (
+            <Tooltip text="Ask A11yBot to draft a conformance assessment from all available evidence">
+              <Button variant="secondary" onClick={draftOnly}>AI draft</Button>
+            </Tooltip>
+          )}
           {cs?.level !== "notEvaluated" && (
             <Tooltip text="Clear the current assessment and return this criterion to unevaluated" className="ml-auto">
               <Button variant="danger" onClick={resetCriterion} disabled={saving}>

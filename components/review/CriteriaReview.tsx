@@ -49,6 +49,9 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
   const [draftingAll, setDraftingAll] = useState(false);
   const [draftCount, setDraftCount] = useState(0);
   const [draftTotal, setDraftTotal] = useState(0);
+  const [stoppingDraft, setStoppingDraft] = useState(false);
+  const draftAbortRef = useRef<AbortController | null>(null);
+  const stopDraftRef = useRef(false);
   const [exporting, setExporting] = useState(false);
   const [statusLog, setStatusLog] = useState<StatusEntry[]>([]);
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
@@ -167,6 +170,10 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     setDraftingAll(true);
     setDraftCount(0);
     setDraftTotal(toDraft.length);
+    stopDraftRef.current = false;
+    setStoppingDraft(false);
+    const abortController = new AbortController();
+    draftAbortRef.current = abortController;
     pushStatus("running", `AI drafting ${toDraft.length} criteria…`);
 
     // Build a ref lookup for friendly log messages
@@ -184,7 +191,9 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
     const isLocal = providerRes?.current?.provider === "ollama";
     const BATCH = isLocal ? 1 : 5;
 
+    let stopped = false;
     for (let i = 0; i < toDraft.length; i += BATCH) {
+      if (stopDraftRef.current) { stopped = true; break; }
       const batch = toDraft.slice(i, i + BATCH);
       await Promise.all(batch.map(async (criterionId) => {
         const t0 = Date.now();
@@ -193,6 +202,7 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ criterionId }),
+            signal: abortController.signal,
           });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "failed");
           const cs = await res.json() as CriterionState;
@@ -205,6 +215,8 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
           const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
           pushStatus("info", `${refById[criterionId] ?? criterionId} — ${cs.level} (${elapsed}s)`);
         } catch (err) {
+          // Aborted requests aren't failures — they were intentionally stopped
+          if (err instanceof DOMException && err.name === "AbortError") return;
           failed++;
           completed++;
           setDraftCount(completed);
@@ -214,13 +226,28 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
       }));
     }
 
-    const withLevel = (toDraft.length - failed) - completedAsNotEval;
-    pushStatus(failed > 0 ? "warn" : "info",
-      `AI draft complete — ${withLevel} assessed with a conformance level${completedAsNotEval > 0 ? `, ${completedAsNotEval} need scan or interview evidence before AI can assess` : ""}${failed > 0 ? `, ${failed} failed — click "AI draft all" to retry` : ""}.`);
+    if (stopped) {
+      const remaining = toDraft.length - completed;
+      pushStatus("warn", `AI drafting stopped — ${completed} drafted, ${remaining} skipped. Click "AI draft all" to resume.`);
+    } else {
+      const withLevel = (toDraft.length - failed) - completedAsNotEval;
+      pushStatus(failed > 0 ? "warn" : "info",
+        `AI draft complete — ${withLevel} assessed with a conformance level${completedAsNotEval > 0 ? `, ${completedAsNotEval} need scan or interview evidence before AI can assess` : ""}${failed > 0 ? `, ${failed} failed — click "AI draft all" to retry` : ""}.`);
+    }
+    draftAbortRef.current = null;
+    stopDraftRef.current = false;
+    setStoppingDraft(false);
     setDraftingAll(false);
     setDraftCount(0);
     setDraftTotal(0);
   }, [criteriaData, project.criteria, onCriterionUpdate, pushStatus]);
+
+  const stopDraftAll = useCallback(() => {
+    stopDraftRef.current = true;
+    setStoppingDraft(true);
+    draftAbortRef.current?.abort();
+    pushStatus("warn", "Stopping AI drafting…");
+  }, [pushStatus]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -376,11 +403,19 @@ export function CriteriaReview({ project, onCriterionUpdate, onProjectUpdate, on
               </Button>
             </Tooltip>
           ) : null}
-          <Tooltip text="Send all unevaluated criteria to A11yBot for automated AI assessment" side="bottom">
-            <Button variant="secondary" onClick={draftAll} disabled={draftingAll || scanningSource || scanningRuntime}>
-              {draftingAll ? `Drafting… ${draftCount}/${draftTotal}` : `AI draft all (${Object.values(project.criteria).filter((c) => c.level === "notEvaluated" && c.confidence !== "ai-attempted").length} remaining)`}
-            </Button>
-          </Tooltip>
+          {draftingAll ? (
+            <Tooltip text="Stop drafting — cancels in-flight requests immediately" side="bottom">
+              <Button variant="danger" onClick={stopDraftAll} disabled={stoppingDraft}>
+                {stoppingDraft ? `Stopping… ${draftCount}/${draftTotal}` : `Stop drafting ${draftCount}/${draftTotal}`}
+              </Button>
+            </Tooltip>
+          ) : (
+            <Tooltip text="Send all unevaluated criteria to A11yBot for automated AI assessment" side="bottom">
+              <Button variant="secondary" onClick={draftAll} disabled={scanningSource || scanningRuntime}>
+                {`AI draft all (${Object.values(project.criteria).filter((c) => c.level === "notEvaluated" && c.confidence !== "ai-attempted").length} remaining)`}
+              </Button>
+            </Tooltip>
+          )}
           <div className="ml-auto">
             <Tooltip text="Discard this session and start a new VPAT project" side="bottom">
               <Button variant="ghost" onClick={() => setConfirmNewProject(true)} className="text-ink-4 hover:text-issue">
