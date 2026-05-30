@@ -9,7 +9,7 @@ import { ProjectHub, GettingStarted, About } from "@/components/hub";
 import { NavDrawer } from "@/components/NavDrawer";
 
 type AppView = "hub" | "setup" | "review";
-type Overlay = "settings" | "gettingStarted" | "about" | null;
+type Overlay = "gettingStarted" | "about" | null;
 
 export default function Home() {
   const [view, setView] = useState<AppView>("hub");
@@ -18,6 +18,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -65,13 +66,12 @@ export default function Home() {
   }, []);
 
   const openMenu = useCallback(() => setDrawerOpen(true), []);
-  const openGlobalSettings = useCallback(() => setOverlay("settings"), []);
+  const openGlobalSettings = useCallback(() => setSettingsOpen(true), []);
 
   return (
     <>
       {view === "hub" && (
         <ProjectHub
-          onNewProject={handleNewProject}
           onOpenMenu={openMenu}
           onOpenSettings={openGlobalSettings}
         />
@@ -121,20 +121,18 @@ export default function Home() {
         onAbout={() => setOverlay("about")}
       />
 
-      {/* Global overlays */}
-      {overlay === "settings" && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
-          <GlobalSettings onClose={() => setOverlay(null)} />
-        </div>
-      )}
+      {/* Global settings — right slide-in drawer (manages its own overlay) */}
+      {settingsOpen && <GlobalSettings onClose={() => setSettingsOpen(false)} />}
+
+      {/* Full-screen content overlays */}
       {overlay === "gettingStarted" && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
-          <GettingStarted onClose={() => setOverlay(null)} />
+          <GettingStarted onClose={() => setOverlay(null)} onOpenMenu={openMenu} onOpenSettings={openGlobalSettings} />
         </div>
       )}
       {overlay === "about" && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-surface">
-          <About onClose={() => setOverlay(null)} />
+          <About onClose={() => setOverlay(null)} onOpenMenu={openMenu} onOpenSettings={openGlobalSettings} />
         </div>
       )}
     </>

@@ -5,11 +5,17 @@ import { TopBanner } from "@/components/TopBanner";
 
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
 
+interface Props {
+  onClose: () => void;
+  onOpenMenu: () => void;
+  onOpenSettings: () => void;
+}
+
 /** Getting Started guide — full-screen overlay reachable from the nav drawer. */
-export function GettingStarted({ onClose }: { onClose: () => void }) {
+export function GettingStarted({ onClose, onOpenMenu, onOpenSettings }: Props) {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <TopBanner />
+      <TopBanner onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} onLogoClick={onClose} />
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto w-full px-8 py-10 space-y-6">

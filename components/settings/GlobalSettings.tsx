@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
-import { TopBanner } from "@/components/TopBanner";
 import { useTheme } from "@/components/useTheme";
 import { DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 import type { OpenRouterModelInfo } from "@/app/api/ai/models/route";
@@ -23,9 +22,10 @@ function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterMode
 }
 
 /**
- * Global settings — full-screen overlay reachable from the TopBanner on any
- * screen. Covers company/contact identity, AI provider, and appearance, all of
- * which are global (persisted to ~/.a11ybot/config.json), not per-project.
+ * Global settings — right slide-in drawer reachable from the TopBanner gear on
+ * any screen (consistent with the left nav drawer). Covers company/contact
+ * identity, AI provider, and appearance, all global (persisted to
+ * ~/.a11ybot/config.json), not per-project.
  */
 export function GlobalSettings({ onClose }: { onClose: () => void }) {
   const { theme, setTheme } = useTheme();
@@ -133,28 +133,32 @@ export function GlobalSettings({ onClose }: { onClose: () => void }) {
   const inputCls = "w-full rounded border border-rule px-3 py-2 text-small bg-surface text-ink-1 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent";
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <TopBanner />
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} aria-hidden="true" />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto w-full px-8 py-10 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-ink-1">Settings</h2>
-            <Button variant="ghost" onClick={onClose} className="text-ink-3 hover:text-ink-1">
-              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </Button>
-          </div>
+      {/* Right drawer */}
+      <aside
+        className="fixed right-0 top-0 h-full w-[28rem] max-w-[90vw] bg-surface shadow-xl z-50 flex flex-col"
+        role="dialog"
+        aria-label="Settings"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-rule shrink-0">
+          <h2 className="text-heading font-semibold text-ink-1">Settings</h2>
+          <button type="button" onClick={onClose} aria-label="Close settings"
+            className="p-1.5 rounded-md text-ink-3 hover:text-ink-1 hover:bg-surface-2 transition-colors">
+            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" /></svg>
+          </button>
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
           {/* Company & contact */}
           <section className="space-y-4">
             <div>
               <h3 className="text-heading font-semibold text-ink-1">Company &amp; Contact</h3>
               <p className="text-caption text-ink-3 mt-0.5">Used on the VPAT report and pre-filled on every new project.</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-1">
                 <label className="block text-small font-medium text-ink-2">Company name</label>
                 <input className={inputCls} value={companyName}
@@ -311,8 +315,8 @@ export function GlobalSettings({ onClose }: { onClose: () => void }) {
             </div>
           </section>
         </div>
-      </main>
-    </div>
+      </aside>
+    </>
   );
 }
 

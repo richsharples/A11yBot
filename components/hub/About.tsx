@@ -17,8 +17,14 @@ interface CriteriaStatus {
   manifest: { criteriaVersion: string; releasedAt: string; notes: string; sources: CriteriaSource[] };
 }
 
+interface Props {
+  onClose: () => void;
+  onOpenMenu: () => void;
+  onOpenSettings: () => void;
+}
+
 /** About page — full-screen overlay reachable from the nav drawer. */
-export function About({ onClose }: { onClose: () => void }) {
+export function About({ onClose, onOpenMenu, onOpenSettings }: Props) {
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export function About({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <TopBanner />
+      <TopBanner onOpenMenu={onOpenMenu} onOpenSettings={onOpenSettings} onLogoClick={onClose} />
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto w-full px-8 py-10 space-y-6">
