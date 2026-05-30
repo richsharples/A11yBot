@@ -9,6 +9,16 @@ import type { Project } from "@/src/types";
 const APP_VERSION = "0.1.0-beta.8";
 const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
 
+interface CriteriaSource {
+  name: string;
+  abbr?: string;
+  url: string;
+  editions: string[];
+}
+interface CriteriaStatus {
+  manifest: { criteriaVersion: string; releasedAt: string; notes: string; sources: CriteriaSource[] };
+}
+
 interface Props {
   onNewProject: () => void;
   onProjectLoaded: (project: Project) => void;
@@ -36,14 +46,17 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
   const [confirm, setConfirm] = useState<{ entry: ProjectIndexEntry } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ entry: ProjectIndexEntry } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/projects").then((r) => r.ok ? r.json() : []),
       fetch("/api/projects/active").then((r) => r.ok ? r.json() : null),
-    ]).then(([list, active]) => {
+      fetch("/api/criteria-status").then((r) => r.ok ? r.json() : null),
+    ]).then(([list, active, criteria]) => {
       setProjects(list);
       setActiveId(active?.id ?? null);
+      if (criteria) setCriteriaStatus(criteria);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -335,6 +348,39 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                   </dd>
                 </div>
               </dl>
+
+              {/* Compliance standards */}
+              <div className="pt-4 border-t border-rule space-y-3">
+                <p className="text-small font-medium text-ink-2">Supported Compliance Standards</p>
+                {criteriaStatus ? (
+                  <>
+                    <p className="text-caption text-ink-4 font-mono">
+                      Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
+                    </p>
+                    <ul className="space-y-2">
+                      {criteriaStatus.manifest.sources.map((s) => (
+                        <li key={s.url} className="flex items-start gap-2">
+                          <span className="mt-0.5 shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-3 text-ink-3 border border-rule">
+                            {s.abbr ?? s.name.split(" ")[0]}
+                          </span>
+                          <a href={s.url} target="_blank" rel="noopener noreferrer"
+                            className="text-small text-ink-2 hover:text-accent underline underline-offset-2 decoration-rule hover:decoration-accent transition-colors leading-snug">
+                            {s.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    {criteriaStatus.manifest.notes && (
+                      <p className="text-caption text-warn bg-warn-bg border border-warn-rule rounded-md px-3 py-2">
+                        {criteriaStatus.manifest.notes}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-small text-ink-4">Loading…</p>
+                )}
+              </div>
+
               <p className="text-caption text-ink-4 pt-4 border-t border-rule">
                 &copy; {new Date().getFullYear()} Rich Sharples. All rights reserved.
               </p>
