@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import type { Project, Edition, InputMode, ProductComponent, UserConfig } from "@/src/types";
 import { LogoLockup } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { DEFAULT_OPENROUTER_MODEL } from "@/src/ai/models";
 import type { OpenRouterModelInfo } from "@/app/api/ai/models/route";
 
@@ -20,17 +19,6 @@ function groupByProvider(models: OpenRouterModelInfo[]): [string, OpenRouterMode
 }
 
 const APP_VERSION = "0.1.0-beta.8";
-const GITHUB_ISSUES_URL = "https://github.com/richsharples/a11ybot/issues";
-
-interface CriteriaSource {
-  name: string;
-  abbr?: string;
-  url: string;
-  editions: string[];
-}
-interface CriteriaStatus {
-  manifest: { criteriaVersion: string; releasedAt: string; notes: string; sources: CriteriaSource[] };
-}
 
 interface Props {
   onCreated: (project: Project) => void;
@@ -124,17 +112,12 @@ interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: st
 
 export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, setError }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
   const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
   const [openrouterModels, setOpenrouterModels] = useState<OpenRouterModelInfo[]>([]);
   const [modelsSource, setModelsSource] = useState<"live" | "fallback">("fallback");
 
   useEffect(() => {
-    fetch("/api/criteria-status")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d) setCriteriaStatus(d); })
-      .catch(() => {});
     fetch("/api/user-config")
       .then((r) => r.ok ? r.json() : null)
       .then((cfg: UserConfig | null) => {
@@ -312,83 +295,23 @@ export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, s
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left rail — professional paper surface */}
-      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col h-screen sticky top-0 bg-surface-2 p-8 shrink-0 border-r border-rule">
-        {/* Logo */}
-        <div className="mb-6">
-          <LogoLockup size={48} />
-        </div>
+    <div className="min-h-screen bg-surface flex flex-col">
+      {/* Header — consistent with hub */}
+      <header className="border-b border-rule px-8 py-5 flex items-center justify-between">
+        <LogoLockup size={36} />
+        <span className="px-1.5 py-0.5 rounded-sm bg-surface-3 text-ink-3 font-mono text-caption">
+          v{APP_VERSION}
+        </span>
+      </header>
 
-        <div className="mb-6">
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="px-1.5 py-0.5 rounded-sm bg-surface-3 text-ink-3 font-mono text-caption">
-              v{APP_VERSION}
-            </span>
-          </div>
-          <p className="text-small text-ink-3 leading-relaxed">
-            Generate VPAT 2.5 Accessibility Conformance Reports — interview, scanning, and AI-assisted drafting.
-          </p>
-        </div>
-
-        <div className="flex-1 flex flex-col min-h-0">
-          <p className="eyebrow mb-3 shrink-0">Compliance Standards</p>
-          <div className="flex-1 overflow-y-auto space-y-3">
-            {criteriaStatus ? (
-              <>
-                <p className="text-caption text-ink-4 font-mono">
-                  Criteria set v{criteriaStatus.manifest.criteriaVersion} · {criteriaStatus.manifest.releasedAt}
-                </p>
-                <ul className="space-y-2.5">
-                  {criteriaStatus.manifest.sources.map((s) => (
-                    <li key={s.url} className="flex items-start gap-2">
-                      <Badge variant="neutral" className="mt-0.5 shrink-0">{s.abbr ?? s.name.split(" ")[0]}</Badge>
-                      <a href={s.url} target="_blank" rel="noopener noreferrer"
-                        className="text-small text-ink-2 hover:text-accent underline underline-offset-2 decoration-rule hover:decoration-accent transition-colors leading-snug">
-                        {s.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                {criteriaStatus.manifest.notes && (
-                  <p className="mt-3 pt-3 border-t border-rule text-caption text-warn bg-warn-bg border border-warn-rule rounded-md px-3 py-2">
-                    {criteriaStatus.manifest.notes}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-small text-ink-4">Loading…</p>
-            )}
-          </div>
-        </div>
-
-        <footer className="mt-8 space-y-2">
-          <p className="text-caption text-ink-4">
-            &copy; {new Date().getFullYear()}{" "}
-            <a href="mailto:rich.sharples@gmail.com" className="hover:text-ink-2 underline underline-offset-2 transition-colors">
-              Rich Sharples
-            </a>
-          </p>
-          <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-caption text-ink-4 hover:text-ink-2 transition-colors">
-            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-            </svg>
-            Report an issue on GitHub
-          </a>
-        </footer>
-      </div>
-
-      {/* Right panel — form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface overflow-y-auto">
-        <div className="lg:hidden mb-6 text-center">
-          <div className="flex items-baseline justify-center gap-2">
-            <LogoLockup size={24} />
-          </div>
-          <p className="mt-1 text-small text-ink-3">Generate a VPAT 2.5 Accessibility Conformance Report</p>
-        </div>
-
+      {/* Form */}
+      <main className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-xl">
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-semibold text-ink-1">New Project</h1>
+            <p className="mt-1 text-small text-ink-3">Generate a VPAT 2.5 Accessibility Conformance Report</p>
+          </div>
+
           <div className="bg-surface rounded-xl shadow-sm border border-rule p-8">
             {/* Step indicator */}
             <div className="flex items-center gap-3 mb-6">
@@ -688,7 +611,7 @@ export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, s
             </form>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Cancel confirmation dialog */}
       {confirmCancel && (
