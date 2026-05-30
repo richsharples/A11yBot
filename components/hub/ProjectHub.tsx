@@ -478,7 +478,9 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
 function GlobalSettingsView({ onBack }: { onBack: () => void }) {
   const { theme, setTheme } = useTheme();
 
-  // Contact
+  // Company & contact
+  const [companyName, setCompanyName] = useState("");
+  const [companyUrl, setCompanyUrl] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactSaved, setContactSaved] = useState(false);
@@ -512,6 +514,10 @@ function GlobalSettingsView({ onBack }: { onBack: () => void }) {
         setContactName(cfg.contact.name ?? "");
         setContactEmail(cfg.contact.email ?? "");
       }
+      if (cfg?.company) {
+        setCompanyName(cfg.company.name ?? "");
+        setCompanyUrl(cfg.company.url ?? "");
+      }
       if (providerData) {
         setOllamaStatus(providerData.ollama);
         const p = providerData.current.provider !== "none"
@@ -529,7 +535,10 @@ function GlobalSettingsView({ onBack }: { onBack: () => void }) {
     await fetch("/api/user-config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contact: { name: contactName, email: contactEmail } }),
+      body: JSON.stringify({
+        company: { name: companyName, url: companyUrl },
+        contact: { name: contactName, email: contactEmail },
+      }),
     });
     setContactSaved(true);
   };
@@ -576,28 +585,40 @@ function GlobalSettingsView({ onBack }: { onBack: () => void }) {
       <BackButton onClick={onBack} />
       <h2 className="text-2xl font-semibold text-ink-1">Settings</h2>
 
-      {/* Contact */}
+      {/* Company & contact */}
       <section className="space-y-4">
         <div>
-          <h3 className="text-heading font-semibold text-ink-1">Contact Details</h3>
-          <p className="text-caption text-ink-3 mt-0.5">Pre-filled on every new project's VPAT cover page.</p>
+          <h3 className="text-heading font-semibold text-ink-1">Company &amp; Contact</h3>
+          <p className="text-caption text-ink-3 mt-0.5">Used on the VPAT report and pre-filled on every new project.</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-small font-medium text-ink-2">Name</label>
+            <label className="block text-small font-medium text-ink-2">Company name</label>
+            <input className={inputCls} value={companyName}
+              onChange={(e) => { setCompanyName(e.target.value); setContactSaved(false); }}
+              placeholder="Acme Corporation" />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-small font-medium text-ink-2">Company website</label>
+            <input className={inputCls} type="url" value={companyUrl}
+              onChange={(e) => { setCompanyUrl(e.target.value); setContactSaved(false); }}
+              placeholder="https://acme.com" />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-small font-medium text-ink-2">Contact name</label>
             <input className={inputCls} value={contactName}
               onChange={(e) => { setContactName(e.target.value); setContactSaved(false); }}
               placeholder="Jane Smith" />
           </div>
           <div className="space-y-1">
-            <label className="block text-small font-medium text-ink-2">Email</label>
+            <label className="block text-small font-medium text-ink-2">Contact email</label>
             <input className={inputCls} type="email" value={contactEmail}
               onChange={(e) => { setContactEmail(e.target.value); setContactSaved(false); }}
               placeholder="jane@example.com" />
           </div>
         </div>
         <Button variant="secondary" onClick={handleSaveContact} disabled={contactSaved}>
-          {contactSaved ? "✓ Saved" : "Save contact"}
+          {contactSaved ? "✓ Saved" : "Save details"}
         </Button>
       </section>
 
