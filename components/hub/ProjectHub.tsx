@@ -14,7 +14,7 @@ interface Props {
   onProjectLoaded: (project: Project) => void;
 }
 
-type ActiveCard = "open" | "guide" | "about" | null;
+type HubView = "home" | "open" | "guide" | "about";
 
 function relativeTime(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -32,7 +32,7 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [activeCard, setActiveCard] = useState<ActiveCard>(null);
+  const [view, setView] = useState<HubView>("home");
   const [confirm, setConfirm] = useState<{ entry: ProjectIndexEntry } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ entry: ProjectIndexEntry } | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -106,9 +106,6 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
     }
   };
 
-  const toggleCard = (card: ActiveCard) =>
-    setActiveCard((prev) => (prev === card ? null : card));
-
   const activeEntry = projects.find((p) => p.id === activeId);
   const hasProjects = projects.length > 0;
 
@@ -124,73 +121,72 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 py-16">
         <div className="w-full max-w-2xl">
-          <div className="text-center mb-10">
-            <h1 className="text-2xl font-semibold text-ink-1 mb-2">Welcome to A11yBot</h1>
-            <p className="text-small text-ink-3">
-              Generate VPAT 2.5 Accessibility Conformance Reports with AI-assisted drafting.
-            </p>
-          </div>
 
-          {/* 2×2 card grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* New Project */}
-            <HomeCard
-              icon={
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              }
-              title="New Project"
-              description="Start a new VPAT assessment for a product."
-              onClick={handleNewProject}
-              accent
-            />
+          {/* ── Home: 2×2 grid ── */}
+          {view === "home" && (
+            <>
+              <div className="text-center mb-10">
+                <h1 className="text-2xl font-semibold text-ink-1 mb-2">Welcome to A11yBot</h1>
+                <p className="text-small text-ink-3">
+                  Generate VPAT 2.5 Accessibility Conformance Reports with AI-assisted drafting.
+                </p>
+              </div>
 
-            {/* Open Existing */}
-            <HomeCard
-              icon={
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-                </svg>
-              }
-              title="Open Existing"
-              description={hasProjects ? `${projects.length} saved project${projects.length !== 1 ? "s" : ""}` : "No saved projects yet"}
-              onClick={() => hasProjects && toggleCard("open")}
-              active={activeCard === "open"}
-              disabled={!hasProjects}
-            />
+              <div className="grid grid-cols-2 gap-4">
+                <HomeCard
+                  icon={
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  }
+                  title="New Project"
+                  description="Start a new VPAT assessment for a product."
+                  onClick={handleNewProject}
+                  accent
+                />
 
-            {/* Getting Started */}
-            <HomeCard
-              icon={
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              }
-              title="Getting Started"
-              description="Learn how to create and export a VPAT report."
-              onClick={() => toggleCard("guide")}
-              active={activeCard === "guide"}
-            />
+                <HomeCard
+                  icon={
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                    </svg>
+                  }
+                  title="Open Existing"
+                  description={hasProjects ? `${projects.length} saved project${projects.length !== 1 ? "s" : ""}` : "No saved projects yet"}
+                  onClick={() => hasProjects && setView("open")}
+                  disabled={!hasProjects}
+                />
 
-            {/* About */}
-            <HomeCard
-              icon={
-                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-              title="About"
-              description="Version info, credits, and support links."
-              onClick={() => toggleCard("about")}
-              active={activeCard === "about"}
-            />
-          </div>
+                <HomeCard
+                  icon={
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  }
+                  title="Getting Started"
+                  description="Learn how to create and export a VPAT report."
+                  onClick={() => setView("guide")}
+                />
 
-          {/* Expandable panels */}
-          {activeCard === "open" && (
-            <div className="mt-6 bg-surface-2 rounded-xl border border-rule p-6">
-              <h2 className="text-heading font-semibold text-ink-1 mb-4">Saved Projects</h2>
+                <HomeCard
+                  icon={
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                  title="About"
+                  description="Version info, credits, and support links."
+                  onClick={() => setView("about")}
+                />
+              </div>
+            </>
+          )}
+
+          {/* ── Open Existing ── */}
+          {view === "open" && (
+            <div className="space-y-6">
+              <BackButton onClick={() => setView("home")} />
+              <h2 className="text-2xl font-semibold text-ink-1">Saved Projects</h2>
               {loading ? (
                 <p className="text-small text-ink-4">Loading…</p>
               ) : (
@@ -258,11 +254,13 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
             </div>
           )}
 
-          {activeCard === "guide" && (
-            <div className="mt-6 bg-surface-2 rounded-xl border border-rule p-6 space-y-5">
-              <h2 className="text-heading font-semibold text-ink-1">Getting Started</h2>
+          {/* ── Getting Started ── */}
+          {view === "guide" && (
+            <div className="space-y-6">
+              <BackButton onClick={() => setView("home")} />
+              <h2 className="text-2xl font-semibold text-ink-1">Getting Started</h2>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <Step n={1} title="Create a project">
                   Click <strong>New Project</strong> and fill in your product name, version, contact details, and choose
                   which component types your product includes (web, desktop, docs, etc.). This determines which
@@ -284,32 +282,34 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                   Does Not Support, N/A) and remark. Confirm or edit each one — confirmed criteria are marked in green.
                 </Step>
                 <Step n={5} title="Export the VPAT">
-                  Click <strong>Export</strong> to generate a <code className="font-mono text-xs bg-surface-3 px-1 rounded">.docx</code> file
-                  formatted to the VPAT 2.5 template. Unconfirmed criteria are included as "Not Evaluated" so you can
-                  always export a draft mid-way through.
+                  Click <strong>Export</strong> to generate a{" "}
+                  <code className="font-mono text-xs bg-surface-3 px-1 rounded">.docx</code> file formatted to the
+                  VPAT 2.5 template. Unconfirmed criteria are included as "Not Evaluated" so you can always export a
+                  draft mid-way through.
                 </Step>
               </div>
 
-              <p className="text-caption text-ink-4 pt-2 border-t border-rule">
+              <p className="text-caption text-ink-4 pt-4 border-t border-rule">
                 Questions or issues?{" "}
-                <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer"
-                  className="text-accent hover:underline">
+                <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                   Open a GitHub issue →
                 </a>
               </p>
             </div>
           )}
 
-          {activeCard === "about" && (
-            <div className="mt-6 bg-surface-2 rounded-xl border border-rule p-6 space-y-4">
-              <h2 className="text-heading font-semibold text-ink-1">About A11yBot</h2>
+          {/* ── About ── */}
+          {view === "about" && (
+            <div className="space-y-6">
+              <BackButton onClick={() => setView("home")} />
+              <h2 className="text-2xl font-semibold text-ink-1">About A11yBot</h2>
               <p className="text-small text-ink-3 leading-relaxed">
                 A11yBot is a local web app that helps product managers produce VPAT 2.5 Accessibility Conformance
                 Reports. It combines automated scanning (ESLint, Lighthouse) with AI-assisted drafting to turn
                 evidence into polished conformance language — all running locally, no data sent to external servers
                 except your chosen AI provider.
               </p>
-              <dl className="space-y-2 text-small">
+              <dl className="space-y-3 text-small">
                 <div className="flex gap-3">
                   <dt className="text-ink-3 w-28 shrink-0">Version</dt>
                   <dd className="font-mono text-ink-2">{APP_VERSION}</dd>
@@ -329,18 +329,18 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                 <div className="flex gap-3">
                   <dt className="text-ink-3 w-28 shrink-0">Support</dt>
                   <dd>
-                    <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer"
-                      className="text-accent hover:underline">
+                    <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                       GitHub Issues
                     </a>
                   </dd>
                 </div>
               </dl>
-              <p className="text-caption text-ink-4 pt-2 border-t border-rule">
+              <p className="text-caption text-ink-4 pt-4 border-t border-rule">
                 &copy; {new Date().getFullYear()} Rich Sharples. All rights reserved.
               </p>
             </div>
           )}
+
         </div>
       </main>
 
@@ -394,15 +394,29 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
   );
 }
 
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-small text-ink-3 hover:text-ink-1 transition-colors"
+    >
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      Home
+    </button>
+  );
+}
+
 function HomeCard({
-  icon, title, description, onClick, accent, active, disabled,
+  icon, title, description, onClick, accent, disabled,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   onClick: () => void;
   accent?: boolean;
-  active?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -413,14 +427,12 @@ function HomeCard({
       className={`text-left p-6 rounded-xl border-2 transition-colors w-full ${
         disabled
           ? "border-rule bg-surface-2 opacity-50 cursor-not-allowed"
-          : active
-          ? "border-accent bg-accent-soft"
           : accent
           ? "border-accent bg-accent-soft hover:bg-accent-soft/80"
           : "border-rule bg-surface-2 hover:border-accent-rule hover:bg-surface-3"
       }`}
     >
-      <div className={`mb-3 ${accent || active ? "text-accent" : "text-ink-3"}`}>{icon}</div>
+      <div className={`mb-3 ${accent ? "text-accent" : "text-ink-3"}`}>{icon}</div>
       <div className="font-semibold text-ink-1 mb-1">{title}</div>
       <p className="text-caption text-ink-3 leading-snug">{description}</p>
     </button>
