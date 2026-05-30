@@ -73,6 +73,7 @@ export default function Home() {
     return (
       <SetupWizard
         onCreated={handleProjectCreated}
+        onCancel={handleGoToHub}
         loading={loading}
         setLoading={setLoading}
         error={error}

@@ -34,6 +34,7 @@ interface CriteriaStatus {
 
 interface Props {
   onCreated: (project: Project) => void;
+  onCancel: () => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
   error: string | null;
@@ -121,7 +122,7 @@ const STEP4_FIELDS: FieldKey[] = ["aiApiKey"];
 interface OllamaStatus { available: boolean; models: string[] }
 interface TestResult { status: "idle" | "testing" | "ok" | "error"; message?: string }
 
-export function SetupWizard({ onCreated, loading, setLoading, error, setError }: Props) {
+export function SetupWizard({ onCreated, onCancel, loading, setLoading, error, setError }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [criteriaStatus, setCriteriaStatus] = useState<CriteriaStatus | null>(null);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
@@ -189,6 +190,22 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
     aiModel: DEFAULT_OPENROUTER_MODEL,
   });
   const [touched, setTouched] = useState<Touched>({});
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const isDirty =
+    form.productName.trim() !== "" ||
+    form.productVersion.trim() !== "" ||
+    form.productDescription.trim() !== "" ||
+    form.contactName.trim() !== "" ||
+    form.contactEmail.trim() !== "";
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setConfirmCancel(true);
+    } else {
+      onCancel();
+    }
+  };
 
   const set = (key: FieldKey) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
@@ -417,7 +434,8 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                     </Field>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="flex gap-3 pt-2">
+                    <Button variant="ghost" type="button" onClick={handleCancel}>Cancel</Button>
                     <Button variant="primary" type="button" onClick={handleContinue} className="flex-1">Continue →</Button>
                   </div>
                 </div>
@@ -462,6 +480,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
+                    <Button variant="ghost" type="button" onClick={handleCancel}>Cancel</Button>
                     <Button variant="secondary" type="button" onClick={() => setStep(1)}>← Back</Button>
                     <Button variant="primary" type="button" onClick={handleContinue2} className="flex-1">Continue →</Button>
                   </div>
@@ -510,6 +529,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
+                    <Button variant="ghost" type="button" onClick={handleCancel}>Cancel</Button>
                     <Button variant="secondary" type="button" onClick={() => setStep(2)}>← Back</Button>
                     <Button variant="primary" type="button" onClick={handleContinue3} className="flex-1">Continue →</Button>
                   </div>
@@ -657,6 +677,7 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
                   )}
 
                   <div className="flex gap-3 pt-2">
+                    <Button variant="ghost" type="button" onClick={handleCancel}>Cancel</Button>
                     <Button variant="secondary" type="button" onClick={() => setStep(3)}>← Back</Button>
                     <Button variant="primary" type="submit" disabled={loading} className="flex-1">
                       {loading ? "Creating project…" : "Create Project →"}
@@ -668,6 +689,25 @@ export function SetupWizard({ onCreated, loading, setLoading, error, setError }:
           </div>
         </div>
       </div>
+
+      {/* Cancel confirmation dialog */}
+      {confirmCancel && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setConfirmCancel(false)} aria-hidden="true" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-surface rounded-xl shadow-xl p-6 max-w-sm w-full space-y-4">
+              <h2 className="font-semibold text-ink-1">Discard this project?</h2>
+              <p className="text-small text-ink-3">
+                You&apos;ve started filling in project details. Going back to the home screen will discard what you&apos;ve entered.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button variant="secondary" onClick={() => setConfirmCancel(false)}>Keep editing</Button>
+                <Button variant="danger" onClick={onCancel}>Discard</Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
