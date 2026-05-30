@@ -141,6 +141,10 @@ export const UserConfigSchema = z.object({
     name: z.string().default(""),
     email: z.string().default(""),
   }).default({}),
+  company: z.object({
+    name: z.string().default(""),
+    url: z.string().default(""),
+  }).default({}),
   aiDefaults: z.object({
     provider: z.enum(["openrouter", "ollama", "none"]).default("none"),
     model: z.string().default(""),

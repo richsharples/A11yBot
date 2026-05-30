@@ -90,7 +90,12 @@ const fixedTable = (rows: TableRow[], columnWidths: number[]) =>
     columnWidths,
   });
 
-export async function renderDocx(project: Project): Promise<Buffer> {
+export interface ReportCompany {
+  name?: string;
+  url?: string;
+}
+
+export async function renderDocx(project: Project, company?: ReportCompany): Promise<Buffer> {
   const criteriaFile = getCriteriaFile(project.edition);
   const sections: (Paragraph | Table)[] = [];
 
@@ -117,6 +122,8 @@ export async function renderDocx(project: Project): Promise<Buffer> {
       metaRow("Name of Product", project.productName),
       metaRow("Product Version", project.productVersion),
       metaRow("Report Date", new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })),
+      ...(company?.name ? [metaRow("Vendor Company", company.name)] : []),
+      ...(company?.url ? [metaRow("Company Website", company.url)] : []),
       metaRow("Contact", `${project.contactName} <${project.contactEmail}>`),
       metaRow("Notes", project.productDescription),
     ], metaCols),

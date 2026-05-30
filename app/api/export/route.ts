@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireProject } from "@/src/state/project";
 import { renderDocx } from "@/src/docx/render";
+import { readUserConfig } from "@/src/state/user-config";
 import { log, writeRunLog } from "@/src/state/log";
 import { writeFileSync } from "fs";
 import { join } from "path";
@@ -11,7 +12,8 @@ export async function POST() {
     log.info({ event: "export", projectId: project.id });
     writeRunLog({ event: "export", projectId: project.id, project });
 
-    const buffer = await renderDocx(project);
+    const config = readUserConfig();
+    const buffer = await renderDocx(project, config.company);
 
     const date = new Date().toISOString().slice(0, 10);
     const safeName = project.productName.replace(/[^a-zA-Z0-9-]/g, "_");
