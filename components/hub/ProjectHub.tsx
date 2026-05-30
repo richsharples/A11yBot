@@ -182,7 +182,7 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
                     </svg>
                   }
-                  title="Open Existing"
+                  title="Open Existing Project"
                   description={hasProjects ? `${projects.length} saved project${projects.length !== 1 ? "s" : ""}` : "No saved projects yet"}
                   onClick={() => hasProjects && setView("open")}
                   disabled={!hasProjects}
@@ -209,21 +209,19 @@ export function ProjectHub({ onNewProject, onProjectLoaded }: Props) {
                   description="Version info, credits, and support links."
                   onClick={() => setView("about")}
                 />
-              </div>
 
-              {/* Settings — full-width below the 2×2 */}
-              <HomeCard
-                icon={
-                  <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                }
-                title="Settings"
-                description="AI provider, contact details, and appearance."
-                onClick={() => setView("settings")}
-                wide
-              />
+                <HomeCard
+                  icon={
+                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  }
+                  title="Settings"
+                  description="AI provider, contact details, and appearance."
+                  onClick={() => setView("settings")}
+                />
+              </div>
             </>
           )}
 
@@ -764,7 +762,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 function HomeCard({
-  icon, title, description, onClick, accent, disabled, wide,
+  icon, title, description, onClick, accent, disabled,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -772,14 +770,13 @@ function HomeCard({
   onClick: () => void;
   accent?: boolean;
   disabled?: boolean;
-  wide?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`text-left p-6 rounded-xl border-2 transition-colors w-full ${wide ? "col-span-2" : ""} ${
+      className={`text-left p-6 rounded-xl border-2 transition-colors w-full ${
         disabled
           ? "border-rule bg-surface-2 opacity-50 cursor-not-allowed"
           : accent
