@@ -10,25 +10,23 @@ import { ProjectHub } from "@/components/hub";
 type AppView = "hub" | "setup" | "review";
 
 export default function Home() {
-  const [view, setView] = useState<AppView>("setup");
+  const [view, setView] = useState<AppView>("hub");
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/projects/active").then((r) => r.ok ? r.json() : null),
-      fetch("/api/projects").then((r) => r.ok ? r.json() : []),
-    ]).then(([active, list]) => {
-      if (active) {
-        setProject(active);
-        setView("review");
-      } else if (list.length > 0) {
-        setView("hub");
-      }
-      // else stay on "setup" (wizard)
-    }).catch(() => {});
+    fetch("/api/projects/active")
+      .then((r) => r.ok ? r.json() : null)
+      .then((active) => {
+        if (active) {
+          setProject(active);
+          setView("review");
+        }
+        // else stay on "hub" (home screen)
+      })
+      .catch(() => {});
   }, []);
 
   const handleProjectCreated = useCallback((p: Project) => {
